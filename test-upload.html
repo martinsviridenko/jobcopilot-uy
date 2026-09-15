@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Test CV Upload - Diagnóstico</title>
+    <style>
+        body { font-family: sans-serif; padding: 40px; background: #1a1a2e; color: #fff; }
+        .log { background: #111; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 13px; white-space: pre-wrap; min-height: 200px; margin-top: 20px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 2px solid #333; border-radius: 12px; }
+        h3 { color: #38bdf8; }
+        button { padding: 10px 20px; font-size: 14px; cursor: pointer; margin: 5px; }
+        .success { color: #4ade80; }
+        .error { color: #f87171; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Diagnóstico de CV Upload - JobCopilot</h1>
+    <p>Esta página diagnostica exactamente por qué el upload no funciona.</p>
+
+    <div id="log" class="log">Iniciando diagnóstico...\n</div>
+
+    <!-- TEST 1: Input de archivo directo y visible -->
+    <div class="test-section">
+        <h3>Test 1: Input de archivo VISIBLE (sin esconder)</h3>
+        <p>Si este funciona pero los otros no, el problema es el CSS sr-only.</p>
+        <input type="file" id="testInput1" accept=".pdf,.txt">
+    </div>
+
+    <!-- TEST 2: Input escondido con click programático -->
+    <div class="test-section">
+        <h3>Test 2: Input ESCONDIDO + click() desde botón</h3>
+        <p>Si este no funciona, Safari está bloqueando el .click() programático.</p>
+        <input type="file" id="testInput2" accept=".pdf,.txt" style="position: absolute; width: 1px; height: 1px; opacity: 0; clip: rect(0,0,0,0);">
+        <button onclick="document.getElementById('testInput2').click();">Click para abrir diálogo (método 2)</button>
+    </div>
+
+    <!-- TEST 3: Simular exactamente lo que hace JobCopilot -->
+    <div class="test-section">
+        <h3>Test 3: Replica exacta del dropzone de JobCopilot</h3>
+        <input type="file" id="testInput3" accept=".pdf,.txt" style="position: absolute; width: 1px; height: 1px; opacity: 0; clip: rect(0,0,0,0);">
+        <div style="border: 2px dashed #555; padding: 30px; text-align: center; cursor: pointer;" onclick="document.getElementById('testInput3').click();">
+            <p>Hacé clic acá para seleccionar archivo</p>
+            <div onclick="event.stopPropagation();">
+                <button type="button" onclick="event.stopPropagation(); document.getElementById('testInput3').click();">Seleccionar archivo</button>
+                <button type="button" onclick="event.stopPropagation(); addLog('Botón Pegar texto clickeado');">Pegar texto</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TEST 4: PDF.js availability -->
+    <div class="test-section">
+        <h3>Test 4: ¿Está PDF.js disponible?</h3>
+        <button onclick="testPdfJs()">Verificar PDF.js</button>
+    </div>
+
+    <!-- TEST 5: Load all JobCopilot scripts and check -->
+    <div class="test-section">
+        <h3>Test 5: Cargar scripts de JobCopilot y verificar</h3>
+        <button onclick="testScriptsLoad()">Cargar scripts y verificar</button>
+    </div>
+
+    <script>
+        function addLog(msg, type) {
+            const logEl = document.getElementById('log');
+            const prefix = type === 'error' ? '❌ ' : type === 'success' ? '✅ ' : '📝 ';
+            logEl.textContent += prefix + msg + '\n';
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        // Test 1: Direct visible input
+        document.getElementById('testInput1').addEventListener('change', function(e) {
+            if (e.target.files && e.target.files.length > 0) {
+                addLog('TEST 1 PASÓ: Archivo seleccionado: ' + e.target.files[0].name + ' (' + e.target.files[0].size + ' bytes)', 'success');
+            }
+        });
+
+        // Test 2: Hidden input with programmatic click
+        document.getElementById('testInput2').addEventListener('change', function(e) {
+            if (e.target.files && e.target.files.length > 0) {
+                addLog('TEST 2 PASÓ: Archivo seleccionado via .click(): ' + e.target.files[0].name, 'success');
+            }
+        });
+
+        // Test 3: Exact replica
+        document.getElementById('testInput3').addEventListener('change', function(e) {
+            if (e.target.files && e.target.files.length > 0) {
+                addLog('TEST 3 PASÓ: Dropzone replica funcionó: ' + e.target.files[0].name, 'success');
+
+                // Try to read it
+                const file = e.target.files[0];
+                if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
+                    file.arrayBuffer().then(buf => {
+                        addLog('ArrayBuffer leído OK: ' + buf.byteLength + ' bytes', 'success');
+                    }).catch(err => {
+                        addLog('Error leyendo ArrayBuffer: ' + err.message, 'error');
+                    });
+                } else {
+                    file.text().then(txt => {
+                        addLog('Texto leído OK: ' + txt.length + ' caracteres', 'success');
+                    }).catch(err => {
+                        addLog('Error leyendo texto: ' + err.message, 'error');
+                    });
+                }
+            }
+        });
+
+        function testPdfJs() {
+            if (typeof pdfjsLib !== 'undefined') {
+                addLog('pdfjsLib está disponible: versión ' + (pdfjsLib.version || 'desconocida'), 'success');
+            } else {
+                addLog('pdfjsLib NO está definido en window', 'error');
+            }
+        }
+
+        function testScriptsLoad() {
+            const scripts = [
+                'js/vendor/pdf.min.js',
+                'js/config.js',
+                'js/core/profile-analyzer.js',
+                'js/core/job-analyzer.js',
+                'js/core/matching-engine.js',
+                'js/core/transparency-tracker.js',
+                'js/core/storage.js',
+                'js/ui/filter-controller.js',
+                'js/ui/feed-renderer.js',
+                'js/ui/modals-controller.js',
+                'js/app.js'
+            ];
+
+            let loaded = 0;
+            scripts.forEach(src => {
+                fetch(src).then(r => {
+                    if (r.ok) {
+                        addLog('Script disponible: ' + src + ' (status ' + r.status + ')', 'success');
+                    } else {
+                        addLog('Script ERROR HTTP: ' + src + ' (status ' + r.status + ')', 'error');
+                    }
+                    loaded++;
+                    if (loaded === scripts.length) {
+                        // Check if key objects exist
+                        addLog('--- Verificando objetos globales ---');
+                        addLog('CONFIG: ' + (typeof CONFIG !== 'undefined' ? 'OK' : 'FALTA'), typeof CONFIG !== 'undefined' ? 'success' : 'error');
+                        addLog('ProfileAnalyzer: ' + (typeof ProfileAnalyzer !== 'undefined' ? 'OK' : 'FALTA'), typeof ProfileAnalyzer !== 'undefined' ? 'success' : 'error');
+                        addLog('JobAnalyzer: ' + (typeof JobAnalyzer !== 'undefined' ? 'OK' : 'FALTA'), typeof JobAnalyzer !== 'undefined' ? 'success' : 'error');
+                        addLog('MatchingEngine: ' + (typeof MatchingEngine !== 'undefined' ? 'OK' : 'FALTA'), typeof MatchingEngine !== 'undefined' ? 'success' : 'error');
+                        addLog('StorageManager: ' + (typeof StorageManager !== 'undefined' ? 'OK' : 'FALTA'), typeof StorageManager !== 'undefined' ? 'success' : 'error');
+                        addLog('FilterController: ' + (typeof FilterController !== 'undefined' ? 'OK' : 'FALTA'), typeof FilterController !== 'undefined' ? 'success' : 'error');
+                        addLog('FeedRenderer: ' + (typeof FeedRenderer !== 'undefined' ? 'OK' : 'FALTA'), typeof FeedRenderer !== 'undefined' ? 'success' : 'error');
+                        addLog('ModalsController: ' + (typeof ModalsController !== 'undefined' ? 'OK' : 'FALTA'), typeof ModalsController !== 'undefined' ? 'success' : 'error');
+                        addLog('App: ' + (typeof App !== 'undefined' ? 'OK' : 'FALTA'), typeof App !== 'undefined' ? 'success' : 'error');
+                    }
+                }).catch(err => {
+                    addLog('Script FETCH ERROR: ' + src + ' - ' + err.message, 'error');
+                    loaded++;
+                });
+            });
+        }
+
+        addLog('Página de diagnóstico cargada correctamente.', 'success');
+        addLog('Navegador: ' + navigator.userAgent);
+        addLog('');
+        addLog('Instrucciones:');
+        addLog('1. Probá el Test 1 (input visible) - seleccioná un PDF');
+        addLog('2. Probá el Test 2 (input oculto + click) - clic en el botón');
+        addLog('3. Probá el Test 3 (réplica del dropzone)');
+        addLog('4. Verificá PDF.js con Test 4');
+        addLog('5. Verificá scripts con Test 5');
+        addLog('');
+    </script>
+</body>
+</html>
