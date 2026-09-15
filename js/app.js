@@ -266,7 +266,7 @@ const App = {
     async processFile(file) {
         if (!file) return;
 
-        console.log("[JobCopilot] Iniciando lectura de archivo:", file.name, "tipo:", file.type, "tamano:", file.size);
+        console.log("[JobCopilot] Iniciando lectura de archivo:", file.name);
 
         const loader = document.getElementById('cvUploadLoader');
         const loaderText = document.getElementById('cvLoaderText');
@@ -278,15 +278,22 @@ const App = {
 
         try {
             let extractedText = "";
+            const isPdf = file.name.toLowerCase().endsWith(".pdf") || file.type === "application/pdf";
 
-            if (file.name.toLowerCase().endsWith(".pdf") || file.type === "application/pdf") {
+            if (isPdf) {
                 if (loaderText) loaderText.innerText = "Extrayendo texto del PDF...";
                 
-                // Intento 1: Extracción con PDF.js (Uint8Array)
                 let pdfParsed = false;
                 if (typeof pdfjsLib !== 'undefined') {
                     try {
-                        const arrayBuffer = await file.arrayBuffer();
+                        // Usar FileReader clásico (compatible con todos los Safari/Mac viejos)
+                        const arrayBuffer = await new Promise((resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.onload = () => resolve(reader.result);
+                            reader.onerror = () => reject(reader.error);
+                            reader.readAsArrayBuffer(file);
+                        });
+                        
                         const typedArray = new Uint8Array(arrayBuffer);
                         const loadingTask = pdfjsLib.getDocument({ data: typedArray });
                         const pdf = await loadingTask.promise;
@@ -306,27 +313,33 @@ const App = {
                     } catch (pdfErr) {
                         console.warn("[JobCopilot] PDF.js arrojó error:", pdfErr);
                     }
-                } else {
-                    console.warn("[JobCopilot] pdfjsLib no está disponible en window.");
                 }
 
-                // Intento 2: Si PDF.js no extrajo suficiente texto (ej. streams o error), buscar texto ASCII en el binario
+                // Fallback a texto si PDF.js falla
                 if (!pdfParsed) {
                     try {
-                        const rawContent = await file.text();
-                        // Filtrar secuencias de texto legibles
+                        const rawContent = await new Promise((resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.onload = () => resolve(reader.result);
+                            reader.onerror = () => reject(reader.error);
+                            reader.readAsText(file);
+                        });
                         const asciiMatches = rawContent.match(/[A-Za-zÀ-ÿ0-9,.:;()\/\- ]{4,}/g);
                         if (asciiMatches && asciiMatches.length > 10) {
                             extractedText = asciiMatches.join(" ");
-                            console.log("[JobCopilot] Extracción exitosa con fallback ASCII:", extractedText.length, "caracteres");
                         }
                     } catch (rawErr) {
                         console.warn("[JobCopilot] Fallback ASCII falló:", rawErr);
                     }
                 }
             } else {
-                // Archivo de texto plano (.txt u otro)
-                extractedText = await file.text();
+                // Archivo txt
+                extractedText = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = () => reject(reader.error);
+                    reader.readAsText(file);
+                });
             }
 
             // Validar que se haya obtenido texto

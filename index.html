@@ -291,7 +291,7 @@
                     </div>
 
                     <!-- CV Upload Dropzone (plain div, no label wrapper to avoid double-trigger) -->
-                    <input type="file" id="cvFileInput" accept=".pdf,.txt" class="sr-only-file-input">
+                    <input type="file" id="cvFileInput" accept=".pdf,.txt" class="sr-only-file-input" onclick="this.value=null;">
                     <div class="dropzone-box" id="dropzoneBox" style="cursor: pointer; display: block;" onclick="document.getElementById('cvFileInput').click();">
                         <div class="dropzone-icon">
                             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
