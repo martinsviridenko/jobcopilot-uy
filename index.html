@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JobCopilot AI — Tu Copiloto Inteligente de Postulaciones Laborales en Uruguay</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- Mozilla PDF.js for 100% Client-Side In-Browser PDF Parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
+
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="app-container">
+        
+        <!-- Top Nav -->
+        <header class="top-nav">
+            <div class="brand-group">
+                <div class="brand-logo">JC</div>
+                <div class="brand-text">
+                    <h1>JobCopilot AI</h1>
+                    <p>El copiloto de postulaciones para estudiantes & juniors en Uruguay</p>
+                </div>
+            </div>
+
+            <div class="nav-stats-bar">
+                <div class="stat-badge">Vacantes analizadas: <strong id="statAnalyzed">18</strong></div>
+                <div class="stat-badge">Postulaciones: <strong id="statApplied">0</strong></div>
+                <div class="stat-badge">Filtro Horas: <strong id="statFilterHours">4h & 6h</strong></div>
+                <button class="btn-config-ai" onclick="openApiKeyModal()">
+                    ⚙️ Configurar IA (Gratis)
+                </button>
+            </div>
+        </header>
+
+        <!-- Conversational Prompt Bar -->
+        <section class="copilot-prompt-card">
+            <div class="copilot-prompt-icon">💡</div>
+            <div class="copilot-prompt-wrap">
+                <input type="text" id="conversationalPrompt" class="copilot-prompt-input" 
+                       placeholder='Preguntale a tu copiloto: "Buscame trabajos de 6 horas en tecnología con Power BI" o "Pasantías en consultoras"...'
+                       onkeydown="if(event.key==='Enter') executeConversationalSearch()">
+            </div>
+            <button class="copilot-prompt-btn" onclick="executeConversationalSearch()">
+                Analizar y Filtrar &rarr;
+            </button>
+        </section>
+
+        <!-- Main Workspace Grid -->
+        <div class="main-grid">
+            
+            <!-- Sidebar: CV Onboarding & Exact Filters -->
+            <aside class="sidebar">
+                
+                <!-- Panel 1: CV Onboarding -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <span class="panel-title">1. Mi Currículum & Perfil</span>
+                        <span id="cvBadgeStatus" style="font-size: 11px; color: var(--text-muted); font-weight: 700;">● Sin cargar</span>
+                    </div>
+
+                    <!-- Native Dropzone with PDF.js In-Browser Parser -->
+                    <label class="dropzone-label" for="cvFileInput" id="dropzoneLabel">
+                        <input type="file" id="cvFileInput" accept=".pdf,.txt" onchange="handleFileSelected(event)">
+                        <div class="dropzone-icon">📄</div>
+                        <div class="dropzone-title">Subí tu CV (.pdf o .txt)</div>
+                        <div class="dropzone-sub">
+                            Arrastrá el archivo o <span class="dropzone-link">hacé clic acá</span>
+                        </div>
+                        <div style="font-size: 11px; color: var(--text-subtle); margin-top: 4px;">
+                            Lectura directa en tu navegador vía PDF.js
+                        </div>
+                    </label>
+
+                    <button class="btn-action-outline" onclick="openManualProfileModal()">
+                        ✍️ Cargar o editar perfil manualmente
+                    </button>
+
+                    <div style="text-align: center; margin-top: 6px;">
+                        <button onclick="loadDemoCandidate()" style="font-size: 11px; color: var(--text-muted); background: none; border: none; text-decoration: underline; cursor: pointer;">
+                            ¿Querés probar? Cargar perfil de prueba (Martín Sviridenko)
+                        </button>
+                    </div>
+
+                    <!-- Profile Analysis Box -->
+                    <div class="profile-summary-box" id="profileSummaryBox" style="display: none;">
+                        <div class="profile-avatar-row">
+                            <div class="profile-avatar" id="pAvatar">CV</div>
+                            <div class="profile-meta">
+                                <h4 id="pName">Nombre Candidato</h4>
+                                <p id="pEdu">Carrera & Universidad</p>
+                            </div>
+                        </div>
+
+                        <div class="profile-summary-text" id="pSummaryText">
+                            Resumen profesional analizado por JobCopilot.
+                        </div>
+
+                        <div style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 6px;">
+                            Inglés: <strong style="color: #FFF;" id="pLang">Cambridge B2 First</strong>
+                        </div>
+
+                        <div style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 6px;">Habilidades reconocidas:</div>
+                        <div class="chips-cloud" id="pSkillsChips"></div>
+
+                        <div style="display: flex; gap: 8px; margin-top: 14px;">
+                            <button onclick="openManualProfileModal()" class="btn-action-outline" style="margin-bottom:0; font-size: 11.5px; padding: 6px;">
+                                ✏️ Editar
+                            </button>
+                            <button onclick="resetProfile()" class="btn-action-outline" style="margin-bottom:0; font-size: 11.5px; padding: 6px; color: #FCA5A5; border-color: rgba(244,63,94,0.3);">
+                                ✕ Quitar CV
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel 2: Ponderaciones y Filtros -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <span class="panel-title">2. Filtros & Horarios</span>
+                    </div>
+
+                    <div class="filter-group">
+                        <div class="filter-header-label">Carga Horaria</div>
+
+                        <label class="check-pill" for="filter4h">
+                            <span class="label-left">
+                                <input type="checkbox" id="filter4h" checked onchange="applyFilters()">
+                                <span>4 Horas Diarias (Pasantía)</span>
+                            </span>
+                            <span class="badge-hours b-4h">Part-Time</span>
+                        </label>
+
+                        <label class="check-pill" for="filter6h">
+                            <span class="label-left">
+                                <input type="checkbox" id="filter6h" checked onchange="applyFilters()">
+                                <span>6 Horas (Bancaria / Meli / Tech)</span>
+                            </span>
+                            <span class="badge-hours b-6h">Medio Turno</span>
+                        </label>
+
+                        <label class="check-pill" for="filter8h">
+                            <span class="label-left">
+                                <input type="checkbox" id="filter8h" onchange="applyFilters()">
+                                <span>8 Horas (Jornada Completa)</span>
+                            </span>
+                            <span class="badge-hours b-8h">Full-Time</span>
+                        </label>
+                    </div>
+
+                    <div class="filter-group">
+                        <div class="filter-header-label">Sectores de Interés</div>
+
+                        <label class="check-pill" for="secBank">
+                            <span class="label-left">
+                                <input type="checkbox" id="secBank" checked onchange="applyFilters()">
+                                <span>Banca, Finanzas & Crédito</span>
+                            </span>
+                        </label>
+
+                        <label class="check-pill" for="secConsulting">
+                            <span class="label-left">
+                                <input type="checkbox" id="secConsulting" checked onchange="applyFilters()">
+                                <span>Consultoría, Auditoría & Procesos</span>
+                            </span>
+                        </label>
+
+                        <label class="check-pill" for="secTech">
+                            <span class="label-left">
+                                <input type="checkbox" id="secTech" checked onchange="applyFilters()">
+                                <span>Tecnología, Software & E-commerce</span>
+                            </span>
+                        </label>
+
+                        <label class="check-pill" for="secRetail">
+                            <span class="label-left">
+                                <input type="checkbox" id="secRetail" checked onchange="applyFilters()">
+                                <span>Retail, Salud & Consumo Masivo</span>
+                            </span>
+                        </label>
+
+                        <label class="check-pill" for="secUniv">
+                            <span class="label-left">
+                                <input type="checkbox" id="secUniv" checked onchange="applyFilters()">
+                                <span>Pasantías Universitarias & Convenios</span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="filter-group">
+                        <div class="filter-header-label">Modalidad</div>
+
+                        <label class="check-pill" for="modHybrid">
+                            <span class="label-left">
+                                <input type="checkbox" id="modHybrid" checked onchange="applyFilters()">
+                                <span>Híbrido</span>
+                            </span>
+                        </label>
+
+                        <label class="check-pill" for="modRemote">
+                            <span class="label-left">
+                                <input type="checkbox" id="modRemote" checked onchange="applyFilters()">
+                                <span>Remoto</span>
+                            </span>
+                        </label>
+
+                        <label class="check-pill" for="modPresential">
+                            <span class="label-left">
+                                <input type="checkbox" id="modPresential" checked onchange="applyFilters()">
+                                <span>Presencial</span>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+            </aside>
+
+            <!-- Main Content Area -->
+            <main class="content-area">
+                
+                <!-- View Bar -->
+                <div class="views-bar">
+                    <div class="tab-nav-buttons">
+                        <button class="tab-item active" id="tabFeed" onclick="switchView('feed')">
+                            🎯 Oportunidades (<span id="countFeed">0</span>)
+                        </button>
+                        <button class="tab-item" id="tabKanban" onclick="switchView('kanban')">
+                            📊 Mi Pipeline de Postulaciones (<span id="countPipeline">0</span>)
+                        </button>
+                        <button class="tab-item" id="tabFavorites" onclick="switchView('favorites')">
+                            ⭐ Favoritas (<span id="countFavs">0</span>)
+                        </button>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <label style="font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                            <input type="checkbox" id="hideAppliedToggle" onchange="applyFilters()">
+                            <span>Ocultar ya postuladas</span>
+                        </label>
+                        <select class="sort-select" id="sortSelect" onchange="applyFilters()">
+                            <option value="worth_it">Ordenar por: "Vale la pena para vos" (AI)</option>
+                            <option value="score_desc">Mayor coincidencia técnica</option>
+                            <option value="hours_asc">Menor carga horaria (4h primero)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Feed View -->
+                <div id="feedView" class="job-list-container"></div>
+
+                <!-- Kanban Pipeline View -->
+                <div id="kanbanView" style="display: none;">
+                    <div class="kanban-board">
+                        <div class="kanban-col">
+                            <div class="kanban-col-title">
+                                <span>📤 CV Enviado</span>
+                                <span id="kCountSent" class="badge-hours b-6h">0</span>
+                            </div>
+                            <div id="colSent" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                        </div>
+
+                        <div class="kanban-col">
+                            <div class="kanban-col-title">
+                                <span>👀 En Revisión</span>
+                                <span id="kCountReview" class="badge-hours b-4h">0</span>
+                            </div>
+                            <div id="colReview" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                        </div>
+
+                        <div class="kanban-col">
+                            <div class="kanban-col-title">
+                                <span>🎙️ En Entrevista</span>
+                                <span id="kCountInterview" class="badge-hours b-6h" style="background: rgba(168,85,247,0.2); color:#D8B4FE;">0</span>
+                            </div>
+                            <div id="colInterview" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                        </div>
+
+                        <div class="kanban-col">
+                            <div class="kanban-col-title">
+                                <span>🏆 Oferta / Final</span>
+                                <span id="kCountOffer" class="badge-hours b-4h" style="background: rgba(16,185,129,0.2); color:#34D399;">0</span>
+                            </div>
+                            <div id="colOffer" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+
+        </div>
+    </div>
+
+    <!-- MODAL 1: ¿Me Conviene? — Análisis Profundo de la Vacante -->
+    <div class="modal-overlay" id="modalAnalysis">
+        <div class="modal-container">
+            <div class="modal-head">
+                <h3>🔍 ¿Me Conviene Postularme? — Diagnóstico Copilot</h3>
+                <button class="btn-modal-close" onclick="closeModal('modalAnalysis')">&times;</button>
+            </div>
+            <div id="analysisModalContent" style="display: flex; flex-direction: column; gap: 14px;"></div>
+            <div class="modal-actions-row">
+                <button class="btn-action-outline" onclick="closeModal('modalAnalysis')" style="width: auto; margin-bottom: 0;">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: Carta de Presentación Automática (Cover Letter) -->
+    <div class="modal-overlay" id="modalCoverLetter">
+        <div class="modal-container">
+            <div class="modal-head">
+                <h3>✉️ Carta de Presentación Generada por IA</h3>
+                <button class="btn-modal-close" onclick="closeModal('modalCoverLetter')">&times;</button>
+            </div>
+            <p style="font-size: 12.5px; color: var(--text-muted);">
+                Redactada combinando tus logros y habilidades con los requerimientos específicos de la vacante. Podés copiarla directamente en el formulario de postulación o enviarla por email.
+            </p>
+            <div class="modal-code-box" id="coverLetterText" contenteditable="true"></div>
+            <div class="modal-actions-row">
+                <button class="btn-action-outline" onclick="copyModalContent('coverLetterText')" style="width: auto; margin-bottom: 0;">
+                    📋 Copiar al Portapapeles
+                </button>
+                <button class="btn-apply-direct" onclick="closeModal('modalCoverLetter')">
+                    Listo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: Optimización de CV & Palabras Clave ATS -->
+    <div class="modal-overlay" id="modalOptimizeCv">
+        <div class="modal-container">
+            <div class="modal-head">
+                <h3>⚡ Optimizar CV para esta Vacante (Filtros ATS)</h3>
+                <button class="btn-modal-close" onclick="closeModal('modalOptimizeCv')">&times;</button>
+            </div>
+            <div id="optimizeCvContent" style="display: flex; flex-direction: column; gap: 14px;"></div>
+            <div class="modal-actions-row">
+                <button class="btn-apply-direct" onclick="closeModal('modalOptimizeCv')">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 4: Brechas de Habilidades & Cursos Recomendados -->
+    <div class="modal-overlay" id="modalSkillGaps">
+        <div class="modal-container">
+            <div class="modal-head">
+                <h3>📚 Brechas de Habilidades & Recursos para Aprender</h3>
+                <button class="btn-modal-close" onclick="closeModal('modalSkillGaps')">&times;</button>
+            </div>
+            <div id="skillGapsContent" style="display: flex; flex-direction: column; gap: 14px;"></div>
+            <div class="modal-actions-row">
+                <button class="btn-apply-direct" onclick="closeModal('modalSkillGaps')">Entendido</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 5: Comparador de Ofertas -->
+    <div class="modal-overlay" id="modalCompare">
+        <div class="modal-container" style="max-width: 820px;">
+            <div class="modal-head">
+                <h3>⚖️ Comparar Ofertas Frente a Frente</h3>
+                <button class="btn-modal-close" onclick="closeModal('modalCompare')">&times;</button>
+            </div>
+            <div class="compare-grid" id="compareGridContent"></div>
+            <div class="modal-actions-row">
+                <button class="btn-apply-direct" onclick="closeModal('modalCompare')">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 6: Cargar Perfil Manual -->
+    <div class="modal-overlay" id="modalManualProfile">
+        <div class="modal-container" style="max-width: 520px;">
+            <div class="modal-head">
+                <h3>Editar Perfil de Candidato</h3>
+                <button class="btn-modal-close" onclick="closeModal('modalManualProfile')">&times;</button>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div>
+                    <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px;">Nombre Completo</label>
+                    <input type="text" id="mName" style="width: 100%; background: #070B12; border: 1px solid var(--border-highlight); color: #FFF; padding: 8px 12px; border-radius: 8px;">
+                </div>
+                <div>
+                    <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px;">Carrera & Universidad</label>
+                    <input type="text" id="mEdu" style="width: 100%; background: #070B12; border: 1px solid var(--border-highlight); color: #FFF; padding: 8px 12px; border-radius: 8px;">
+                </div>
+                <div>
+                    <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px;">Nivel de Inglés</label>
+                    <input type="text" id="mLang" style="width: 100%; background: #070B12; border: 1px solid var(--border-highlight); color: #FFF; padding: 8px 12px; border-radius: 8px;">
+                </div>
+                <div>
+                    <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px;">Habilidades (separadas por coma)</label>
+                    <input type="text" id="mSkills" style="width: 100%; background: #070B12; border: 1px solid var(--border-highlight); color: #FFF; padding: 8px 12px; border-radius: 8px;" placeholder="Excel, SQL, Power BI, Python, etc.">
+                </div>
+            </div>
+            <div class="modal-actions-row">
+                <button class="btn-action-outline" onclick="closeModal('modalManualProfile')" style="width:auto; margin-bottom:0;">Cancelar</button>
+                <button class="btn-apply-direct" onclick="saveManualProfile()">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 7: Configuración de API de IA Gratuita -->
+    <div class="modal-overlay" id="modalApiKey">
+        <div class="modal-container" style="max-width: 540px;">
+            <div class="modal-head">
+                <h3>⚙️ Conectar Motor LLM Directo (Opcional & Gratis)</h3>
+                <button class="btn-modal-close" onclick="closeModal('modalApiKey')">&times;</button>
+            </div>
+            <p style="font-size: 12.5px; color: var(--text-muted);">
+                JobCopilot funciona 100% de forma autónoma con su motor heurístico offline. Si querés que las cartas y análisis se generen con modelos de última generación (Google Gemini o Groq Llama 3), podés ingresar una API Key gratuita. Queda guardada solo en tu navegador.
+            </p>
+            <div>
+                <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px;">Google Gemini API Key (o Groq)</label>
+                <input type="password" id="inputApiKey" placeholder="AIzaSy..." style="width: 100%; background: #070B12; border: 1px solid var(--border-highlight); color: #FFF; padding: 9px 12px; border-radius: 8px;">
+            </div>
+            <div style="font-size: 11px; color: var(--text-subtle);">
+                Podés conseguir tu clave gratuita en <a href="https://aistudio.google.com/" target="_blank" style="color: var(--primary);">Google AI Studio</a> o en <a href="https://console.groq.com/" target="_blank" style="color: var(--primary);">Groq Console</a> en 1 minuto.
+            </div>
+            <div class="modal-actions-row">
+                <button class="btn-action-outline" onclick="closeModal('modalApiKey')" style="width:auto; margin-bottom:0;">Cancelar</button>
+                <button class="btn-apply-direct" onclick="saveApiKey()">Guardar Clave</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Base de datos de vacantes -->
+    <script src="js/jobs.js"></script>
+    <!-- Lógica de la aplicación y Copilot AI -->
+    <script src="js/app.js"></script>
+</body>
+</html>
