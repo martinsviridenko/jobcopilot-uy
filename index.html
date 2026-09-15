@@ -214,15 +214,17 @@
             font-size: 13px; font-weight: 800; padding: 5px 12px; border-radius: 20px;
             display: flex; align-items: center; gap: 6px;
         }
-        .score-high { background: rgba(16, 185, 129, 0.15); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.4); }
+                .score-high { background: rgba(16, 185, 129, 0.15); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.4); }
         .score-mid { background: rgba(56, 189, 248, 0.15); color: #7DD3FC; border: 1px solid rgba(56, 189, 248, 0.4); }
         .score-low { background: rgba(245, 158, 11, 0.15); color: #FCD34D; border: 1px solid rgba(245, 158, 11, 0.4); }
+        .score-dealbreaker { background: rgba(239, 68, 68, 0.15); color: #F87171; border: 1px solid rgba(239, 68, 68, 0.4); }
         .score-none { background: rgba(148, 163, 184, 0.1); color: var(--text-muted); border: 1px solid rgba(148, 163, 184, 0.2); }
         .match-probability-text { font-size: 10.5px; color: var(--text-muted); margin-top: 3px; font-weight: 600; }
 
         /* Tags */
         .tags-cluster { display: flex; flex-wrap: wrap; gap: 6px; }
         .tag-pill { font-size: 11px; padding: 3px 9px; border-radius: 6px; font-weight: 600; }
+        .t-domain { background: rgba(99, 102, 241, 0.14); color: #A5B4FC; border: 1px solid rgba(99, 102, 241, 0.3); font-weight: 700; }
         .t-hours { background: rgba(56, 189, 248, 0.1); color: #7DD3FC; border: 1px solid rgba(56, 189, 248, 0.2); }
         .t-modality { background: rgba(168, 85, 247, 0.1); color: #D8B4FE; border: 1px solid rgba(168, 85, 247, 0.2); }
         .t-sector { background: rgba(245, 158, 11, 0.1); color: #FCD34D; border: 1px solid rgba(245, 158, 11, 0.2); }
@@ -416,6 +418,9 @@
                         <div style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 6px;">
                             Inglés: <strong style="color: #FFF;" id="pLang">Cambridge B2 First</strong>
                         </div>
+
+                        <div style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 6px;">🎯 Dominios Profesionales Detectados:</div>
+                        <div class="chips-cloud" id="pDomainsChips" style="margin-bottom: 10px;"></div>
 
                         <div style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 6px;">Habilidades reconocidas:</div>
                         <div class="chips-cloud" id="pSkillsChips"></div>
@@ -783,6 +788,9 @@
                 modalityKey: "hybrid",
                 sector: "consulting",
                 sectorLabel: "Consultoría & Auditoría IT",
+                domain: "CYBERSECURITY",
+                domainLabel: "Ciberseguridad & Auditoría IT",
+                criticalSkills: ["ciberseguridad", "iso 27001", "auditoría de sistemas", "controles it"],
                 location: "Montevideo",
                 desc: "Pasantía de 3 meses en la firma internacional Grant Thornton. Carga horaria de 4 horas diarias de lunes a viernes. Relevamiento de procesos tecnológicos, controles de seguridad y soporte analítico.",
                 careerFit: ["Negocios Digitales", "Sistemas", "Ingeniería", "Administración"],
@@ -806,6 +814,9 @@
                 modalityKey: "presential",
                 sector: "consulting",
                 sectorLabel: "Administración & Soporte",
+                domain: "BUSINESS_ADMIN",
+                domainLabel: "Negocios & Administración",
+                criticalSkills: ["facturación", "gestión administrativa", "archivo", "planillas"],
                 location: "Montevideo Centro",
                 desc: "Puesto Part-Time de 4 a 6 horas diarias de lunes a viernes coordinables. Contrato a término por 1 año con opción a renovación. Tareas: facturación, planillas de cálculo y archivo.",
                 careerFit: ["Administración", "Ciencias Económicas", "Negocios Digitales"],
@@ -829,6 +840,9 @@
                 modalityKey: "hybrid",
                 sector: "retail",
                 sectorLabel: "Retail & Moda Global",
+                domain: "DATA_BI",
+                domainLabel: "Datos & Soporte Comercial",
+                criticalSkills: ["bases de datos", "reportes", "excel", "e-commerce"],
                 location: "Montevideo",
                 desc: "Vacante Part-Time en BESTSELLER (Jack & Jones, Only, Vero Moda). Soporte al área comercial en actualización de bases de datos, generación de reportes y carga de órdenes.",
                 careerFit: ["Negocios Digitales", "Administración", "Economía", "Ingeniería"],
@@ -852,6 +866,9 @@
                 modalityKey: "presential",
                 sector: "univ",
                 sectorLabel: "Bolsa Universitaria",
+                domain: "BUSINESS_ADMIN",
+                domainLabel: "Convenios Universitarios ORT",
+                criticalSkills: ["estudiante ort", "negocios digitales", "analítica"],
                 location: "Montevideo",
                 desc: "Portal oficial de convenios de pasantía académica de ORT Uruguay. Acceso exclusivo a ofertas part-time de empresas socias que coordinan horarios con la facultad.",
                 careerFit: ["Negocios Digitales", "Sistemas", "Administración", "Analítica"],
@@ -877,12 +894,15 @@
                 modalityKey: "hybrid",
                 sector: "tech",
                 sectorLabel: "Tecnología & IA",
+                domain: "SOFTWARE_DEV",
+                domainLabel: "Desarrollo de Software & IA",
+                criticalSkills: ["javascript", "react", "apis", "git", "backend"],
                 location: "Montevideo",
-                desc: "Programa formativo Trainee de 6 horas diarias en empresa enfocada en soluciones de inteligencia artificial. Aprendizaje práctico en modelos, desarrollo y analítica de datos.",
-                careerFit: ["Negocios Digitales", "Sistemas", "Ciencia de Datos", "Ingeniería"],
+                desc: "Programa formativo Trainee de 6 horas diarias en empresa enfocada en soluciones de inteligencia artificial. Aprendizaje práctico en modelos, desarrollo y programación de aplicaciones.",
+                careerFit: ["Sistemas", "Ingeniería en Computación", "Ciencia de Datos"],
                 requirements: {
-                    mandatory: ["Estudiante universitario activo", "Fundamentos de programación o datos", "Inglés intermedio/avanzado"],
-                    desirable: ["Nociones de Python", "Curiosidad por IA generativa"],
+                    mandatory: ["Estudiante de Sistemas o Computación", "Fundamentos sólidos de desarrollo web y lógica de programación", "Inglés intermedio/avanzado"],
+                    desirable: ["Nociones de Python o JavaScript", "Curiosidad por IA generativa"],
                     bonus: ["Proyectos personales o GitHub"]
                 },
                 salaryGuide: "$30.000 - $38.000 UYU (Trainee 6h)",
@@ -900,13 +920,16 @@
                 modalityKey: "hybrid",
                 sector: "tech",
                 sectorLabel: "Telecomunicaciones & Software",
+                domain: "IT_SUPPORT_INFRA",
+                domainLabel: "Soporte TI & Infraestructura",
+                criticalSkills: ["linux", "redes", "hardware", "active directory", "soporte técnico", "mesa de ayuda"],
                 location: "Montevideo",
-                desc: "Pasantía de 6 horas diarias de lunes a viernes en Quantik Group. Atención a usuarios, soporte sobre plataformas digitales y resolución de incidentes operativos.",
-                careerFit: ["Sistemas", "Negocios Digitales", "Tecnología"],
+                desc: "Pasantía de 6 horas diarias de lunes a viernes en Quantik Group. Mesa de ayuda a usuarios corporativos, diagnóstico de hardware, configuración de sistemas operativos Linux/Windows y redes locales.",
+                careerFit: ["Sistemas", "Redes & Telecomunicaciones", "Tecnología de la Información"],
                 requirements: {
-                    mandatory: ["Estudiante de carreras tecnológicas o afines", "Disponibilidad 6 horas"],
-                    desirable: ["Sistemas operativos Windows", "Vocación de servicio"],
-                    bonus: ["Redes básicas o scripting"]
+                    mandatory: ["Estudiante de carreras de Sistemas o Redes", "Conocimientos de hardware, redes o mesa de ayuda (excluyente)", "Disponibilidad 6 horas"],
+                    desirable: ["Administración básica de Linux", "Vocación de servicio técnico"],
+                    bonus: ["Certificaciones Cisco o soporte de telecomunicaciones"]
                 },
                 salaryGuide: "$28.000 - $35.000 UYU",
                 applyUrl: "https://uy.linkedin.com/jobs/view/pasante-de-ti-at-quantik-group-4461373330",
@@ -923,11 +946,14 @@
                 modalityKey: "hybrid",
                 sector: "consulting",
                 sectorLabel: "Consultoría & Auditoría",
+                domain: "FINANCE_BANKING",
+                domainLabel: "Auditoría Contable & Finanzas",
+                criticalSkills: ["auditoría contable", "contabilidad", "control interno", "ciencias económicas"],
                 location: "Montevideo",
-                desc: "Puesto Part-Time formal en PwC Uruguay para estudiantes universitarios con licencias de estudio. Revisión analítica de operaciones, análisis de procesos y control interno.",
+                desc: "Puesto Part-Time formal en PwC Uruguay para estudiantes universitarios con licencias de estudio. Revisión analítica de operaciones, análisis de procesos contables y control interno.",
                 careerFit: ["Contabilidad", "Administración", "Economía", "Negocios"],
                 requirements: {
-                    mandatory: ["Estudiante universitario con al menos 50% de avance académico", "No requiere experiencia previa"],
+                    mandatory: ["Estudiante universitario con al menos 50% de avance académico en Ciencias Económicas", "No requiere experiencia previa"],
                     desirable: ["Inglés intermedio", "Manejo fluido de Excel"],
                     bonus: ["Capacidad analítica y trabajo en equipo"]
                 },
@@ -946,6 +972,9 @@
                 modalityKey: "hybrid",
                 sector: "tech",
                 sectorLabel: "E-commerce & Fintech",
+                domain: "OPERATIONS_LOG",
+                domainLabel: "Operaciones & Customer Experience",
+                criticalSkills: ["customer experience", "atención al cliente", "e-commerce", "resolución de incidentes"],
                 location: "WTC Montevideo",
                 desc: "Atención y soporte a usuarios de Mercado Libre y Mercado Pago en WTC Free Zone. Resolución de consultas sobre pagos digitales, cobros y envíos.",
                 careerFit: ["Negocios Digitales", "Administración", "Comunicación"],
@@ -969,6 +998,9 @@
                 modalityKey: "presential",
                 sector: "retail",
                 sectorLabel: "Servicios Corporativos",
+                domain: "OPERATIONS_LOG",
+                domainLabel: "Operaciones & Servicios",
+                criticalSkills: ["atención telefónica", "gestión operativa", "resolución de incidentes"],
                 location: "Montevideo",
                 desc: "Jornada fija de 6 horas diarias para atención y coordinación de servicios solicitados por socios. Seguimiento de casos en plataformas informáticas.",
                 careerFit: ["Administración", "General"],
@@ -992,63 +1024,98 @@
                 modalityKey: "hybrid",
                 sector: "bank",
                 sectorLabel: "Banca & Finanzas",
+                domain: "FINANCE_BANKING",
+                domainLabel: "Banca & Finanzas",
+                criticalSkills: ["banca", "ciencias económicas", "análisis financiero", "servicios bancarios"],
                 location: "Montevideo",
                 desc: "Canal oficial para ingresar CV al sistema de Recursos Humanos de Itaú para futuras vacantes de 6 horas en áreas comerciales y operativas.",
                 careerFit: ["Ciencias Económicas", "Negocios Digitales", "Administración"],
                 requirements: {
                     mandatory: ["Estudiante universitario activo"],
                     desirable: ["Manejo de Excel y orientación analítica"],
-                    bonus: ["Inglés profesional"]
+                    bonus: ["Vocación de servicio comercial"]
                 },
-                salaryGuide: "Escalafón bancario AEBU (6 horas)",
-                applyUrl: "https://www.itau.com.uy/inst/trabajaConNosotros.html",
+                salaryGuide: "$38.000 - $48.000 UYU (Beneficios bancarios AEBU)",
+                applyUrl: "https://itau.evaluar.com/",
                 isLinkedIn: false,
                 isTalentPool: true
             },
             {
-                id: "dlocal-careers-montevideo",
-                company: "dLocal (Fintech Global)",
+                id: "santander-operador-atencion",
+                company: "Banco Santander Uruguay",
+                title: "Operador de Servicios & Asistencia Bancaria — 6 horas",
+                hours: "6h",
+                hoursLabel: "6 horas diarias (Lunes a Viernes)",
+                modality: "Presencial",
+                modalityKey: "presential",
+                sector: "bank",
+                sectorLabel: "Banca & Finanzas",
+                domain: "FINANCE_BANKING",
+                domainLabel: "Banca Comercial & Servicios",
+                criticalSkills: ["servicios bancarios", "atención financiera", "caja", "operaciones bancarias"],
+                location: "Montevideo",
+                desc: "Jornada bancaria de 6 horas para atención comercial y operativa a clientes de Banco Santander. Excelente clima y proyección en el sector financiero.",
+                careerFit: ["Administración", "Economía", "Negocios Digitales"],
+                requirements: {
+                    mandatory: ["Estudiante de carreras universitarias", "Disponibilidad 6 horas"],
+                    desirable: ["Manejo de herramientas informáticas"],
+                    bonus: ["Experiencia previa en atención al público"]
+                },
+                salaryGuide: "$36.000 - $45.000 UYU (Convenio bancario)",
+                applyUrl: "https://santander.com.uy/institucional/trabaja-con-nosotros",
+                isLinkedIn: false,
+                isTalentPool: true
+            },
+            {
+                id: "dlocal-careers-fintech",
+                company: "dLocal FinTech",
                 title: "Portal de Carreras & Pasantías Fintech Montevideo",
                 hours: "6h",
-                hoursLabel: "Flexible / Estudiantes (6h - 8h)",
+                hoursLabel: "6 horas / Horario Flexible",
                 modality: "Híbrido",
                 modalityKey: "hybrid",
                 sector: "tech",
-                sectorLabel: "Fintech & Pagos Digitales",
+                sectorLabel: "Fintech & Pagos Globales",
+                domain: "DATA_BI",
+                domainLabel: "Fintech, Pagos & Analítica",
+                criticalSkills: ["sql", "pagos digitales", "fintech", "análisis de datos"],
                 location: "Montevideo",
-                desc: "Portal oficial del unicornio fintech uruguayo. Oportunidades en operaciones cross-border, conciliaciones bancarias y analítica de datos.",
-                careerFit: ["Negocios Digitales", "Economía", "Sistemas", "Ingeniería"],
+                desc: "Pasantías y oportunidades junior en el primer unicornio uruguayo. Equipos de operaciones financieras, análisis de transacciones cross-border y conciliaciones.",
+                careerFit: ["Negocios Digitales", "Economía", "Sistemas", "Administración"],
                 requirements: {
-                    mandatory: ["Inglés avanzado (ambiente multinacional)", "Afinidad cuantitativa"],
-                    desirable: ["Manejo de SQL o Power BI"],
-                    bonus: ["Conocimiento de medios de pago"]
+                    mandatory: ["Inglés avanzado/bilingüe (excluyente)", "Estudiante universitario"],
+                    desirable: ["Manejo de SQL o analítica de datos"],
+                    bonus: ["Curiosidad por la industria de pagos"]
                 },
-                salaryGuide: "Competitivo mercado fintech global",
-                applyUrl: "https://www.dlocal.com/careers/",
+                salaryGuide: "$45.000 - $60.000 UYU",
+                applyUrl: "https://dlocal.com/careers/",
                 isLinkedIn: false,
                 isTalentPool: true
             },
 
-            // --- 8 HORAS (TIEMPO COMPLETO) ---
+            // --- 8 HORAS (TIEMPO COMPLETO / JUNIOR) ---
             {
                 id: "linkedin-cash-inteligencia-comercial",
-                company: "CASH (Sector Financiero)",
+                company: "CASH (Servicios Financieros)",
                 title: "Analista de Inteligencia Comercial — SQL, Power BI, Excel",
                 hours: "8h",
-                hoursLabel: "8 horas (Tiempo Completo)",
-                modality: "Presencial (Ciudad Vieja)",
-                modalityKey: "presential",
+                hoursLabel: "8 horas diarias (Lunes a Viernes)",
+                modality: "Híbrido",
+                modalityKey: "hybrid",
                 sector: "bank",
-                sectorLabel: "Finanzas & Analítica",
-                location: "Montevideo, Ciudad Vieja",
+                sectorLabel: "Finanzas & Crédito",
+                domain: "DATA_BI",
+                domainLabel: "Datos & Inteligencia Comercial",
+                criticalSkills: ["sql", "power bi", "python"],
+                location: "Montevideo",
                 desc: "Extracción, análisis y modelado de datos para generar insights comerciales y tableros en Power BI/Tableau. Soporte al área de negocios.",
-                careerFit: ["Ciencia de Datos", "Negocios Digitales", "Economía", "Administración"],
+                careerFit: ["Negocios Digitales", "Estadística", "Economía", "Sistemas"],
                 requirements: {
-                    mandatory: ["Estudiantes avanzados de carreras cuantitativas", "Dominio de Excel", "Manejo de SQL"],
-                    desirable: ["Power BI, Tableau o Looker", "Uso frecuente de herramientas de IA"],
-                    bonus: ["Experiencia en sector financiero"]
+                    mandatory: ["Manejo avanzado de SQL y Power BI", "Perfil analítico comercial"],
+                    desirable: ["Python para análisis de datos", "Experiencia en sector financiero"],
+                    bonus: ["Modelado predictivo o credit scoring"]
                 },
-                salaryGuide: "$50.000 - $65.000 UYU (Full-time)",
+                salaryGuide: "$50.000 - $68.000 UYU (Full-time)",
                 applyUrl: "https://uy.linkedin.com/jobs/view/analista-de-inteligencia-comercial-at-cash-4466412215",
                 isLinkedIn: true,
                 isTalentPool: false
@@ -1058,44 +1125,50 @@
                 company: "Farmashop",
                 title: "Asistente de People Analytics — Dashboards & KPIs",
                 hours: "8h",
-                hoursLabel: "8 horas (Tiempo Completo)",
-                modality: "Presencial",
-                modalityKey: "presential",
+                hoursLabel: "8 horas (Lunes a Viernes)",
+                modality: "Híbrido",
+                modalityKey: "hybrid",
                 sector: "retail",
-                sectorLabel: "Retail & People Analytics",
+                sectorLabel: "Retail Farmacéutico",
+                domain: "DATA_BI",
+                domainLabel: "People Analytics & BI",
+                criticalSkills: ["power bi", "sql", "kpis", "people analytics", "dashboards"],
                 location: "Montevideo",
-                desc: "Reportes directivos de gestión humana (rotación, ausentismo, productividad), tableros y automatización en el equipo de RRHH.",
-                careerFit: ["Ingeniería", "Análisis de Datos", "Negocios Digitales"],
+                desc: "Diseño, automatización y mantenimiento de tableros de gestión humana en Power BI. Análisis de indicadores de rotación, ausentismo y desempeño.",
+                careerFit: ["Negocios Digitales", "Administración", "RRHH", "Analítica"],
                 requirements: {
-                    mandatory: ["Estudiante de Ingeniería o Análisis de Datos", "Excel avanzado (excluyente)"],
-                    desirable: ["Power BI o Tableau", "Python básico para automatizaciones"],
-                    bonus: ["Conocimiento de métricas de personal"]
+                    mandatory: ["Dominio de Power BI y Excel avanzado", "Estudiante avanzado o egresado"],
+                    desirable: ["Experiencia en HR Analytics o tableros de gestión"],
+                    bonus: ["SQL o visualización de datos"]
                 },
-                salaryGuide: "$45.000 - $55.000 UYU (Full-time)",
+                salaryGuide: "$45.000 - $58.000 UYU (Full-time)",
                 applyUrl: "https://uy.linkedin.com/jobs/view/asistente-de-people-analytics-at-farmashop-4464229669",
                 isLinkedIn: true,
                 isTalentPool: false
             },
             {
-                id: "cpa-ferrere-procesos-negocios",
+                id: "cpa-ferrere-analista-procesos",
                 company: "CPA Ferrere",
                 title: "Analista de Proceso y Negocios (Banca y Tecnología)",
                 hours: "8h",
-                hoursLabel: "8 horas (Tiempo Completo - 9 a 18 hs)",
+                hoursLabel: "8 horas (Tiempo Completo)",
                 modality: "Híbrido",
                 modalityKey: "hybrid",
                 sector: "consulting",
                 sectorLabel: "Consultoría & Procesos",
+                domain: "BUSINESS_ADMIN",
+                domainLabel: "Consultoría de Negocios & Procesos",
+                criticalSkills: ["análisis de procesos", "relevamiento", "banca", "metodologías ágiles"],
                 location: "Montevideo",
-                desc: "Relevamiento y rediseño de procesos operativos para clientes del sistema bancario nacional e internacional en CPA Ferrere (ID 662164).",
-                careerFit: ["Administración", "Economía", "Negocios Digitales", "Ingeniería"],
+                desc: "Relevamiento de requerimientos, diseño de flujos de procesos e implementación de soluciones tecnológicas bancarias en CPA Ferrere (ID 696909).",
+                careerFit: ["Negocios Digitales", "Administración", "Ingeniería"],
                 requirements: {
-                    mandatory: ["Estudiante avanzado o graduado universitario", "Disponibilidad 9 a 18 hs"],
-                    desirable: ["Metodologías de procesos (BPM)", "Excel avanzado"],
-                    bonus: ["Experiencia bancaria previa"]
+                    mandatory: ["Estudiante universitario avanzado", "Capacidad analítica de procesos"],
+                    desirable: ["Inglés intermedio/avanzado", "Experiencia previa en proyectos"],
+                    bonus: ["Conocimiento de banca o fintech"]
                 },
-                salaryGuide: "$50.000 - $65.000 UYU (Full-time)",
-                applyUrl: "https://talento.cpaferrere.com/jobs/662164-analista-de-proceso-y-negocios-banca-y-tecnologia",
+                salaryGuide: "$48.000 - $65.000 UYU (Full-time)",
+                applyUrl: "https://talento.cpaferrere.com/jobs/696909-analista-de-proceso-y-negocios",
                 isLinkedIn: false,
                 isTalentPool: false
             },
@@ -1109,6 +1182,9 @@
                 modalityKey: "hybrid",
                 sector: "consulting",
                 sectorLabel: "Consultoría & Banca",
+                domain: "BUSINESS_ADMIN",
+                domainLabel: "Consultoría Tecnológica & Banca",
+                criticalSkills: ["testing funcional", "software bancario", "relevamiento", "ciencias económicas"],
                 location: "Montevideo",
                 desc: "Relevamiento de requerimientos con clientes bancarios, testing funcional y apoyo en transformación tecnológica en CPA Ferrere (ID 696910).",
                 careerFit: ["Administración", "Contabilidad", "Negocios Digitales"],
@@ -1132,6 +1208,9 @@
                 modalityKey: "presential",
                 sector: "consulting",
                 sectorLabel: "Consultoría & ERP",
+                domain: "BUSINESS_ADMIN",
+                domainLabel: "Consultoría ERP & Procesos",
+                criticalSkills: ["erp", "parametrización", "relevamiento funcional", "procesos contables"],
                 location: "Montevideo",
                 desc: "Relevamiento de necesidades del cliente corporativo, parametrización y soporte sobre módulos de software de gestión ERP (ID 274020).",
                 careerFit: ["Administración", "Negocios Digitales", "Contabilidad"],
@@ -1155,6 +1234,9 @@
                 modalityKey: "presential",
                 sector: "tech",
                 sectorLabel: "Tecnología Corporativa",
+                domain: "MARKETING_ECOMM",
+                domainLabel: "Comercial B2B & Negocios Tech",
+                criticalSkills: ["ventas b2b", "negociación", "propuestas comerciales", "prospección"],
                 location: "Montevideo",
                 desc: "Gestión de cartera de clientes corporativos B2B y elaboración de propuestas de servicios de infraestructura IT (ID 276252).",
                 careerFit: ["Negocios Digitales", "Administración", "Marketing"],
@@ -1178,6 +1260,9 @@
                 modalityKey: "hybrid",
                 sector: "consulting",
                 sectorLabel: "Consultora & Selección",
+                domain: "FINANCE_BANKING",
+                domainLabel: "Finanzas de Medios & Analítica",
+                criticalSkills: ["conciliaciones financieras", "meta ads", "google ads", "control de gestión", "finanzas"],
                 location: "Montevideo",
                 desc: "Conciliaciones financieras de plataformas de medios digitales (Meta Ads, Google), reportes analíticos de inversión y control de gestión.",
                 careerFit: ["Negocios Digitales", "Economía", "Administración"],
@@ -1328,31 +1413,47 @@
             const text = rawText.toLowerCase();
             const cleanName = filename.replace(/\.[^/.]+$/, "");
 
-            // Detección de habilidades
+            // Detección de habilidades amplia
             const dictionary = [
                 "excel", "sql", "power bi", "python", "meta ads", "google ads",
                 "looker studio", "e-commerce", "analítica", "analytics", "sap",
-                "tableau", "negocios", "marketing digital", "crm", "ciberseguridad"
+                "tableau", "negocios", "marketing digital", "crm", "ciberseguridad",
+                "linux", "redes", "hardware", "help desk", "soporte técnico", "active directory", "cisco",
+                "javascript", "react", "node", "java", "git", "docker", "apis",
+                "contabilidad", "conciliaciones", "niif", "impuestos", "tax", "auditoría",
+                "reclutamiento", "selección", "recursos humanos", "people analytics",
+                "logística", "comercio exterior", "supply chain", "facturación", "control de gestión"
             ];
             const detectedSkills = [];
             dictionary.forEach(term => {
-                if (text.includes(term)) {
+                if (hasWord(text, term)) {
                     let formatted = term.charAt(0).toUpperCase() + term.slice(1);
                     if (term === "power bi") formatted = "Power BI";
                     if (term === "sql") formatted = "SQL";
                     if (term === "meta ads") formatted = "Meta Ads";
                     if (term === "e-commerce") formatted = "E-commerce";
+                    if (term === "sap") formatted = "SAP";
+                    if (term === "crm") formatted = "CRM";
+                    if (term === "apis") formatted = "APIs";
+                    if (term === "git") formatted = "Git";
+                    if (term === "linux") formatted = "Linux";
+                    if (term === "cisco") formatted = "Cisco";
+                    if (term === "active directory") formatted = "Active Directory";
                     if (!detectedSkills.includes(formatted)) detectedSkills.push(formatted);
                 }
             });
-            if (detectedSkills.length === 0) detectedSkills.push("Excel", "Negocios", "Analítica");
+            if (detectedSkills.length === 0) detectedSkills.push("Excel", "Negocios", "Gestión");
 
             // Detección de carrera
             let detectedCareer = "Licenciatura en Negocios Digitales / Administración";
             if (text.includes("negocios digitales")) detectedCareer = "Lic. en Negocios Digitales (ORT Uruguay)";
             else if (text.includes("contador")) detectedCareer = "Carrera de Contador Público";
-            else if (text.includes("sistemas") || text.includes("ingeniería")) detectedCareer = "Ingeniería en Sistemas / Computación";
+            else if (text.includes("sistemas") || text.includes("computación") || text.includes("software")) detectedCareer = "Ingeniería en Sistemas / Computación";
+            else if (text.includes("redes") || text.includes("soporte") || text.includes("infraestructura") || text.includes("telecomunicaciones")) detectedCareer = "Tecnología en Infraestructura & Redes";
             else if (text.includes("economía")) detectedCareer = "Licenciatura en Economía";
+            else if (text.includes("marketing")) detectedCareer = "Licenciatura en Marketing / Comunicación";
+            else if (text.includes("recursos humanos") || text.includes("gestión humana")) detectedCareer = "Licenciatura en Recursos Humanos / RRHH";
+            else if (text.includes("logística") || text.includes("comercio exterior")) detectedCareer = "Comercio Exterior & Logística";
 
             // Detección de idioma
             let detectedLang = "Inglés Intermedio";
@@ -1360,9 +1461,9 @@
             else if (text.includes("c1") || text.includes("advanced") || text.includes("cae")) detectedLang = "Inglés Avanzado / C1";
 
             // Generación de Resumen Profesional Automático
-            const summary = `Estudiante de ${detectedCareer} con dominio de ${detectedSkills.slice(0, 3).join(", ")} y nivel ${detectedLang}. Perfil analítico orientado a proyectos de negocio, tecnología y optimización de procesos.`;
+            const summary = `Estudiante de ${detectedCareer} con dominio de ${detectedSkills.slice(0, 4).join(", ")} y nivel ${detectedLang}. Perfil evaluado con el motor semántico de JobCopilot.`;
 
-            return {
+            const prof = {
                 name: cleanName.length > 2 ? cleanName : "Postulante",
                 initials: cleanName.slice(0, 2).toUpperCase(),
                 edu: detectedCareer,
@@ -1370,6 +1471,8 @@
                 summary: summary,
                 skills: detectedSkills
             };
+            prof.domains = classifyProfileDomains(prof);
+            return prof;
         }
 
         function loadDemoCandidate() {
@@ -1393,6 +1496,25 @@
             document.getElementById('pAvatar').innerText = p.initials || 'CV';
             document.getElementById('pSummaryText').innerText = p.summary || 'Resumen del candidato cargado.';
 
+            // Render dominios profesionales detectados
+            const domContainer = document.getElementById('pDomainsChips');
+            if (domContainer) {
+                domContainer.innerHTML = '';
+                const detectedDoms = classifyProfileDomains(p);
+                detectedDoms.forEach(d => {
+                    const info = DOMAINS[d];
+                    const sp = document.createElement('span');
+                    sp.className = 'chip-skill';
+                    sp.style.background = 'rgba(99, 102, 241, 0.15)';
+                    sp.style.color = '#A5B4FC';
+                    sp.style.borderColor = 'rgba(99, 102, 241, 0.35)';
+                    sp.style.fontWeight = '700';
+                    sp.innerText = info ? `${info.icon} ${info.name}` : d;
+                    domContainer.appendChild(sp);
+                });
+            }
+
+            // Render habilidades
             const container = document.getElementById('pSkillsChips');
             container.innerHTML = '';
             (p.skills || []).forEach(s => {
@@ -1417,84 +1539,394 @@
         }
 
         // =========================================================================
-        // SCORE INTELIGENTE PONDERADO (Carrera 35%, Exp 25%, Tools 15%, etc.)
+        // MOTOR DE EVALUACIÓN SEMÁNTICA JERÁRQUICA v2 (JobCopilot Engine)
         // =========================================================================
+
+        const DOMAINS = {
+            DATA_BI: {
+                id: "DATA_BI",
+                name: "Datos, BI & Analítica",
+                icon: "📊",
+                keywords: ["data", "datos", "bi", "business intelligence", "sql", "power bi", "tableau", "analítica", "analytics", "looker", "etl", "dax", "modelado", "ciencia de datos"],
+                criticalSkills: ["sql", "power bi", "tableau", "python", "dax", "looker", "r", "modelado de datos", "etl", "data warehouse", "estadística", "visualización", "dashboards"]
+            },
+            BUSINESS_ADMIN: {
+                id: "BUSINESS_ADMIN",
+                name: "Negocios & Administración",
+                icon: "💼",
+                keywords: ["administración", "negocios", "gestión", "procesos", "business", "administrativo", "consultoría", "control de gestión", "facturación", "erp"],
+                criticalSkills: ["facturación", "erp", "control de gestión", "flujo de caja", "gestión administrativa", "mejora de procesos", "organización", "sap", "relevamiento"]
+            },
+            FINANCE_BANKING: {
+                id: "FINANCE_BANKING",
+                name: "Finanzas, Banca & Contabilidad",
+                icon: "🏦",
+                keywords: ["finanzas", "financiero", "contable", "contabilidad", "banco", "banca", "auditoría", "tax", "impuestos", "crédito", "tesorería"],
+                criticalSkills: ["contabilidad", "conciliaciones", "niif", "impuestos", "tax", "auditoría contable", "asientos contables", "finanzas corporativas", "balance", "servicios bancarios"]
+            },
+            MARKETING_ECOMM: {
+                id: "MARKETING_ECOMM",
+                name: "Marketing Digital & E-commerce",
+                icon: "🚀",
+                keywords: ["marketing", "e-commerce", "digital", "growth", "redes", "publicidad", "ads", "seo", "sem", "medios", "content", "ventas b2b"],
+                criticalSkills: ["meta ads", "google ads", "seo", "sem", "e-commerce", "shopify", "growth marketing", "crm", "google analytics", "campañas", "ventas b2b"]
+            },
+            HR_PEOPLE: {
+                id: "HR_PEOPLE",
+                name: "Gestión Humana & People",
+                icon: "👥",
+                keywords: ["rrhh", "recursos humanos", "people", "talento", "reclutamiento", "selección", "gestión humana", "nómina"],
+                criticalSkills: ["reclutamiento", "selección", "gestión humana", "people analytics", "nómina", "evaluación de desempeño", "clima laboral"]
+            },
+            IT_SUPPORT_INFRA: {
+                id: "IT_SUPPORT_INFRA",
+                name: "Soporte TI & Infraestructura",
+                icon: "🛠️",
+                keywords: ["soporte", "it", "ti", "infraestructura", "redes", "help desk", "mesa de ayuda", "hardware", "técnico", "servidores", "sysadmin", "linux"],
+                criticalSkills: ["linux", "redes", "cisco", "hardware", "active directory", "soporte técnico", "help desk", "mesa de ayuda", "tcp/ip", "antivirus", "mantenimiento"]
+            },
+            SOFTWARE_DEV: {
+                id: "SOFTWARE_DEV",
+                name: "Desarrollo de Software",
+                icon: "💻",
+                keywords: ["developer", "software", "programador", "backend", "frontend", "fullstack", "desarrollo", "código", "dev", "programación"],
+                criticalSkills: ["javascript", "react", "node", "java", "c#", ".net", "python dev", "git", "apis", "backend", "frontend", "docker", "typescript"]
+            },
+            CYBERSECURITY: {
+                id: "CYBERSECURITY",
+                name: "Ciberseguridad & Auditoría IT",
+                icon: "🔒",
+                keywords: ["ciberseguridad", "seguridad de la información", "auditoría it", "iso 27001", "vulnerabilidades", "pentesting", "infosec", "soc"],
+                criticalSkills: ["ciberseguridad", "firewalls", "iso 27001", "pentesting", "vulnerabilidades", "seguridad de la información", "soc", "siem", "auditoría de sistemas"]
+            },
+            OPERATIONS_LOG: {
+                id: "OPERATIONS_LOG",
+                name: "Operaciones & Logística",
+                icon: "📦",
+                keywords: ["operaciones", "logística", "comercio exterior", "supply chain", "cadena de suministro", "depósito", "despacho", "stock", "comex", "customer experience"],
+                criticalSkills: ["comercio exterior", "logística", "cadena de suministro", "aduana", "stock", "inventario", "despacho", "importaciones", "customer experience"]
+            }
+        };
+
+        const DOMAIN_AFFINITY = {
+            DATA_BI: {
+                DATA_BI: 1.0,
+                BUSINESS_ADMIN: 0.90,
+                FINANCE_BANKING: 0.80,
+                MARKETING_ECOMM: 0.85,
+                HR_PEOPLE: 0.70,
+                OPERATIONS_LOG: 0.65,
+                SOFTWARE_DEV: 0.50,
+                CYBERSECURITY: 0.35,
+                IT_SUPPORT_INFRA: 0.15 // Incompatible
+            },
+            BUSINESS_ADMIN: {
+                BUSINESS_ADMIN: 1.0,
+                DATA_BI: 0.85,
+                FINANCE_BANKING: 0.90,
+                MARKETING_ECOMM: 0.80,
+                HR_PEOPLE: 0.75,
+                OPERATIONS_LOG: 0.75,
+                SOFTWARE_DEV: 0.25,
+                CYBERSECURITY: 0.30,
+                IT_SUPPORT_INFRA: 0.20 // Incompatible
+            },
+            MARKETING_ECOMM: {
+                MARKETING_ECOMM: 1.0,
+                DATA_BI: 0.85,
+                BUSINESS_ADMIN: 0.80,
+                OPERATIONS_LOG: 0.55,
+                HR_PEOPLE: 0.50,
+                FINANCE_BANKING: 0.40,
+                SOFTWARE_DEV: 0.35,
+                CYBERSECURITY: 0.15,
+                IT_SUPPORT_INFRA: 0.15 // Incompatible
+            },
+            FINANCE_BANKING: {
+                FINANCE_BANKING: 1.0,
+                BUSINESS_ADMIN: 0.90,
+                DATA_BI: 0.80,
+                OPERATIONS_LOG: 0.60,
+                HR_PEOPLE: 0.55,
+                MARKETING_ECOMM: 0.40,
+                CYBERSECURITY: 0.35,
+                SOFTWARE_DEV: 0.20,
+                IT_SUPPORT_INFRA: 0.15
+            },
+            IT_SUPPORT_INFRA: {
+                IT_SUPPORT_INFRA: 1.0,
+                CYBERSECURITY: 0.75,
+                SOFTWARE_DEV: 0.55,
+                DATA_BI: 0.20,
+                BUSINESS_ADMIN: 0.20,
+                FINANCE_BANKING: 0.15,
+                MARKETING_ECOMM: 0.15,
+                HR_PEOPLE: 0.15,
+                OPERATIONS_LOG: 0.20
+            },
+            SOFTWARE_DEV: {
+                SOFTWARE_DEV: 1.0,
+                DATA_BI: 0.60,
+                CYBERSECURITY: 0.60,
+                IT_SUPPORT_INFRA: 0.50,
+                BUSINESS_ADMIN: 0.30,
+                FINANCE_BANKING: 0.25,
+                MARKETING_ECOMM: 0.35,
+                HR_PEOPLE: 0.20,
+                OPERATIONS_LOG: 0.25
+            },
+            CYBERSECURITY: {
+                CYBERSECURITY: 1.0,
+                IT_SUPPORT_INFRA: 0.75,
+                SOFTWARE_DEV: 0.60,
+                DATA_BI: 0.40,
+                BUSINESS_ADMIN: 0.35,
+                FINANCE_BANKING: 0.35,
+                HR_PEOPLE: 0.15,
+                OPERATIONS_LOG: 0.20,
+                MARKETING_ECOMM: 0.15
+            },
+            HR_PEOPLE: {
+                HR_PEOPLE: 1.0,
+                BUSINESS_ADMIN: 0.80,
+                DATA_BI: 0.70,
+                OPERATIONS_LOG: 0.50,
+                FINANCE_BANKING: 0.45,
+                MARKETING_ECOMM: 0.40,
+                SOFTWARE_DEV: 0.15,
+                IT_SUPPORT_INFRA: 0.15,
+                CYBERSECURITY: 0.15
+            },
+            OPERATIONS_LOG: {
+                OPERATIONS_LOG: 1.0,
+                BUSINESS_ADMIN: 0.85,
+                FINANCE_BANKING: 0.65,
+                DATA_BI: 0.65,
+                MARKETING_ECOMM: 0.50,
+                HR_PEOPLE: 0.45,
+                IT_SUPPORT_INFRA: 0.25,
+                SOFTWARE_DEV: 0.20,
+                CYBERSECURITY: 0.20
+            }
+        };
+
+        const TRANSVERSAL_SKILLS = ["excel", "inglés", "ingles", "office", "word", "powerpoint", "comunicación", "comunicacion", "trabajo en equipo", "proactividad"];
+
+        function hasWord(text, kw) {
+            if (!text || !kw) return false;
+            const t = " " + text.toLowerCase().replace(/[^a-záéíóúüñ0-9_+#-]/gi, " ") + " ";
+            const k = " " + kw.toLowerCase().trim() + " ";
+            return t.indexOf(k) !== -1;
+        }
+
+        function classifyProfileDomains(profile) {
+            if (!profile) return ["BUSINESS_ADMIN"];
+            const text = ((profile.edu || "") + " " + (profile.summary || "") + " " + (profile.skills || []).join(" "));
+            const scores = {};
+            for (const [domKey, domObj] of Object.entries(DOMAINS)) {
+                let count = 0;
+                domObj.keywords.forEach(kw => {
+                    if (hasWord(text, kw)) count += 2;
+                });
+                domObj.criticalSkills.forEach(cs => {
+                    if (hasWord(text, cs)) count += 4;
+                });
+                scores[domKey] = count;
+            }
+            const sorted = Object.entries(scores).filter(([k, v]) => v > 0).sort((a, b) => b[1] - a[1]);
+            if (sorted.length === 0) return ["BUSINESS_ADMIN"];
+            return sorted.slice(0, 3).map(([k, v]) => k);
+        }
+
+        function inferJobDomain(job) {
+            if (job.domain && DOMAINS[job.domain]) return job.domain;
+            const text = ((job.title || "") + " " + (job.desc || "") + " " + (job.careerFit || []).join(" ") + " " + (job.sectorLabel || "")).toLowerCase();
+            let bestDom = "BUSINESS_ADMIN";
+            let bestScore = -1;
+
+            for (const [domKey, domObj] of Object.entries(DOMAINS)) {
+                let score = 0;
+                domObj.keywords.forEach(kw => {
+                    if (hasWord(text, kw)) score += (job.title.toLowerCase().includes(kw) ? 6 : 2);
+                });
+                domObj.criticalSkills.forEach(cs => {
+                    if (hasWord(text, cs)) score += 3;
+                });
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestDom = domKey;
+                }
+            }
+            return bestDom;
+        }
+
+        function inferCriticalSkills(job, domainKey) {
+            if (job.criticalSkills && job.criticalSkills.length > 0) return job.criticalSkills;
+            const domObj = DOMAINS[domainKey];
+            if (!domObj) return [];
+            const text = ((job.title || "") + " " + (job.desc || "") + " " + JSON.stringify(job.requirements || {})).toLowerCase();
+            const detected = [];
+            domObj.criticalSkills.forEach(cs => {
+                if (hasWord(text, cs)) detected.push(cs);
+            });
+            return detected;
+        }
+
         function calculateWeightedScore(job) {
             if (!userProfile) return { score: null, breakdown: null };
 
-            let total = 0;
+            // 1. Clasificación de Dominios
+            const userDomains = classifyProfileDomains(userProfile);
+            const jobDomainKey = inferJobDomain(job);
+            const jobDomain = DOMAINS[jobDomainKey] || DOMAINS.BUSINESS_ADMIN;
+
+            // 2. Matriz de Afinidad
+            let maxAffinity = 0.15;
+            userDomains.forEach(ud => {
+                const matrixRow = DOMAIN_AFFINITY[ud] || {};
+                const aff = matrixRow[jobDomainKey] !== undefined ? matrixRow[jobDomainKey] : 0.20;
+                if (aff > maxAffinity) maxAffinity = aff;
+            });
+
             const reasonsMet = [];
             const reasonsUnmet = [];
 
-            // 1. Carrera / Formación Académica (Ponderación 35%)
-            const userEdu = (userProfile.edu || "").toLowerCase();
-            const matchesCareer = (job.careerFit || []).some(c => userEdu.includes(c.toLowerCase()));
-            if (matchesCareer) {
-                total += 35;
-                reasonsMet.push(`Formación alineada (${job.careerFit[0]})`);
-            } else {
-                total += 15; // Parcial por afinidad universitaria general
-                reasonsUnmet.push(`Puesto prioriza egresados de: ${job.careerFit.slice(0, 2).join(", ")}`);
-            }
+            // 3. Extracción de Requisitos
+            const userSkillsLower = (userProfile.skills || []).map(s => s.toLowerCase());
+            const userEduLower = (userProfile.edu || "").toLowerCase();
 
-            // 2. Experiencia / Requisitos Excluyentes (Ponderación 25%)
-            let mandatoryMet = 0;
-            const mandatories = job.requirements.mandatory || [];
-            mandatories.forEach(m => {
-                // Si pide estudiante o 4h, chequeamos si cumplimos
-                if (m.toLowerCase().includes("estudiante") || m.toLowerCase().includes("disponibilidad")) {
-                    mandatoryMet++;
-                    reasonsMet.push(m);
-                } else if (m.toLowerCase().includes("excel") && userProfile.skills.includes("Excel")) {
-                    mandatoryMet++;
-                    reasonsMet.push("Cumplís requisito excluyente: " + m);
-                } else {
-                    reasonsUnmet.push("Excluyente a considerar: " + m);
+            const jobCriticalRequired = inferCriticalSkills(job, jobDomainKey).map(s => s.toLowerCase());
+            const jobMandatory = (job.requirements && job.requirements.mandatory) || [];
+            const jobDesirable = (job.requirements && job.requirements.desirable) || [];
+
+            // Detectar coincidencias críticas
+            const criticalMet = [];
+            const criticalMissing = [];
+            jobCriticalRequired.forEach(cs => {
+                const met = userSkillsLower.some(us => us.includes(cs) || cs.includes(us));
+                if (met) criticalMet.push(cs);
+                else criticalMissing.push(cs);
+            });
+
+            // Detectar habilidades transversales
+            const transversalMet = [];
+            TRANSVERSAL_SKILLS.forEach(ts => {
+                const reqByJob = [...jobMandatory, ...jobDesirable].some(r => r.toLowerCase().includes(ts));
+                const hasUser = userSkillsLower.some(us => us.includes(ts)) || (ts.includes("inglés") && (userProfile.lang || "").length > 0);
+                if (reqByJob && hasUser) {
+                    transversalMet.push(ts);
                 }
             });
-            const mandScore = mandatories.length > 0 ? (mandatoryMet / mandatories.length) * 25 : 20;
-            total += mandScore;
 
-            // 3. Herramientas Técnicas (Ponderación 15%)
-            let techMatches = 0;
-            const desirables = [...(job.requirements.desirable || []), ...(job.requirements.bonus || [])];
-            desirables.forEach(d => {
-                const hasSkill = (userProfile.skills || []).some(s => d.toLowerCase().includes(s.toLowerCase()));
-                if (hasSkill) {
-                    techMatches++;
-                    reasonsMet.push(`Manejo de ${d}`);
+            // Filtros de horario activos en el navegador
+            const wants4h = typeof document !== 'undefined' && document.getElementById('filter4h') ? document.getElementById('filter4h').checked : true;
+            const wants6h = typeof document !== 'undefined' && document.getElementById('filter6h') ? document.getElementById('filter6h').checked : true;
+            const wants8h = typeof document !== 'undefined' && document.getElementById('filter8h') ? document.getElementById('filter8h').checked : false;
+
+            // 4. PUERTA DE DESCARTE (DEALBREAKER GATE)
+            const isDomainIncompatible = maxAffinity < 0.35;
+            const isTechnicalRole = ["IT_SUPPORT_INFRA", "SOFTWARE_DEV", "CYBERSECURITY"].includes(jobDomainKey);
+            const missingAllCritical = jobCriticalRequired.length > 0 && criticalMet.length === 0;
+
+            if (isDomainIncompatible || (isTechnicalRole && missingAllCritical && maxAffinity < 0.50)) {
+                reasonsUnmet.push(`Incompatibilidad de Dominio: El puesto requiere especialización técnica en ${jobDomain.name} (${jobCriticalRequired.slice(0, 3).join(", ") || "área técnica"}).`);
+                if (criticalMissing.length > 0) {
+                    reasonsUnmet.push(`Competencias troncales faltantes: ${criticalMissing.slice(0, 3).join(", ")}.`);
                 }
-            });
-            total += Math.min(15, techMatches * 5 + 4);
+                reasonsMet.push(`Formación universitaria compatible en general.`);
+                if (transversalMet.length > 0) {
+                    reasonsMet.push(`Competencias transversales: ${transversalMet.slice(0, 2).join(", ")}.`);
+                }
 
-            // 4. Idiomas (Ponderación 10%)
-            const userLang = (userProfile.lang || "").toLowerCase();
-            if (userLang.includes("b2") || userLang.includes("c1") || userLang.includes("avanzado")) {
-                total += 10;
-                reasonsMet.push("Nivel de inglés profesional certificado");
+                const cappedScore = Math.min(28, Math.max(16, Math.round(maxAffinity * 100)));
+                return {
+                    score: cappedScore,
+                    domain: jobDomain,
+                    affinity: maxAffinity,
+                    met: reasonsMet,
+                    unmet: reasonsUnmet,
+                    isDealbreaker: true,
+                    criticalMet: criticalMet,
+                    criticalMissing: criticalMissing,
+                    probability: "Baja",
+                    verdict: `Descarte muy probable. La vacante exige un perfil técnico de ${jobDomain.name} que no concuerda con tu formación.`
+                };
+            }
+
+            // 5. CÁLCULO PONDERADO PROFUNDO (DOMINIOS COMPATIBLES)
+            let score = 0;
+
+            // Componente A: Afinidad de Dominio (35 pts)
+            score += (maxAffinity * 35);
+            reasonsMet.push(`Alineación de carrera: ${jobDomain.name} (${Math.round(maxAffinity * 100)}% afinidad)`);
+
+            // Componente B: Habilidades Críticas del Puesto (35 pts)
+            if (jobCriticalRequired.length > 0) {
+                const critRatio = criticalMet.length / jobCriticalRequired.length;
+                score += (critRatio * 35);
+                criticalMet.forEach(c => reasonsMet.push(`Herramienta clave del puesto: ${c.toUpperCase()}`));
+                criticalMissing.forEach(c => reasonsUnmet.push(`Requisito técnico no explicitado en CV: ${c}`));
             } else {
-                total += 5;
+                score += 28;
             }
 
-            // 5. Ubicación / Modalidad (Ponderación 10%)
-            total += (job.modalityKey === 'hybrid' || job.modalityKey === 'remote') ? 10 : 8;
+            // Componente C: Habilidades Transversales & Idiomas (12 pts)
+            let transScore = 0;
+            if (transversalMet.length > 0) {
+                transScore += Math.min(8, transversalMet.length * 4);
+                reasonsMet.push(`Competencias complementarias: ${transversalMet.join(", ")}`);
+            }
+            const lang = (userProfile.lang || "").toLowerCase();
+            if (lang.includes("b2") || lang.includes("c1") || lang.includes("avanzado") || lang.includes("first")) {
+                transScore += 4;
+                reasonsMet.push(`Inglés profesional acreditado`);
+            }
+            score += Math.min(12, transScore);
 
-            // 6. Carga Horaria y Disponibilidad (Ponderación 5%)
-            const wants4h = document.getElementById('filter4h').checked;
-            const wants6h = document.getElementById('filter6h').checked;
-            if ((job.hours === '4h' && wants4h) || (job.hours === '6h' && wants6h)) {
-                total += 5;
-                reasonsMet.push(`Horario compatible de ${job.hours}`);
-            } else if (job.hours === '8h') {
-                reasonsUnmet.push("Régimen de 8 horas (jornada completa)");
+            // Componente D: Carrera / Formación Académica (10 pts)
+            const matchesCareerFit = (job.careerFit || []).some(cf => userEduLower.includes(cf.toLowerCase()));
+            if (matchesCareerFit) {
+                score += 10;
+                reasonsMet.push(`Carrera solicitada explícitamente (${job.careerFit[0]})`);
+            } else {
+                score += 5;
             }
 
-            const finalScore = Math.min(96, Math.max(38, Math.round(total)));
+            // Componente E: Compatibilidad Horaria (8 pts)
+            const matchesCurrentHours = (job.hours === '4h' && wants4h) || (job.hours === '6h' && wants6h) || (job.hours === '8h' && wants8h);
+            if (matchesCurrentHours) {
+                score += 8;
+                reasonsMet.push(`Régimen compatible: ${job.hoursLabel}`);
+            } else {
+                score += 2;
+                reasonsUnmet.push(`Jornada laboral: ${job.hoursLabel}`);
+            }
+
+            const finalScore = Math.min(96, Math.max(32, Math.round(score)));
+            let prob = "Baja";
+            let verdict = "";
+            if (finalScore >= 80) {
+                prob = "Alta";
+                verdict = "¡Excelente oportunidad! Tu formación y herramientas se ajustan al perfil buscado.";
+            } else if (finalScore >= 60) {
+                prob = "Media";
+                verdict = "Postulación viable. Tenés buen encaje general, pero convendría destacar proyectos prácticos en tu carta.";
+            } else {
+                prob = "Baja";
+                verdict = "Puesto con brechas técnicas o incompatibilidad de jornada frente a tu perfil actual.";
+            }
+
             return {
                 score: finalScore,
+                domain: jobDomain,
+                affinity: maxAffinity,
                 met: reasonsMet,
                 unmet: reasonsUnmet,
-                probability: finalScore >= 80 ? "Alta" : finalScore >= 65 ? "Media" : "Baja"
+                isDealbreaker: false,
+                criticalMet: criticalMet,
+                criticalMissing: criticalMissing,
+                probability: prob,
+                verdict: verdict
             };
         }
 
@@ -1592,11 +2024,22 @@
 
                 let scoreBadgeHtml = '';
                 if (analysis.score !== null) {
-                    const clr = analysis.score >= 80 ? 'score-high' : analysis.score >= 65 ? 'score-mid' : 'score-low';
+                    let clr = 'score-mid';
+                    let label = `${analysis.score}% Coincidencia`;
+                    if (analysis.isDealbreaker) {
+                        clr = 'score-dealbreaker';
+                        label = `${analysis.score}% Descarte Probable`;
+                    } else if (analysis.score >= 80) {
+                        clr = 'score-high';
+                        label = `${analysis.score}% Alta Coincidencia`;
+                    } else if (analysis.score < 60) {
+                        clr = 'score-low';
+                        label = `${analysis.score}% Baja Afinidad`;
+                    }
                     scoreBadgeHtml = `
                         <div class="match-score-pill">
-                            <span class="match-score-main ${clr}">⚡ ${analysis.score}% Coincidencia</span>
-                            <span class="match-probability-text">Probabilidad de llamada: <strong>${analysis.probability}</strong></span>
+                            <span class="match-score-main ${clr}">⚡ ${label}</span>
+                            <span class="match-probability-text">Probabilidad de entrevista: <strong>${analysis.probability}</strong></span>
                         </div>
                     `;
                 } else {
@@ -1628,6 +2071,7 @@
                     </div>
 
                     <div class="tags-cluster">
+                        <span class="tag-pill t-domain">${analysis.domain ? analysis.domain.icon + " " + analysis.domain.name : (job.domainLabel || "🏢 General")}</span>
                         <span class="tag-pill t-hours">⏰ ${job.hoursLabel}</span>
                         <span class="tag-pill t-modality">📍 ${job.modality}</span>
                         <span class="tag-pill t-sector">🏢 ${job.sectorLabel}</span>
@@ -1640,21 +2084,30 @@
                     <div class="copilot-evaluation-box">
                         <div class="copilot-verdict-header">
                             <span>🤖 Diagnóstico de tu Copiloto:</span>
-                            <span style="font-weight: 600; color: ${analysis.score >= 80 ? '#34D399' : '#FCD34D'};">
-                                ${analysis.score >= 80 ? '¡Muy recomendada para postularte!' : analysis.score >= 65 ? 'Vale la pena si te interesa el área' : 'Postularte con expectativas moderadas'}
+                            <span style="font-weight: 700; color: ${analysis.isDealbreaker ? '#F87171' : analysis.score >= 80 ? '#34D399' : '#FCD34D'};">
+                                ${analysis.verdict || (analysis.score >= 80 ? '¡Muy recomendada!' : 'Postulación moderada')}
                             </span>
                         </div>
+                        ${analysis.isDealbreaker ? `
+                            <div style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 8px; padding: 9px 12px; font-size: 11.5px; color: #FCA5A5; display: flex; align-items: flex-start; gap: 8px;">
+                                <span style="font-size: 15px;">⚠️</span>
+                                <div>
+                                    <strong>Incompatibilidad de Dominio:</strong>
+                                    <span>Este rol exige competencias troncales de <em>${analysis.domain ? analysis.domain.name : 'especialidad técnica'}</em> (${analysis.criticalMissing && analysis.criticalMissing.length ? analysis.criticalMissing.slice(0, 3).join(', ') : 'conocimientos troncales'}) que no forman parte de tu formación actual.</span>
+                                </div>
+                            </div>
+                        ` : ''}
                         <div class="breakdown-row">
                             <div class="pros-col">
                                 <strong>Lo que cumplís:</strong>
                                 <ul>
-                                    ${(analysis.met || job.requirements.mandatory).slice(0, 2).map(m => `<li>${m}</li>`).join('')}
+                                    ${(analysis.met || job.requirements.mandatory).slice(0, 3).map(m => `<li>${m}</li>`).join('')}
                                 </ul>
                             </div>
                             <div class="cons-col">
-                                <strong>Puntos de atención:</strong>
+                                <strong>Puntos de atención / Brechas:</strong>
                                 <ul>
-                                    ${(analysis.unmet && analysis.unmet.length ? analysis.unmet : ["Puesto competitivo con alta demanda"]).slice(0, 2).map(u => `<li>${u}</li>`).join('')}
+                                    ${(analysis.unmet && analysis.unmet.length ? analysis.unmet : ["Sin brechas críticas detectadas"]).slice(0, 3).map(u => `<li>${u}</li>`).join('')}
                                 </ul>
                             </div>
                         </div>
@@ -1825,40 +2278,74 @@
             if (!job) return;
             const analysis = calculateWeightedScore(job);
 
+            const userDomNames = userProfile ? classifyProfileDomains(userProfile).map(k => DOMAINS[k] ? DOMAINS[k].icon + ' ' + DOMAINS[k].name : k).join(", ") : "Negocios y Datos";
+            const affinityPct = Math.round((analysis.affinity || 0.2) * 100);
+            const affinityColor = affinityPct >= 80 ? '#34D399' : affinityPct >= 50 ? '#FCD34D' : '#F87171';
+
             document.getElementById('analysisModalContent').innerHTML = `
-                <div style="background: var(--surface-card); padding: 14px; border-radius: 10px; border: 1px solid var(--border-highlight);">
-                    <h4 style="color: #FFF; font-size: 15px;">${job.title}</h4>
-                    <p style="color: var(--primary); font-size: 13px; font-weight: 600;">${job.company} • ${job.hoursLabel}</p>
-                </div>
-
-                <div style="font-size: 13px; color: #CBD5E1; line-height: 1.5;">
-                    <strong style="color:#FFF;">Lo que realmente busca la empresa:</strong>
-                    <p style="margin-top: 4px;">${job.desc}</p>
-                </div>
-
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 12.5px;">
-                    <div style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); padding: 12px; border-radius: 8px;">
-                        <strong style="color: #34D399;">Lo que cumplís a tu favor:</strong>
-                        <ul style="margin-top: 6px; padding-left: 18px;">
-                            ${(analysis.met || job.requirements.mandatory).map(m => `<li>${m}</li>`).join('')}
-                        </ul>
-                    </div>
-
-                    <div style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); padding: 12px; border-radius: 8px;">
-                        <strong style="color: #FCD34D;">Posibles desventajas o filtros:</strong>
-                        <ul style="margin-top: 6px; padding-left: 18px;">
-                            ${(analysis.unmet && analysis.unmet.length ? analysis.unmet : ["Competencia con graduados"]).map(u => `<li>${u}</li>`).join('')}
-                        </ul>
+                <div style="background: var(--surface-card); padding: 16px; border-radius: 12px; border: 1px solid var(--border-highlight);">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;">
+                        <div>
+                            <span class="tag-pill t-domain" style="font-size: 11px;">${analysis.domain ? analysis.domain.icon + ' ' + analysis.domain.name : 'Área Profesional'}</span>
+                            <h4 style="color: #FFF; font-size: 17px; margin-top: 6px;">${job.title}</h4>
+                            <p style="color: var(--primary); font-size: 13px; font-weight: 600; margin-top: 2px;">${job.company} • ${job.hoursLabel} • ${job.location}</p>
+                        </div>
+                        <div style="text-align: right; flex-shrink: 0;">
+                            <span style="font-size: 22px; font-weight: 900; color: ${analysis.isDealbreaker ? '#F87171' : analysis.score >= 80 ? '#34D399' : '#FCD34D'};">
+                                ${analysis.score}%
+                            </span>
+                            <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Match Ponderado</div>
+                        </div>
                     </div>
                 </div>
 
-                <div style="background: rgba(56,189,248,0.1); border: 1px solid rgba(56,189,248,0.3); padding: 14px; border-radius: 8px; font-size: 13px;">
-                    <strong style="color: var(--primary);">Veredicto honesto del Copiloto:</strong>
-                    <p style="margin-top: 4px; color: #E2E8F0;">
-                        ${analysis.score >= 80 ? 'La vacante tiene un encaje extraordinario con tus horas y perfil. Dedicale tiempo a enviar tu CV y una carta personalizada.' : 'Es una opción válida si te interesa ingresar a esta firma, aunque debés destacar en la postulación tu rápido aprendizaje en herramientas donde no tengás tanta experiencia.'}
+                <!-- Barra de Alineación de Dominio y Carrera -->
+                <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border); border-radius: 10px; padding: 14px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 12.5px; margin-bottom: 6px;">
+                        <span style="color: #CBD5E1;">Afinidad de Área: <strong>${userDomNames}</strong> vs <strong>${analysis.domain.name}</strong></span>
+                        <span style="font-weight: 800; color: ${affinityColor};">${affinityPct}% de Afinidad</span>
+                    </div>
+                    <div style="width: 100%; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden;">
+                        <div style="width: ${affinityPct}%; height: 100%; background: ${affinityColor}; border-radius: 4px;"></div>
+                    </div>
+                    <p style="font-size: 11.5px; color: var(--text-muted); margin-top: 6px;">
+                        ${affinityPct >= 80 ? '✔ Excelente compatibilidad de rama profesional con tu formación analítica y de negocios.' : affinityPct >= 50 ? 'ℹ Rama adyacente: Tu formación aporta valor analítico o de gestión, aunque el rol requiere adaptaciones.' : '⚠️ Rama incompatible: La vacante pertenece a un área técnica ajena a tu perfil (riesgo alto de descarte inmediato).'}
                     </p>
-                    <div style="margin-top: 6px; font-weight: 700; color: #FFF;">
-                        Expectativa salarial sugerida: ${job.salaryGuide}
+                </div>
+
+                <!-- Comparativa de Habilidades y Requisitos -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 12.5px;">
+                    <div style="background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.25); padding: 14px; border-radius: 10px;">
+                        <strong style="color: #34D399; font-size: 13px;">✔ Requisitos a tu favor:</strong>
+                        <ul style="margin-top: 8px; padding-left: 18px; line-height: 1.6;">
+                            ${(analysis.met || []).map(m => `<li>${m}</li>`).join('')}
+                        </ul>
+                    </div>
+
+                    <div style="background: ${analysis.isDealbreaker ? 'rgba(239,68,68,0.08)' : 'rgba(245,158,11,0.08)'}; border: 1px solid ${analysis.isDealbreaker ? 'rgba(239,68,68,0.3)' : 'rgba(245,158,11,0.25)'}; padding: 14px; border-radius: 10px;">
+                        <strong style="color: ${analysis.isDealbreaker ? '#F87171' : '#FCD34D'}; font-size: 13px;">✕ Brechas / Filtros Críticos:</strong>
+                        <ul style="margin-top: 8px; padding-left: 18px; line-height: 1.6;">
+                            ${(analysis.unmet && analysis.unmet.length ? analysis.unmet : ["Sin brechas críticas"]).map(u => `<li>${u}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Veredicto del Reclutador -->
+                <div style="background: ${analysis.isDealbreaker ? 'rgba(239,68,68,0.12)' : analysis.score >= 80 ? 'rgba(16,185,129,0.12)' : 'rgba(56,189,248,0.12)'}; border: 1px solid ${analysis.isDealbreaker ? 'rgba(239,68,68,0.35)' : analysis.score >= 80 ? 'rgba(16,185,129,0.35)' : 'rgba(56,189,248,0.35)'}; padding: 16px; border-radius: 10px; font-size: 13px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 18px;">${analysis.isDealbreaker ? '🛑' : analysis.score >= 80 ? '🎯' : '💡'}</span>
+                        <strong style="color: #FFF; font-size: 14px;">Veredicto Honesto del Copiloto:</strong>
+                    </div>
+                    <p style="margin-top: 6px; color: #E2E8F0; line-height: 1.5;">
+                        ${analysis.isDealbreaker ? 
+                            `<strong>No te conviene postularte.</strong> Los reclutadores de TI/Infraestructura descartan de entrada candidatos que no cuenten con las competencias troncales técnicas (${(analysis.criticalMissing || []).slice(0, 3).join(', ') || 'redes, linux, soporte'}). Postularte aquí sería desgastante y con nula probabilidad de éxito.` : 
+                            analysis.score >= 80 ? 
+                            `<strong>¡Postulación altamente recomendada!</strong> Tu perfil de Negocios Digitales y analítica coincide de lleno con los requerimientos clave de la empresa. Redactá una carta personalizada resaltando tu dominio de ${(analysis.criticalMet || []).join(', ') || 'datos y analítica'}.` : 
+                            `<strong>Postulación condicionada.</strong> Tenés compatibilidad general en formación y horario, pero asegurate de compensar las brechas de herramientas con una carta que demuestre tu rápida curva de aprendizaje.`
+                        }
+                    </p>
+                    <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 12px; color: var(--text-subtle);">
+                        Sueldo estimado de referencia: <strong style="color: #FFF;">${job.salaryGuide}</strong>
                     </div>
                 </div>
             `;
