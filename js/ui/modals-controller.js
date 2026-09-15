@@ -1,23 +1,138 @@
 /**
- * JobCopilot v3 — Modals Controller
- * Manages Recruiter X-Ray, Cover Letter, CV Optimization and Sources Transparency Radar modals.
+ * ModalsController — Gestor de Modales y Auditoría Interactiva
  */
 
 class ModalsController {
     static openModal(modalId) {
         const m = document.getElementById(modalId);
-        if (m) {
-            m.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-        }
+        if (m) m.style.display = 'flex';
     }
 
     static closeModal(modalId) {
         const m = document.getElementById(modalId);
-        if (m) {
-            m.style.display = 'none';
-            document.body.style.overflow = 'auto';
-        }
+        if (m) m.style.display = 'none';
+    }
+
+    static openPasteModal() {
+        this.openModal('pasteCvModal');
+    }
+
+    static openAuditModal() {
+        const allJobs = App.getAllJobs();
+        const profile = App.getProfile();
+        const report = TransparencyTracker.getAuditReport(allJobs, profile);
+
+        const content = document.getElementById('auditModalContent');
+        if (!content) return;
+
+        // Fuentes pills
+        const sourcePillsHtml = Object.entries(report.sourceBreakdown).map(([name, data]) => `
+            <div class="audit-source-pill">
+                <span>${escapeHtml(name)}:</span>
+                <strong>${data.total}</strong>
+                <span style="color: #34D399; font-size: 11px;">(${data.approved} en feed)</span>
+            </div>
+        `).join('');
+
+        content.innerHTML = `
+            <!-- KPI Grid -->
+            <div class="audit-kpi-grid">
+                <div class="audit-kpi-card">
+                    <div class="audit-kpi-num">${report.totalJobs}</div>
+                    <div class="audit-kpi-label">Vacantes en Base</div>
+                </div>
+                <div class="audit-kpi-card">
+                    <div class="audit-kpi-num kpi-green">${report.approvedCount}</div>
+                    <div class="audit-kpi-label">Aptas para tu Perfil</div>
+                </div>
+                <div class="audit-kpi-card">
+                    <div class="audit-kpi-num kpi-rose">${report.discardedCount}</div>
+                    <div class="audit-kpi-label">Descartadas por Incompatibilidad</div>
+                </div>
+                <div class="audit-kpi-card">
+                    <div class="audit-kpi-num kpi-blue">${Object.keys(report.sourceBreakdown).length}</div>
+                    <div class="audit-kpi-label">Fuentes Activas</div>
+                </div>
+            </div>
+
+            <div style="font-size: 12px; font-weight: 700; color: #FFF; margin-bottom: 6px;">
+                Desglose por Fuente Laboral:
+            </div>
+            <div class="audit-sources-cloud">
+                ${sourcePillsHtml}
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; margin-bottom: 8px;">
+                <div style="font-size: 12.5px; font-weight: 700; color: #FFF;">
+                    Registro de Decisiones del Motor:
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <select id="auditFilterStatus" class="sort-select" style="font-size: 11.5px;" onchange="ModalsController.filterAuditTable()">
+                        <option value="all">Todas las decisiones (${report.totalJobs})</option>
+                        <option value="descartadas" selected>Solo Descartadas (${report.discardedCount})</option>
+                        <option value="aprobadas">Solo Aprobadas (${report.approvedCount})</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="audit-table-wrapper">
+                <table class="audit-table">
+                    <thead>
+                        <tr>
+                            <th>Vacante / Empresa</th>
+                            <th>Fuente</th>
+                            <th>Estado</th>
+                            <th>Score</th>
+                            <th>Motivo del Reclutador</th>
+                        </tr>
+                    </thead>
+                    <tbody id="auditTableBody">
+                        <!-- Injected via filterAuditTable -->
+                    </tbody>
+                </table>
+            </div>
+        `;
+
+        // Cache audit records on window for filtering
+        window.__currentAuditRecords = report.allRecords;
+        this.filterAuditTable();
+        this.openModal('auditModal');
+    }
+
+    static filterAuditTable() {
+        const records = window.__currentAuditRecords || [];
+        const filterStatus = document.getElementById('auditFilterStatus')?.value || "descartadas";
+        const tbody = document.getElementById('auditTableBody');
+        if (!tbody) return;
+
+        const filtered = records.filter(r => {
+            if (filterStatus === "descartadas") return r.status === "Descartada";
+            if (filterStatus === "aprobadas") return r.status === "Aprobada";
+            return true;
+        });
+
+        tbody.innerHTML = filtered.map(r => `
+            <tr>
+                <td>
+                    <strong style="color: #FFF;">${escapeHtml(r.title)}</strong><br>
+                    <span style="color: var(--text-muted); font-size: 11px;">${escapeHtml(r.company)}</span>
+                </td>
+                <td style="color: var(--primary); font-size: 11.5px;">${escapeHtml(r.source)}</td>
+                <td>
+                    <span class="${r.status === 'Aprobada' ? 'badge-status-approved' : 'badge-status-discarded'}">
+                        ${r.status}
+                    </span>
+                </td>
+                <td style="font-weight: 700;">${r.score}%</td>
+                <td style="color: ${r.status === 'Aprobada' ? '#A7F3D0' : '#FED7AA'}; font-size: 11.5px; line-height: 1.4;">
+                    ${escapeHtml(r.reason)}
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    static closeAuditModal() {
+        this.closeModal('auditModal');
     }
 
     static openAnalysis(jobId) {
@@ -26,80 +141,36 @@ class ModalsController {
 
         const profile = App.getProfile();
         const analysis = MatchingEngine.evaluate(job, profile);
-        const sourceName = TransparencyTracker.detectSource(job);
-
         const content = document.getElementById('analysisModalContent');
         if (!content) return;
 
         content.innerHTML = `
-            <div style="background: var(--surface-card); padding: 18px; border-radius: 12px; border: 1px solid var(--border-highlight);">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
-                    <div>
-                        <span class="tag-pill t-domain">${analysis.domain.icon} ${analysis.domain.name}</span>
-                        <h3 style="color: #FFF; font-size: 18px; margin-top: 8px;">${job.title}</h3>
-                        <p style="color: var(--primary); font-size: 13.5px; font-weight: 600; margin-top: 2px;">
-                            ${job.company} • ${job.location} • ${job.hoursLabel || job.hours}
-                        </p>
-                        <p style="color: var(--text-subtle); font-size: 11.5px; margin-top: 2px;">Fuente validada: ${sourceName}</p>
-                    </div>
-                    <div style="text-align: right; flex-shrink: 0;">
-                        <span style="font-size: 26px; font-weight: 900; color: ${analysis.score >= 80 ? '#34D399' : '#FCD34D'};">
-                            ${analysis.score}%
-                        </span>
-                        <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Match de Reclutador</div>
-                    </div>
-                </div>
+            <div style="background: var(--surface-card); padding: 14px; border-radius: 8px; border: 1px solid var(--border);">
+                <h4 style="color: #FFF; font-size: 16px;">${escapeHtml(job.title)}</h4>
+                <p style="color: var(--primary); font-size: 13px; font-weight: 600;">${escapeHtml(job.company)} • ${escapeHtml(job.location)}</p>
             </div>
 
-            <!-- Por qué te conviene -->
-            <div style="background: rgba(56, 189, 248, 0.08); border-left: 3px solid var(--primary); padding: 12px 14px; border-radius: 0 8px 8px 0; font-size: 13px; color: #E2E8F0; line-height: 1.5;">
-                💡 <strong>Por qué te conviene:</strong> ${analysis.whyAppeared}
+            <div style="background: rgba(56, 189, 248, 0.08); border-left: 3px solid var(--primary); padding: 12px; border-radius: 0 8px 8px 0; font-size: 13px; color: #E2E8F0;">
+                <strong>Diagnóstico:</strong> ${analysis.verdict}
             </div>
 
-            <!-- Comparativa de Requisitos y Brechas -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; font-size: 12.5px;">
-                <div style="background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.25); padding: 14px; border-radius: 10px;">
-                    <strong style="color: #34D399; font-size: 13px;">✔ Requisitos a tu favor:</strong>
-                    <ul style="margin-top: 8px; padding-left: 18px; line-height: 1.6;">
-                        ${(analysis.met || []).map(m => `<li>${m}</li>`).join('')}
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); padding: 12px; border-radius: 8px;">
+                    <strong style="color: #34D399; font-size: 12.5px;">Requisitos a tu favor:</strong>
+                    <ul style="margin-top: 6px; font-size: 12px; padding-left: 16px; color: #CBD5E1;">
+                        ${(analysis.met || []).map(m => `<li>${escapeHtml(m)}</li>`).join('')}
                     </ul>
-                    ${analysis.boosters && analysis.boosters.length > 0 ? `
-                        <div style="margin-top: 8px; font-size: 11.5px; color: #34D399; border-top: 1px solid rgba(16,185,129,0.2); padding-top: 6px;">
-                            ⚡ <strong>Ventajas competitivas:</strong> ${analysis.boosters.join(' • ')}
-                        </div>
-                    ` : ''}
                 </div>
-
-                <div style="background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.25); padding: 14px; border-radius: 10px;">
-                    <strong style="color: #FCD34D; font-size: 13px;">⚠️ Puntos a compensar / Brechas:</strong>
-                    <ul style="margin-top: 8px; padding-left: 18px; line-height: 1.6;">
-                        ${(analysis.unmet && analysis.unmet.length ? analysis.unmet : ["Sin brechas críticas detectadas"]).map(u => `<li>${u}</li>`).join('')}
+                <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); padding: 12px; border-radius: 8px;">
+                    <strong style="color: #FCD34D; font-size: 12.5px;">Puntos a compensar:</strong>
+                    <ul style="margin-top: 6px; font-size: 12px; padding-left: 16px; color: #CBD5E1;">
+                        ${(analysis.unmet || ["Sin brechas críticas"]).map(u => `<li>${escapeHtml(u)}</li>`).join('')}
                     </ul>
-                    ${analysis.penalties && analysis.penalties.length > 0 ? `
-                        <div style="margin-top: 8px; font-size: 11.5px; color: #FB923C; border-top: 1px solid rgba(245,158,11,0.2); padding-top: 6px;">
-                            ⚠️ <strong>Recomendación:</strong> Destacá en tu carta tu rápida curva de aprendizaje.
-                        </div>
-                    ` : ''}
-                </div>
-            </div>
-
-            <!-- Veredicto Final -->
-            <div style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.35); padding: 16px; border-radius: 10px; font-size: 13px;">
-                <strong style="color: #FFF; display: flex; align-items: center; gap: 8px;">
-                    🎯 Veredicto del Reclutador:
-                </strong>
-                <p style="margin-top: 6px; color: #E2E8F0; line-height: 1.5;">
-                    ${analysis.verdict}
-                </p>
-                <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 12px; color: var(--text-subtle); display: flex; justify-content: space-between;">
-                    <span>Sueldo estimado de referencia: <strong style="color: #FFF;">${job.salaryGuide || "A convenir"}</strong></span>
-                    <a href="${job.applyUrl}" target="_blank" rel="noopener noreferrer" style="color: var(--primary); text-decoration: underline; font-weight: 600;">
-                        Ver publicación original &rarr;
-                    </a>
                 </div>
             </div>
         `;
-        this.openModal('modalAnalysis');
+
+        this.openModal('analysisModal');
     }
 
     static openCoverLetter(jobId) {
@@ -107,139 +178,66 @@ class ModalsController {
         if (!job) return;
 
         const profile = App.getProfile();
-        const candidateName = profile ? profile.name : "Postulante";
-        const career = profile ? profile.edu : "Estudiante Universitario";
-        const skillsText = profile ? profile.skills.slice(0, 3).join(", ") : "análisis de datos y gestión";
+        const candidateName = profile?.name || "Candidato";
+        const content = document.getElementById('coverLetterContent');
+        if (!content) return;
 
-        const letter = `Estimado equipo de Selección de ${job.company},
+        content.innerHTML = `
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">
+                Esta carta fue redactada resaltando tus competencias frente a los requisitos de <strong>${escapeHtml(job.company)}</strong>:
+            </p>
+            <div style="background: var(--surface-card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; font-size: 13px; line-height: 1.6; color: #E2E8F0; white-space: pre-line;" id="letterTextContent">
+Estimado equipo de selección de ${job.company},
 
-Me pongo en contacto con ustedes con gran interés en presentar mi postulación a la posición de ${job.title}.
+Me pongo en contacto con ustedes con motivo de la búsqueda para la posición de ${job.title}.
 
-Actualmente soy estudiante de ${career}. A lo largo de mi formación he desarrollado sólidas competencias prácticas en ${skillsText}, orientadas a la optimización de procesos y la toma de decisiones basada en datos.
+A partir de mi formación y trayectoria, he desarrollado sólidas competencias en ${(profile?.skills || ['gestión', 'análisis']).slice(0, 4).join(', ')}, lo que me permite adaptarme con rapidez a las responsabilidades operativas y analíticas que este rol requiere.
 
-El perfil que buscan para ${job.title} representa una excelente oportunidad para aportar mi capacidad analítica, proactividad y compromiso en el cumplimiento de los objetivos del área. Cuento con disponibilidad para integrarme en el régimen horario requerido (${job.hoursLabel || job.hours}).
+Me resulta de especial interés sumarme a ${job.company} para aportar compromiso, proactividad y rigor profesional.
 
-Agradezco de antemano su tiempo y consideración, quedando a su total disposición para profundizar sobre mi perfil en una entrevista.
+Quedo a su entera disposición para ampliar cualquier detalle sobre mi perfil.
 
 Atentamente,
 ${candidateName}
-Montevideo, Uruguay`;
+            </div>
+            <div style="margin-top: 14px; text-align: right;">
+                <button class="btn btn-primary btn-sm" onclick="navigator.clipboard.writeText(document.getElementById('letterTextContent').innerText); alert('Carta copiada al portapapeles.');">
+                    Copiar al Portapapeles
+                </button>
+            </div>
+        `;
 
-        const textarea = document.getElementById('coverLetterTextarea');
-        if (textarea) textarea.value = letter;
-        this.openModal('modalCoverLetter');
+        this.openModal('coverLetterModal');
     }
 
     static openOptimizeCv(jobId) {
         const job = App.getJobById(jobId);
         if (!job) return;
 
-        const profile = App.getProfile();
-        const analysis = MatchingEngine.evaluate(job, profile);
-        const container = document.getElementById('optimizeCvContent');
-        if (!container) return;
+        const content = document.getElementById('optimizeCvContent');
+        if (!content) return;
 
-        container.innerHTML = `
-            <div style="background: var(--surface-card); padding: 14px; border-radius: 10px; border: 1px solid var(--border-highlight); margin-bottom: 12px;">
-                <h4 style="color: #FFF; font-size: 15px;">Adaptación Estratégica para: ${job.title} (${job.company})</h4>
-                <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Optimizá las palabras clave en tu CV antes de enviar la postulación.</p>
-            </div>
-
-            <div style="display: flex; flex-direction: column; gap: 10px; font-size: 12.5px;">
-                <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); padding: 12px; border-radius: 8px;">
-                    <strong style="color: var(--primary);">1. Palabras clave a incluir en tu experiencia:</strong>
-                    <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;">
-                        ${(analysis.domain.criticalSkills || []).slice(0, 5).map(s => `<span class="chip-skill">${s}</span>`).join('')}
-                    </div>
-                </div>
-
-                <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); padding: 12px; border-radius: 8px;">
-                    <strong style="color: #34D399;">2. Enfoque recomendado para el extracto del CV:</strong>
-                    <p style="margin-top: 6px; color: #CBD5E1; line-height: 1.5;">
-                        "Estudiante universitario con foco en ${analysis.domain.name}. Experiencia práctica en ${(profile?.skills || []).slice(0, 3).join(', ')}. Interés en aplicar metodologías ágiles y análisis cuantitativo en entornos corporativos."
-                    </p>
-                </div>
+        content.innerHTML = `
+            <div style="font-size: 13px; color: #E2E8F0; line-height: 1.6;">
+                <h4 style="color: #FFF; font-size: 15px; margin-bottom: 10px;">Recomendaciones para postular a ${escapeHtml(job.title)}:</h4>
+                <ul style="padding-left: 18px; display: flex; flex-direction: column; gap: 8px;">
+                    <li><strong>Encabezado claro:</strong> Asegurate de que el título bajo tu nombre mencione áreas afines al puesto.</li>
+                    <li><strong>Herramientas prioritarias:</strong> Ubicá en primer plano conocimientos como Excel, SQL o herramientas de gestión que la empresa valora.</li>
+                    <li><strong>Resultados concretos:</strong> Si participaste en proyectos o pasantías, describí qué lograste en lugar de solo listar tareas.</li>
+                </ul>
             </div>
         `;
-        this.openModal('modalOptimizeCv');
+
+        this.openModal('optimizeCvModal');
     }
+}
 
-    // Modal de Transparencia de Fuentes & Rastreo
-    static openTransparencyModal() {
-        const report = TransparencyTracker.generateReport(App.getAllJobs(), App.getProfile());
-        const container = document.getElementById('transparencyModalContent');
-        if (!container) return;
-
-        let sourcesHtml = '';
-        for (const [sourceName, stats] of Object.entries(report.sourceStats)) {
-            sourcesHtml += `
-                <div style="display: flex; justify-content: space-between; align-items: center; background: var(--surface-card); padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border);">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="color: var(--accent-green); font-size: 12px;">●</span>
-                        <strong style="font-size: 13px; color: #FFF;">${sourceName}</strong>
-                    </div>
-                    <div style="font-size: 12px; display: flex; gap: 14px;">
-                        <span style="color: var(--text-muted);">Consultadas: <strong>${stats.found}</strong></span>
-                        <span style="color: var(--accent-green);">Aprobadas: <strong>${stats.approved}</strong></span>
-                        <span style="color: #F87171;">Descartadas: <strong>${stats.discarded}</strong></span>
-                    </div>
-                </div>
-            `;
-        }
-
-        let discardsHtml = '';
-        report.discardAuditLog.slice(0, 15).forEach(item => {
-            discardsHtml += `
-                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 12px;">
-                    <td style="padding: 8px; color: #FFF;">${item.title}</td>
-                    <td style="padding: 8px; color: var(--text-muted);">${item.company}</td>
-                    <td style="padding: 8px; color: var(--primary);">${item.source}</td>
-                    <td style="padding: 8px; color: #FCA5A5;">${item.reason}</td>
-                </tr>
-            `;
-        });
-
-        container.innerHTML = `
-            <!-- Resumen Global -->
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px;">
-                <div style="background: var(--surface-card); border: 1px solid var(--border-highlight); padding: 14px; border-radius: 10px; text-align: center;">
-                    <div style="font-size: 22px; font-weight: 800; color: #FFF;">${report.totalFound}</div>
-                    <div style="font-size: 11px; color: var(--text-muted);">Vacantes Rastreadas en Uruguay</div>
-                </div>
-                <div style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); padding: 14px; border-radius: 10px; text-align: center;">
-                    <div style="font-size: 22px; font-weight: 800; color: #34D399;">${report.totalApproved}</div>
-                    <div style="font-size: 11px; color: #A7F3D0;">Compatibles con tu Perfil</div>
-                </div>
-                <div style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); padding: 14px; border-radius: 10px; text-align: center;">
-                    <div style="font-size: 22px; font-weight: 800; color: #F87171;">${report.totalDiscarded}</div>
-                    <div style="font-size: 11px; color: #FCA5A5;">Descartadas por Compuertas</div>
-                </div>
-            </div>
-
-            <!-- Fuentes Consultadas -->
-            <h4 style="font-size: 13px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; letter-spacing: 0.5px;">Portales y Fuentes Consultadas</h4>
-            <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px;">
-                ${sourcesHtml}
-            </div>
-
-            <!-- Auditoría de Descartes -->
-            <h4 style="font-size: 13px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; letter-spacing: 0.5px;">Registro de Descartes Automáticos (Por qué no aparecen)</h4>
-            <div style="max-height: 220px; overflow-y: auto; background: rgba(7, 11, 18, 0.8); border-radius: 8px; border: 1px solid var(--border);">
-                <table style="width: 100%; border-collapse: collapse; text-align: left;">
-                    <thead>
-                        <tr style="background: rgba(255,255,255,0.03); color: var(--text-subtle); font-size: 11px; border-bottom: 1px solid var(--border);">
-                            <th style="padding: 8px;">Puesto</th>
-                            <th style="padding: 8px;">Empresa</th>
-                            <th style="padding: 8px;">Portal</th>
-                            <th style="padding: 8px;">Motivo del Descarte</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${discardsHtml}
-                    </tbody>
-                </table>
-            </div>
-        `;
-        this.openModal('modalTransparency');
-    }
+function escapeHtml(str) {
+    if (!str) return "";
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }

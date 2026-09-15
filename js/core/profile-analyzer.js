@@ -13,15 +13,15 @@ class ProfileAnalyzer {
         
         // 1. Detección genérica del Nombre
         let name = "Candidato";
-        if (existingProfile && existingProfile.name && existingProfile.name !== "Martín Sviridenko") {
-            name = existingProfile.name;
-        } else if (rawText) {
+        if (rawText) {
             const firstLines = rawText.split("\n").map(l => l.trim()).filter(l => l.length > 2 && l.length < 50);
             if (firstLines.length > 0 && !firstLines[0].toLowerCase().includes("curr") && !firstLines[0].toLowerCase().includes("resume")) {
                 name = firstLines[0];
             } else if (existingProfile && existingProfile.name) {
                 name = existingProfile.name;
             }
+        } else if (existingProfile && existingProfile.name) {
+            name = existingProfile.name;
         }
 
         // 2. Mapeo Semántico a Familias Profesionales (Scoring de Afinidad)

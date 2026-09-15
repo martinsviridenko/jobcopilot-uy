@@ -3,355 +3,515 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JobCopilot AI — Oportunidades Laborales Relevantes en Uruguay</title>
+    <title>JobCopilot — Recomendador Inteligente de Vacantes</title>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Mozilla PDF.js for 100% In-Browser PDF Parsing -->
+    <!-- Mozilla PDF.js for In-Browser PDF Parsing -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script>
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        if (window.pdfjsLib) {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
     </script>
 
-    <!-- Modular CSS -->
+    <!-- Styles -->
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 
     <div class="app-container">
         
-        <!-- Header & Branding -->
+        <!-- Header & Top Navigation -->
         <header class="top-nav">
             <div class="brand-group">
-                <div class="brand-logo">JC</div>
+                <div class="brand-logo">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                        <polyline points="2 17 12 22 22 17"></polyline>
+                        <polyline points="2 12 12 17 22 12"></polyline>
+                    </svg>
+                </div>
                 <div class="brand-text">
-                    <h1>JobCopilot AI</h1>
-                    <p>Recomendador Inteligente de Vacantes en Uruguay</p>
+                    <div class="brand-title">JobCopilot <span class="brand-tag">PRO</span></div>
+                    <div class="brand-subtitle">Recomendador Inteligente de Vacantes</div>
                 </div>
             </div>
 
-            <div class="nav-stats-bar">
-                <div class="stat-badge">
-                    Base activa: <strong id="statAnalyzed">Cargando...</strong>
+            <!-- Global Search & Stats -->
+            <div class="nav-center">
+                <div class="search-box-wrapper">
+                    <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <input type="text" id="filterKeyword" class="search-input" placeholder="Buscar por título, empresa o palabra clave..." oninput="App.applyFilters()">
                 </div>
-                <div class="stat-badge">
-                    Descartadas ("No me interesa"): <strong id="statDismissed">0</strong>
-                </div>
-                <button class="btn-transparency" onclick="ModalsController.openTransparencyModal()">
-                    📡 Radar de Fuentes & Rastreo
+            </div>
+
+            <div class="nav-actions">
+                <button class="nav-btn" onclick="ModalsController.openAuditModal()" title="Auditar fuentes consultadas y motivos de descarte">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="2"></circle>
+                        <path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"></path>
+                    </svg>
+                    <span>Auditoría del Radar</span>
                 </button>
+
+                <div class="view-switcher">
+                    <button id="tabFeed" class="view-tab active" onclick="App.switchView('feed')">
+                        Recomendaciones (<span id="countFeedNav">0</span>)
+                    </button>
+                    <button id="tabFavorites" class="view-tab" onclick="App.switchView('favorites')">
+                        Favoritas (<span id="countFavs">0</span>)
+                    </button>
+                    <button id="tabKanban" class="view-tab" onclick="App.switchView('kanban')">
+                        Postulaciones (<span id="countPipeline">0</span>)
+                    </button>
+                </div>
             </div>
         </header>
 
-        <!-- Main Grid -->
+        <!-- Dropdown Filters Bar (Horizontal & Combinable) -->
+        <nav class="filters-bar" id="filtersBar">
+            <div class="filters-bar-title">Filtros:</div>
+
+            <!-- 1. Ubicación Dropdown -->
+            <div class="dropdown-wrapper">
+                <button class="dropdown-trigger" data-target="dropLocation" type="button">
+                    <span>Ubicación</span>
+                    <span class="filter-count-badge" id="badgeLoc" style="display:none;">0</span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </button>
+                <div class="dropdown-popover" id="dropLocation">
+                    <div class="popover-header">Ubicación (Combinable)</div>
+                    <label class="popover-option">
+                        <input type="checkbox" class="cb-loc" value="montevideo" checked onchange="FilterController.onCheckboxChange()">
+                        <span>Montevideo (admite Remoto)</span>
+                    </label>
+                    <label class="popover-option">
+                        <input type="checkbox" class="cb-loc" value="remoto" checked onchange="FilterController.onCheckboxChange()">
+                        <span>Solo Remoto / Teletrabajo</span>
+                    </label>
+                    <label class="popover-option">
+                        <input type="checkbox" class="cb-loc" value="canelones" onchange="FilterController.onCheckboxChange()">
+                        <span>Canelones / Ciudad de la Costa</span>
+                    </label>
+                    <label class="popover-option">
+                        <input type="checkbox" class="cb-loc" value="maldonado" onchange="FilterController.onCheckboxChange()">
+                        <span>Maldonado / Punta del Este</span>
+                    </label>
+                    <label class="popover-option">
+                        <input type="checkbox" class="cb-loc" value="colonia" onchange="FilterController.onCheckboxChange()">
+                        <span>Colonia</span>
+                    </label>
+                    <label class="popover-option">
+                        <input type="checkbox" class="cb-loc" value="interior" onchange="FilterController.onCheckboxChange()">
+                        <span>Todo el Interior</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 2. Carga Horaria Dropdown -->
+            <div class="dropdown-wrapper">
+                <button class="dropdown-trigger" data-target="dropHours" type="button">
+                    <span>Carga horaria</span>
+                    <span class="filter-count-badge" id="badgeHours" style="display:none;">0</span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </button>
+                <div class="dropdown-popover" id="dropHours">
+                    <div class="popover-header">Carga Horaria</div>
+                    <label class="popover-option">
+                        <input type="checkbox" class="cb-hours" value="4h" checked onchange="FilterController.onCheckboxChange()">
+                        <span>4 Horas (Pasantía / Part-time)</span>
+                    </label>
+                    <label class="popover-option">
+                        <input type="checkbox" class="cb-hours" value="6h" checked onchange="FilterController.onCheckboxChange()">
+                        <span>6 Horas (Bancario / Estudiantil)</span>
+                    </label>
+                    <label class="popover-option">
+                        <input type="checkbox" class="cb-hours" value="8h" onchange="FilterController.onCheckboxChange()">
+                        <span>8 Horas (Full-time)</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 3. Turno Dropdown -->
+            <div class="dropdown-wrapper">
+                <button class="dropdown-trigger" data-target="dropShift" type="button">
+                    <span>Turno</span>
+                    <span class="filter-count-badge" id="badgeShift" style="display:none;">0</span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </button>
+                <div class="dropdown-popover" id="dropShift">
+                    <div class="popover-header">Turno / Horario</div>
+                    <label class="popover-option">
+                        <input type="checkbox" class="cb-shift" value="Matutino" onchange="FilterController.onCheckboxChange()">
+                        <span>Matutino (Mañana)</span>
+                    </label>
+                    <label class="popover-option">
+                        <input type="checkbox" class="cb-shift" value="Vespertino" onchange="FilterController.onCheckboxChange()">
+                        <span>Vespertino (Tarde)</span>
+                    </label>
+                    <label class="popover-option">
+                        <input type="checkbox" class="cb-shift" value="Flexible" onchange="FilterController.onCheckboxChange()">
+                        <span>Horario Flexible</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 4. Modalidad Dropdown -->
+            <div class="dropdown-wrapper">
+                <button class="dropdown-trigger" data-target="dropModality" type="button">
+                    <span>Modalidad</span>
+                    <span class="filter-count-badge" id="badgeModality" style="display:none;">0</span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </button>
+                <div class="dropdown-popover" id="dropModality">
+                    <div class="popover-header">Modalidad de Trabajo</div>
+                    <label class="popover-option">
+                        <input type="checkbox" class="cb-mod" value="presential" onchange="FilterController.onCheckboxChange()">
+                        <span>Presencial</span>
+                    </label>
+                    <label class="popover-option">
+                        <input type="checkbox" class="cb-mod" value="hybrid" onchange="FilterController.onCheckboxChange()">
+                        <span>Híbrido</span>
+                    </label>
+                    <label class="popover-option">
+                        <input type="checkbox" class="cb-mod" value="remote" onchange="FilterController.onCheckboxChange()">
+                        <span>Remoto</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 5. Área / Disciplina Dropdown -->
+            <div class="dropdown-wrapper">
+                <button class="dropdown-trigger" data-target="dropDiscipline" type="button">
+                    <span>Área</span>
+                    <span class="filter-count-badge" id="badgeDiscipline" style="display:none;">0</span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </button>
+                <div class="dropdown-popover" id="dropDiscipline">
+                    <div class="popover-header">Familia Profesional</div>
+                    <label class="popover-option">
+                        <input type="radio" name="rbDiscipline" value="ALL" checked onchange="FilterController.onCheckboxChange()">
+                        <span>Todas las áreas afines</span>
+                    </label>
+                    <label class="popover-option">
+                        <input type="radio" name="rbDiscipline" value="ECONOMIC_BUSINESS" onchange="FilterController.onCheckboxChange()">
+                        <span>Ciencias Económicas y Negocios</span>
+                    </label>
+                    <label class="popover-option">
+                        <input type="radio" name="rbDiscipline" value="TECH_SOFTWARE" onchange="FilterController.onCheckboxChange()">
+                        <span>Tecnología y Software</span>
+                    </label>
+                    <label class="popover-option">
+                        <input type="radio" name="rbDiscipline" value="HR_PSYCHOLOGY" onchange="FilterController.onCheckboxChange()">
+                        <span>Gestión Humana y Selección</span>
+                    </label>
+                    <label class="popover-option">
+                        <input type="radio" name="rbDiscipline" value="DESIGN_CREATIVE" onchange="FilterController.onCheckboxChange()">
+                        <span>Diseño y Comunicación</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 6. Idioma Dropdown -->
+            <div class="dropdown-wrapper">
+                <button class="dropdown-trigger" data-target="dropLang" type="button">
+                    <span>Idioma</span>
+                    <span class="filter-count-badge" id="badgeLang" style="display:none;">0</span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </button>
+                <div class="dropdown-popover" id="dropLang">
+                    <div class="popover-header">Exigencia Idiomática</div>
+                    <label class="popover-option">
+                        <input type="radio" name="rbLang" value="all" checked onchange="FilterController.onCheckboxChange()">
+                        <span>Cualquier requisito</span>
+                    </label>
+                    <label class="popover-option">
+                        <input type="radio" name="rbLang" value="english" onchange="FilterController.onCheckboxChange()">
+                        <span>Requiere Inglés</span>
+                    </label>
+                    <label class="popover-option">
+                        <input type="radio" name="rbLang" value="spanish" onchange="FilterController.onCheckboxChange()">
+                        <span>No exige idioma extranjero</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 7. Experiencia Dropdown -->
+            <div class="dropdown-wrapper">
+                <button class="dropdown-trigger" data-target="dropExp" type="button">
+                    <span>Experiencia</span>
+                    <span class="filter-count-badge" id="badgeExp" style="display:none;">0</span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </button>
+                <div class="dropdown-popover" id="dropExp">
+                    <div class="popover-header">Nivel de Experiencia</div>
+                    <label class="popover-option">
+                        <input type="checkbox" class="cb-exp" value="junior" checked onchange="FilterController.onCheckboxChange()">
+                        <span>Estudiante / Trainee / Junior</span>
+                    </label>
+                    <label class="popover-option">
+                        <input type="checkbox" class="cb-exp" value="semisenior" onchange="FilterController.onCheckboxChange()">
+                        <span>Semi-Senior (2-4 años)</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Reset Filters Button -->
+            <button class="btn-clear-filters" id="btnClearFilters" onclick="FilterController.resetAllFilters()" type="button" title="Restablecer todos los filtros">
+                Restablecer
+            </button>
+
+            <!-- Hide applied toggle -->
+            <div class="toggle-hide-applied">
+                <label for="hideAppliedToggle">
+                    <input type="checkbox" id="hideAppliedToggle" onchange="App.applyFilters()">
+                    <span>Ocultar ya postuladas</span>
+                </label>
+            </div>
+        </nav>
+
+        <!-- Main Layout Grid -->
         <div class="main-grid">
             
-            <!-- Sidebar: Perfil & Filtros Combinables -->
+            <!-- Left Sidebar: CV Upload & Dynamic Profile Summary -->
             <aside class="sidebar">
                 
-                <!-- Panel 1: CV & Perfil del Candidato -->
+                <!-- Panel: CV & Perfil del Candidato -->
                 <div class="panel">
                     <div class="panel-header">
-                        <span class="panel-title">1. Mi Currículum & Perfil</span>
-                        <span id="cvBadgeStatus" style="font-size: 11px; color: var(--text-muted); font-weight: 700;">● Sin cargar</span>
+                        <div class="panel-title">Mi Perfil Profesional</div>
+                        <span id="cvBadgeStatus" class="cv-badge-status">Sin cargar</span>
                     </div>
 
-                    <!-- Dropzone -->
-                    <label class="dropzone-label" for="cvFileInput" id="dropzoneLabel">
-                        <input type="file" id="cvFileInput" accept=".pdf,.txt">
-                        <div class="dropzone-icon">📄</div>
-                        <div class="dropzone-title">Subí tu CV (.pdf o .txt)</div>
-                        <div class="dropzone-sub">
-                            Arrastrá el archivo o <span class="dropzone-link">hacé clic acá</span>
-                        </div>
-                    </label>
+                    <!-- Hidden native input outside label to prevent browser bubble cancellation -->
+                    <input type="file" id="cvFileInput" accept=".pdf,.txt" style="display: none;">
 
-                    <div style="text-align: center; margin-top: 4px; margin-bottom: 12px;">
-                        <button onclick="App.loadDemoCandidate()" style="font-size: 11.5px; color: var(--primary); background: none; border: none; text-decoration: underline; cursor: pointer; font-weight: 600;">
-                            Cargar CV de prueba (Martín Sviridenko)
+                    <!-- Interactive Drag and Drop Container -->
+                    <div class="dropzone-box" id="dropzoneBox">
+                        <div class="dropzone-icon">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="12" y1="18" x2="12" y2="12"></line>
+                                <line x1="9" y1="15" x2="15" y2="15"></line>
+                            </svg>
+                        </div>
+                        <div class="dropzone-title">Subí tu currículum vitae</div>
+                        <div class="dropzone-sub">Arrastrá tu archivo (.pdf o .txt) o hacé clic para seleccionar</div>
+                        <div class="dropzone-actions">
+                            <button type="button" class="btn btn-secondary btn-sm" id="btnSelectFile">Seleccionar archivo</button>
+                            <button type="button" class="btn btn-ghost btn-sm" id="btnOpenPasteModal">Pegar texto</button>
+                        </div>
+                        <div id="cvUploadLoader" class="cv-loader" style="display: none;">
+                            <div class="spinner"></div>
+                            <span>Procesando e infiriendo perfil...</span>
+                        </div>
+                    </div>
+
+                    <!-- Fictitious Demo Mode -->
+                    <div class="demo-trigger-wrapper">
+                        <button type="button" class="btn-demo-link" onclick="App.loadDemoCandidate()">
+                            Cargar perfil de ejemplo (Demostración)
                         </button>
                     </div>
 
-                    <!-- Profile Analysis Box -->
-                    <div class="profile-summary-box" id="profileSummaryBox" style="display: none;">
-                        <div class="profile-meta">
-                            <h4 id="pName">Martín Sviridenko</h4>
-                            <p id="pEdu">Licenciatura en Negocios Digitales — ORT Uruguay</p>
+                    <!-- Dynamic Profile Card (Extracted strictly from CV) -->
+                    <div class="profile-card" id="profileSummaryBox" style="display: none;">
+                        <div class="profile-card-header">
+                            <h4 id="pName">Candidato</h4>
+                            <span class="profile-seniority-tag" id="pSeniority">JUNIOR</span>
                         </div>
-
+                        <p class="profile-education" id="pEdu">Formación Universitaria</p>
                         <div class="profile-summary-text" id="pSummaryText">
-                            Estudiante con foco en Business Intelligence, SQL, Power BI, Excel avanzado y analítica comercial.
+                            El sistema infiere las competencias y trayectoria directamente del documento adjunto.
                         </div>
 
-                        <div style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 6px;">
-                            Inglés: <strong style="color: #FFF;" id="pLang">Cambridge B2 First</strong>
+                        <div class="profile-meta-row">
+                            <span class="meta-label">Idioma:</span>
+                            <span class="meta-value" id="pLang">Español</span>
                         </div>
 
-                        <div style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 6px;">Herramientas clave:</div>
-                        <div class="chips-cloud" id="pSkillsChips"></div>
+                        <div class="profile-skills-section">
+                            <span class="meta-label">Herramientas detectadas:</span>
+                            <div class="chips-cloud" id="pSkillsChips"></div>
+                        </div>
+
+                        <div class="profile-footer-actions">
+                            <button class="btn-link-action" onclick="document.getElementById('cvFileInput').click()">
+                                Reemplazar CV
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Prompt when no CV is loaded -->
+                    <div class="profile-empty-hint" id="profileEmptyHint">
+                        <div class="empty-hint-text">
+                            Subí tu CV para que el recomendador analice tus conocimientos, herramientas y áreas de afinidad en segundos.
+                        </div>
                     </div>
                 </div>
 
-                <!-- Panel 2: Filtros Combinables -->
-                <div class="panel">
-                    <div class="panel-header">
-                        <span class="panel-title">2. Filtros Combinables</span>
+                <!-- Database Status Widget -->
+                <div class="panel panel-compact">
+                    <div class="db-stat-item">
+                        <span class="db-stat-label">Vacantes activas:</span>
+                        <strong class="db-stat-value" id="statAnalyzed">Cargando...</strong>
                     </div>
-
-                    <!-- Ubicación Combinable (Multi-Select) -->
-                    <div class="filter-group">
-                        <div class="filter-header-label">Ubicación (Combinable)</div>
-                        
-                        <label class="check-pill" for="locMontevideo">
-                            <span>Montevideo</span>
-                            <input type="checkbox" id="locMontevideo" checked onchange="App.applyFilters()">
-                        </label>
-                        <label class="check-pill" for="locRemoto">
-                            <span>Remoto (Nacional e Int.)</span>
-                            <input type="checkbox" id="locRemoto" checked onchange="App.applyFilters()">
-                        </label>
-                        <label class="check-pill" for="locCanelones">
-                            <span>Canelones / Costa</span>
-                            <input type="checkbox" id="locCanelones" onchange="App.applyFilters()">
-                        </label>
-                        <label class="check-pill" for="locMaldonado">
-                            <span>Maldonado / Punta del Este</span>
-                            <input type="checkbox" id="locMaldonado" onchange="App.applyFilters()">
-                        </label>
-                        <label class="check-pill" for="locColonia">
-                            <span>Colonia</span>
-                            <input type="checkbox" id="locColonia" onchange="App.applyFilters()">
-                        </label>
-                        <label class="check-pill" for="locInterior">
-                            <span>Interior del País</span>
-                            <input type="checkbox" id="locInterior" onchange="App.applyFilters()">
-                        </label>
+                    <div class="db-stat-item">
+                        <span class="db-stat-label">Descartadas por el usuario:</span>
+                        <strong class="db-stat-value" id="statDismissed">0</strong>
                     </div>
-
-                    <!-- Carga Horaria Combinable -->
-                    <div class="filter-group">
-                        <div class="filter-header-label">Carga Horaria</div>
-                        
-                        <label class="check-pill" for="hours4h">
-                            <span>4 Horas (Pasantía)</span>
-                            <span class="badge-hours b-4h">Part-time</span>
-                            <input type="checkbox" id="hours4h" checked onchange="App.applyFilters()">
-                        </label>
-                        <label class="check-pill" for="hours6h">
-                            <span>6 Horas (Media Jornada / Banco)</span>
-                            <span class="badge-hours b-6h">Bancaria</span>
-                            <input type="checkbox" id="hours6h" checked onchange="App.applyFilters()">
-                        </label>
-                        <label class="check-pill" for="hours8h">
-                            <span>8 Horas (Jornada Completa)</span>
-                            <span class="badge-hours b-8h">Full-time</span>
-                            <input type="checkbox" id="hours8h" onchange="App.applyFilters()">
-                        </label>
-                    </div>
-
-                    <!-- Turno / Horario -->
-                    <div class="filter-group">
-                        <div class="filter-header-label">Turno / Horario</div>
-                        
-                        <label class="check-pill" for="shiftMorning">
-                            <span>Matutino (Mañana)</span>
-                            <input type="checkbox" id="shiftMorning" checked onchange="App.applyFilters()">
-                        </label>
-                        <label class="check-pill" for="shiftAfternoon">
-                            <span>Vespertino (Tarde)</span>
-                            <input type="checkbox" id="shiftAfternoon" checked onchange="App.applyFilters()">
-                        </label>
-                        <label class="check-pill" for="shiftFlexible">
-                            <span>Flexible / A convenir</span>
-                            <input type="checkbox" id="shiftFlexible" checked onchange="App.applyFilters()">
-                        </label>
-                    </div>
-
-                    <!-- Modalidad -->
-                    <div class="filter-group">
-                        <div class="filter-header-label">Modalidad</div>
-                        
-                        <label class="check-pill" for="modPresential">
-                            <span>Presencial</span>
-                            <input type="checkbox" id="modPresential" checked onchange="App.applyFilters()">
-                        </label>
-                        <label class="check-pill" for="modHybrid">
-                            <span>Híbrido</span>
-                            <input type="checkbox" id="modHybrid" checked onchange="App.applyFilters()">
-                        </label>
-                        <label class="check-pill" for="modRemote">
-                            <span>100% Remoto</span>
-                            <input type="checkbox" id="modRemote" checked onchange="App.applyFilters()">
-                        </label>
-                    </div>
-
-                    <!-- Disciplina Profesional -->
-                    <div class="filter-group">
-                        <div class="filter-header-label">Área Profesional</div>
-                        <select id="filterDiscipline" class="sort-select" style="width: 100%;" onchange="App.applyFilters()">
-                            <option value="ALL">Todas las áreas afines</option>
-                            <option value="DATA_ANALYTICS_BI">📊 Datos, BI & Analítica</option>
-                            <option value="BUSINESS_MANAGEMENT">💼 Negocios & Gestión</option>
-                            <option value="MARKETING_GROWTH">🚀 Marketing & E-commerce</option>
-                            <option value="FINANCE_BANKING">🏦 Finanzas & Banca</option>
-                            <option value="SALES_COMMERCIAL">🤝 Ventas B2B & Comercial</option>
-                            <option value="CUSTOMER_OPERATIONS">📦 Operaciones & Logística</option>
-                            <option value="HR_PEOPLE">👥 People Analytics & RRHH</option>
-                        </select>
-                    </div>
-
-                    <!-- Búsqueda por texto -->
-                    <div class="filter-group">
-                        <div class="filter-header-label">Buscar por Empresa / Cargo</div>
-                        <input type="text" id="filterKeyword" placeholder="Ej: Cash, Farmashop, BI, SQL..." 
-                               class="sort-select" style="width: 100%;" oninput="App.applyFilters()">
-                    </div>
-
                 </div>
-
             </aside>
 
-            <!-- Main Content Area -->
-            <main class="content-area">
+            <!-- Main Workspace: Feed or Kanban -->
+            <main class="main-content">
                 
-                <!-- View Bar -->
-                <div class="views-bar">
-                    <div class="tab-nav-buttons">
-                        <button class="tab-item active" id="tabFeed" onclick="App.switchView('feed')">
-                            🎯 Oportunidades (<span id="countFeed">0</span>)
-                        </button>
-                        <button class="tab-item" id="tabKanban" onclick="App.switchView('kanban')">
-                            📊 Mi Pipeline (<span id="countPipeline">0</span>)
-                        </button>
-                        <button class="tab-item" id="tabFavorites" onclick="App.switchView('favorites')">
-                            ⭐ Favoritas (<span id="countFavs">0</span>)
-                        </button>
+                <!-- Feed View Header -->
+                <div class="feed-header-bar" id="feedHeaderBar">
+                    <div class="feed-header-left">
+                        <h2 class="feed-title">Oportunidades Recomendadas</h2>
+                        <span class="feed-counter-pill"><span id="countFeed">0</span> vacantes con alta afinidad</span>
                     </div>
-
-                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                        <label style="font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                            <input type="checkbox" id="hideAppliedToggle" onchange="App.applyFilters()">
-                            <span>Ocultar ya postuladas</span>
-                        </label>
-                        <select class="sort-select" id="sortSelect" onchange="App.applyFilters()">
-                            <option value="worth_it">Ordenar: Mayor probabilidad de entrevista</option>
-                            <option value="score_desc">Mayor coincidencia técnica</option>
-                            <option value="hours_asc">Menor carga horaria (4h primero)</option>
+                    <div class="feed-header-right">
+                        <label for="sortSelect" class="sort-label">Ordenar por:</label>
+                        <select id="sortSelect" class="sort-select" onchange="App.applyFilters()">
+                            <option value="worth_it">Mayor probabilidad de entrevista</option>
+                            <option value="score_desc">Puntaje de afinidad descendente</option>
+                            <option value="hours_asc">Menor carga horaria</option>
                         </select>
                     </div>
                 </div>
 
-                <!-- Feed View -->
-                <div id="feedView" class="job-list-container"></div>
+                <!-- Recommendations Feed Container -->
+                <section class="feed-container" id="feedView">
+                    <!-- Dynamic Cards will be injected by FeedRenderer -->
+                </section>
 
-                                <!-- Kanban Pipeline View -->
-                <div id="kanbanView" style="display: none;">
-                    <div style="display: flex; justify-content: flex-end; margin-bottom: 8px;">
-                        <button onclick="App.resetAllApplications()" style="background: transparent; border: 1px solid rgba(239,68,68,0.35); color: #FCA5A5; font-size: 11.5px; padding: 5px 12px; border-radius: 8px; cursor: pointer;">
-                            🗑️ Limpiar todas las postulaciones
-                        </button>
-                    </div>
-                    <div class="kanban-board">
+                <!-- Kanban Pipeline View -->
+                <section class="kanban-container" id="kanbanView" style="display: none;">
+                    <div class="kanban-grid">
                         <div class="kanban-col">
-                            <div class="kanban-col-title">
-                                <span>📤 CV Enviado</span>
-                                <span id="kCountSent" class="badge-hours b-6h">0</span>
+                            <div class="kanban-header">
+                                <span>CV Enviado</span>
+                                <span class="kanban-badge" id="kCountSent">0</span>
                             </div>
-                            <div id="colSent" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                            <div class="kanban-cards-area" id="colSent"></div>
                         </div>
-
                         <div class="kanban-col">
-                            <div class="kanban-col-title">
-                                <span>👀 En Revisión</span>
-                                <span id="kCountReview" class="badge-hours b-4h">0</span>
+                            <div class="kanban-header">
+                                <span>En Revisión</span>
+                                <span class="kanban-badge" id="kCountReview">0</span>
                             </div>
-                            <div id="colReview" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                            <div class="kanban-cards-area" id="colReview"></div>
                         </div>
-
                         <div class="kanban-col">
-                            <div class="kanban-col-title">
-                                <span>🎙️ En Entrevista</span>
-                                <span id="kCountInterview" class="badge-hours b-6h" style="background: rgba(168,85,247,0.2); color:#D8B4FE;">0</span>
+                            <div class="kanban-header">
+                                <span>En Entrevista</span>
+                                <span class="kanban-badge" id="kCountInterview">0</span>
                             </div>
-                            <div id="colInterview" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                            <div class="kanban-cards-area" id="colInterview"></div>
                         </div>
-
                         <div class="kanban-col">
-                            <div class="kanban-col-title">
-                                <span>🏆 Oferta / Final</span>
-                                <span id="kCountOffer" class="badge-hours b-4h" style="background: rgba(16,185,129,0.2); color:#34D399;">0</span>
+                            <div class="kanban-header">
+                                <span>Oferta / Concluida</span>
+                                <span class="kanban-badge" id="kCountOffer">0</span>
                             </div>
-                            <div id="colOffer" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                            <div class="kanban-cards-area" id="colOffer"></div>
                         </div>
                     </div>
-                </div>
+                </section>
 
             </main>
-
         </div>
-
     </div>
 
-    <!-- Modals -->
-
-    <!-- Modal 1: Recruiter X-Ray Analysis -->
-    <div id="modalAnalysis" class="modal-overlay">
-        <div class="modal-container">
+    <!-- MODAL 1: Auditoría de Búsqueda y Fuentes -->
+    <div class="modal-overlay" id="auditModal" style="display: none;">
+        <div class="modal-card modal-lg">
             <div class="modal-header">
-                <h3>🔍 Análisis Detallado del Reclutador</h3>
-                <button class="btn-close-modal" onclick="ModalsController.closeModal('modalAnalysis')">&times;</button>
+                <div class="modal-header-info">
+                    <h3 class="modal-title">Auditoría del Radar de Búsqueda y Fuentes</h3>
+                    <p class="modal-sub">Rastreo transparente de fuentes consultadas, vacantes aprobadas y motivos de descarte.</p>
+                </div>
+                <button class="modal-close" onclick="ModalsController.closeAuditModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="auditModalContent">
+                <!-- Injected dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: Análisis Detallado ("¿Por qué me conviene?") -->
+    <div class="modal-overlay" id="analysisModal" style="display: none;">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-header-info">
+                    <h3 class="modal-title">Diagnóstico de Compatibilidad</h3>
+                    <p class="modal-sub">Evaluación del perfil frente a los requisitos de la vacante.</p>
+                </div>
+                <button class="modal-close" onclick="ModalsController.closeModal('analysisModal')">&times;</button>
             </div>
             <div class="modal-body" id="analysisModalContent"></div>
         </div>
     </div>
 
-    <!-- Modal 2: Cover Letter Generator -->
-    <div id="modalCoverLetter" class="modal-overlay">
-        <div class="modal-container">
+    <!-- MODAL 3: Carta de Presentación -->
+    <div class="modal-overlay" id="coverLetterModal" style="display: none;">
+        <div class="modal-card">
             <div class="modal-header">
-                <h3>✉️ Carta de Presentación Personalizada</h3>
-                <button class="btn-close-modal" onclick="ModalsController.closeModal('modalCoverLetter')">&times;</button>
-            </div>
-            <div class="modal-body">
-                <textarea id="coverLetterTextarea" rows="12" style="width: 100%; background: #070B12; border: 1px solid var(--border-highlight); color: #FFF; padding: 14px; border-radius: 8px; font-size: 13px; line-height: 1.6; font-family: inherit; outline: none;"></textarea>
-                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
-                    <button class="btn-action-outline" style="width: auto; margin: 0;" onclick="navigator.clipboard.writeText(document.getElementById('coverLetterTextarea').value); alert('¡Carta copiada al portapapeles!');">
-                        📋 Copiar al Portapapeles
-                    </button>
-                    <button class="btn-apply-direct" onclick="ModalsController.closeModal('modalCoverLetter')">
-                        Listo
-                    </button>
+                <div class="modal-header-info">
+                    <h3 class="modal-title">Carta de Presentación Personalizada</h3>
+                    <p class="modal-sub">Optimizada para esta postulación con tus competencias reales.</p>
                 </div>
+                <button class="modal-close" onclick="ModalsController.closeModal('coverLetterModal')">&times;</button>
             </div>
+            <div class="modal-body" id="coverLetterContent"></div>
         </div>
     </div>
 
-    <!-- Modal 3: Optimize CV -->
-    <div id="modalOptimizeCv" class="modal-overlay">
-        <div class="modal-container">
+    <!-- MODAL 4: Consejos para adaptar CV -->
+    <div class="modal-overlay" id="optimizeCvModal" style="display: none;">
+        <div class="modal-card">
             <div class="modal-header">
-                <h3>⚡ Adaptación Estratégica de tu CV</h3>
-                <button class="btn-close-modal" onclick="ModalsController.closeModal('modalOptimizeCv')">&times;</button>
+                <div class="modal-header-info">
+                    <h3 class="modal-title">Consejos para Adaptar tu CV</h3>
+                    <p class="modal-sub">Recomendaciones para maximizar tu tasa de contacto en esta vacante.</p>
+                </div>
+                <button class="modal-close" onclick="ModalsController.closeModal('optimizeCvModal')">&times;</button>
             </div>
             <div class="modal-body" id="optimizeCvContent"></div>
         </div>
     </div>
 
-    <!-- Modal 4: Sources Transparency Radar -->
-    <div id="modalTransparency" class="modal-overlay">
-        <div class="modal-container" style="max-width: 800px;">
+    <!-- MODAL 5: Pegar Texto de CV Directamente -->
+    <div class="modal-overlay" id="pasteCvModal" style="display: none;">
+        <div class="modal-card">
             <div class="modal-header">
-                <h3>📡 Radar de Fuentes & Rastreo de Vacantes</h3>
-                <button class="btn-close-modal" onclick="ModalsController.closeModal('modalTransparency')">&times;</button>
+                <div class="modal-header-info">
+                    <h3 class="modal-title">Pegar Texto del Currículum</h3>
+                    <p class="modal-sub">Pegá el contenido de tu CV para inferir tu perfil sin necesidad de subir archivo.</p>
+                </div>
+                <button class="modal-close" onclick="ModalsController.closeModal('pasteCvModal')">&times;</button>
             </div>
-            <div class="modal-body" id="transparencyModalContent"></div>
+            <div class="modal-body">
+                <textarea id="pasteCvTextarea" class="paste-textarea" placeholder="Pegá acá el texto completo de tu CV (estudios, experiencia, herramientas, idiomas)..."></textarea>
+                <div class="modal-footer-actions">
+                    <button type="button" class="btn btn-secondary" onclick="ModalsController.closeModal('pasteCvModal')">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="App.handleDirectCvText()">Analizar Perfil</button>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Modular Application Scripts -->
+    <!-- Application Scripts -->
     <script src="js/config.js"></script>
     <script src="js/core/profile-analyzer.js"></script>
     <script src="js/core/job-analyzer.js"></script>

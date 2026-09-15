@@ -1,70 +1,76 @@
 /**
- * JobCopilot v3 — Transparency Tracker & Sources Radar
- * Provides 100% auditable metrics: sources queried, found count, discarded count and exact reasons.
+ * TransparencyTracker — Auditoría y Trazabilidad de Búsqueda
+ * Registra qué fuentes se consultan, cuántas vacantes devuelve cada una,
+ * cuáles se descartan y por qué motivo exacto.
  */
 
 class TransparencyTracker {
     static detectSource(job) {
         const url = (job.applyUrl || "").toLowerCase();
         const comp = (job.company || "").toLowerCase();
-        
-        if (url.includes("advice.zohorecruit.com") || comp.includes("advice")) return "Advice Recursos Humanos";
-        if (url.includes("cpaferrere.com") || comp.includes("cpa ferrere")) return "CPA Ferrere";
-        if (url.includes("linkedin.com") || job.isLinkedIn) return "LinkedIn Uruguay";
-        if (url.includes("buscojobs.com.uy")) return "BuscoJobs Uruguay";
-        if (url.includes("smarttalent.uy")) return "Smart Talent Uruguay";
-        if (url.includes("gallito.com.uy")) return "Gallito Luis";
+        const src = (job.source || "").toLowerCase();
+
+        if (url.includes("advice.zohorecruit.com") || comp.includes("advice") || src.includes("advice")) return "Advice Recursos Humanos";
+        if (url.includes("cpaferrere.com") || comp.includes("cpa ferrere") || src.includes("cpa")) return "CPA Ferrere";
+        if (url.includes("linkedin.com") || job.isLinkedIn || src.includes("linkedin")) return "LinkedIn Uruguay";
+        if (url.includes("buscojobs.com.uy") || src.includes("buscojobs")) return "BuscoJobs Uruguay";
+        if (url.includes("smarttalent.uy") || src.includes("smarttalent")) return "Smart Talent Uruguay";
+        if (url.includes("computrabajo.com.uy") || src.includes("computrabajo")) return "CompuTrabajo Uruguay";
+        if (url.includes("gallito.com.uy") || src.includes("gallito")) return "El Gallito Luis";
         return "Portales Directos / Empresas";
     }
 
-    static generateReport(allJobs, candidateProfile) {
-        const sourceStats = {
-            "Advice Recursos Humanos": { queried: true, found: 0, approved: 0, discarded: 0 },
-            "CPA Ferrere": { queried: true, found: 0, approved: 0, discarded: 0 },
-            "LinkedIn Uruguay": { queried: true, found: 0, approved: 0, discarded: 0 },
-            "BuscoJobs Uruguay": { queried: true, found: 0, approved: 0, discarded: 0 },
-            "Smart Talent Uruguay": { queried: true, found: 0, approved: 0, discarded: 0 },
-            "Portales Directos / Empresas": { queried: true, found: 0, approved: 0, discarded: 0 }
-        };
-
-        const discardAuditLog = [];
-        const approvedJobs = [];
+    static getAuditReport(allJobs, candidateProfile) {
+        const sourceBreakdown = {};
+        const allRecords = [];
+        let approvedCount = 0;
+        let discardedCount = 0;
 
         (allJobs || []).forEach(job => {
             const sourceName = this.detectSource(job);
-            if (!sourceStats[sourceName]) {
-                sourceStats[sourceName] = { queried: true, found: 0, approved: 0, discarded: 0 };
+            if (!sourceBreakdown[sourceName]) {
+                sourceBreakdown[sourceName] = { total: 0, approved: 0, discarded: 0 };
             }
-            sourceStats[sourceName].found++;
+            sourceBreakdown[sourceName].total++;
 
             const evaluation = MatchingEngine.evaluate(job, candidateProfile);
+            const isApproved = !evaluation.isDealbreaker && (evaluation.score >= CONFIG.MIN_DISPLAY_SCORE);
 
-            if (evaluation.isDealbreaker || (evaluation.score !== null && evaluation.score < CONFIG.MIN_DISPLAY_SCORE)) {
-                sourceStats[sourceName].discarded++;
-                discardAuditLog.push({
+            if (isApproved) {
+                approvedCount++;
+                sourceBreakdown[sourceName].approved++;
+                allRecords.push({
                     id: job.id,
                     title: job.title,
                     company: job.company,
                     source: sourceName,
                     score: evaluation.score,
-                    reason: evaluation.dealbreakerReason || "Puntaje de afinidad insuficiente (<50%)"
+                    status: "Aprobada",
+                    reason: evaluation.verdict || "Afinidad con perfil",
+                    job
                 });
             } else {
-                sourceStats[sourceName].approved++;
-                approvedJobs.push({
-                    job,
-                    evaluation
+                discardedCount++;
+                sourceBreakdown[sourceName].discarded++;
+                allRecords.push({
+                    id: job.id,
+                    title: job.title,
+                    company: job.company,
+                    source: sourceName,
+                    score: evaluation.score || 0,
+                    status: "Descartada",
+                    reason: evaluation.dealbreakerReason || "Baja afinidad con el campo del candidato",
+                    job
                 });
             }
         });
 
         return {
-            totalFound: allJobs.length,
-            totalApproved: approvedJobs.length,
-            totalDiscarded: discardAuditLog.length,
-            sourceStats,
-            discardAuditLog,
-            approvedJobs
+            totalJobs: allJobs.length,
+            approvedCount,
+            discardedCount,
+            sourceBreakdown,
+            allRecords
         };
     }
 }
