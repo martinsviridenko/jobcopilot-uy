@@ -567,6 +567,11 @@
 
                 <!-- Kanban Pipeline View -->
                 <div id="kanbanView" style="display: none;">
+                    <div style="display: flex; justify-content: flex-end; margin-bottom: 8px;">
+                        <button onclick="resetAllApplications()" style="background: transparent; border: 1px solid rgba(239,68,68,0.35); color: #FCA5A5; font-size: 11.5px; padding: 5px 12px; border-radius: 8px; cursor: pointer;">
+                            🗑️ Limpiar todas las postulaciones
+                        </button>
+                    </div>
                     <div class="kanban-board">
                         <div class="kanban-col">
                             <div class="kanban-col-title">
@@ -1679,9 +1684,20 @@
                             <a href="${job.applyUrl}" target="_blank" rel="noopener noreferrer" class="btn-apply-direct ${job.isLinkedIn ? 'linkedin' : ''}">
                                 Postularme en ${job.isLinkedIn ? 'LinkedIn' : 'Portal'} &rarr;
                             </a>
-                            <button class="btn-status-toggle ${isApplied ? 'applied' : ''}" onclick="toggleApplicationPipeline('${job.id}')">
-                                ${isApplied ? '✓ Postulado (' + appliedData[job.id].status + ')' : '+ Registrar Postulación'}
-                            </button>
+                            ${isApplied ? `
+                                <div style="display: flex; gap: 6px; align-items: center;">
+                                    <button class="btn-status-toggle applied" onclick="removeApplication('${job.id}')" title="Hacé clic para desmarcar postulación">
+                                        ✓ Postulado (${appliedData[job.id].status})
+                                    </button>
+                                    <button onclick="removeApplication('${job.id}')" style="background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.35); color: #FCA5A5; font-size: 11px; padding: 7px 10px; border-radius: 8px; cursor: pointer;" title="Desmarcar / Quitar">
+                                        ✕ Deshacer
+                                    </button>
+                                </div>
+                            ` : `
+                                <button class="btn-status-toggle" onclick="toggleApplicationPipeline('${job.id}')">
+                                    + Registrar Postulación
+                                </button>
+                            `}
                         </div>
                     </div>
                 `;
@@ -1717,12 +1733,17 @@
                     <div class="kanban-card-title">${job.title}</div>
                     <div class="kanban-card-company">${job.company} • ${job.hours}</div>
                     <div class="kanban-card-date">Fecha: ${data.date || 'Reciente'}</div>
-                    <select class="kanban-status-select" onchange="updateApplicationStatus('${job.id}', this.value)">
-                        <option value="sent" ${status === 'sent' ? 'selected' : ''}>CV Enviado</option>
-                        <option value="review" ${status === 'review' ? 'selected' : ''}>En Revisión</option>
-                        <option value="interview" ${status === 'interview' ? 'selected' : ''}>En Entrevista</option>
-                        <option value="offer" ${status === 'offer' ? 'selected' : ''}>Oferta / Cerrado</option>
-                    </select>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; gap: 6px;">
+                        <select class="kanban-status-select" style="flex: 1; margin-top: 0;" onchange="updateApplicationStatus('${job.id}', this.value)">
+                            <option value="sent" ${status === 'sent' ? 'selected' : ''}>CV Enviado</option>
+                            <option value="review" ${status === 'review' ? 'selected' : ''}>En Revisión</option>
+                            <option value="interview" ${status === 'interview' ? 'selected' : ''}>En Entrevista</option>
+                            <option value="offer" ${status === 'offer' ? 'selected' : ''}>Oferta / Cerrado</option>
+                        </select>
+                        <button onclick="removeApplication('${job.id}')" style="background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: #FCA5A5; font-size: 11px; padding: 4px 8px; border-radius: 6px; cursor: pointer;" title="Quitar de postuladas">
+                            ✕ Quitar
+                        </button>
+                    </div>
                 `;
                 targetCol.appendChild(card);
             });
@@ -1736,15 +1757,31 @@
 
         function toggleApplicationPipeline(jobId) {
             if (appliedData[jobId]) {
-                delete appliedData[jobId];
+                removeApplication(jobId);
             } else {
                 appliedData[jobId] = {
                     status: 'sent',
                     date: new Date().toLocaleDateString('es-UY', { day: '2-digit', month: 'short' })
                 };
+                localStorage.setItem('jc_applied_data', JSON.stringify(appliedData));
+                renderAll();
             }
-            localStorage.setItem('jc_applied_data', JSON.stringify(appliedData));
-            renderAll();
+        }
+
+        function removeApplication(jobId) {
+            if (appliedData[jobId]) {
+                delete appliedData[jobId];
+                localStorage.setItem('jc_applied_data', JSON.stringify(appliedData));
+                renderAll();
+            }
+        }
+
+        function resetAllApplications() {
+            if (confirm("¿Estás seguro de que querés desmarcar todas las postulaciones guardadas?")) {
+                appliedData = {};
+                localStorage.setItem('jc_applied_data', JSON.stringify({}));
+                renderAll();
+            }
         }
 
         function updateApplicationStatus(jobId, newStatus) {
