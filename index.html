@@ -1610,6 +1610,25 @@
                 icon: "📦",
                 keywords: ["operaciones", "logística", "comercio exterior", "supply chain", "cadena de suministro", "depósito", "despacho", "stock", "comex", "customer experience"],
                 criticalSkills: ["comercio exterior", "logística", "cadena de suministro", "aduana", "stock", "inventario", "despacho", "importaciones", "customer experience"]
+            },
+            HEALTH_CARE_OTHER: {
+                id: "HEALTH_CARE_OTHER",
+                name: "Salud, Educación & Otros Oficios",
+                icon: "🏥",
+                keywords: [
+                    "fonoaudiología", "fonoaudiólogo", "fonoaudióloga", "fonoaudiologo", "fonoaudiologa",
+                    "médico", "médica", "medicina", "enfermería", "enfermero", "enfermera", "salud",
+                    "psicología", "psicólogo", "psicóloga", "docente", "profesor", "profesora", "inglés docente",
+                    "maestro", "maestra", "educador", "educadora", "odontología", "fisioterapia",
+                    "terapeuta", "nutrición", "veterinaria", "agrónomo", "agronomía", "ganado", "consignatario",
+                    "abogado", "abogada", "legal", "notarial", "cocinero", "chef", "gastronomía",
+                    "limpieza", "seguridad", "vigilante", "chofer", "peón", "construcción", "electricista",
+                    "mecánico", "teletón", "clínica", "hospital", "pediatría"
+                ],
+                criticalSkills: [
+                    "fonoaudiología", "medicina", "enfermería", "terapia", "docencia", "psicología",
+                    "diagnóstico clínico", "atención a pacientes", "derecho", "veterinaria"
+                ]
             }
         };
 
@@ -1623,7 +1642,8 @@
                 OPERATIONS_LOG: 0.65,
                 SOFTWARE_DEV: 0.50,
                 CYBERSECURITY: 0.35,
-                IT_SUPPORT_INFRA: 0.15 // Incompatible
+                IT_SUPPORT_INFRA: 0.15,
+                HEALTH_CARE_OTHER: 0.05
             },
             BUSINESS_ADMIN: {
                 BUSINESS_ADMIN: 1.0,
@@ -1634,7 +1654,8 @@
                 OPERATIONS_LOG: 0.75,
                 SOFTWARE_DEV: 0.25,
                 CYBERSECURITY: 0.30,
-                IT_SUPPORT_INFRA: 0.20 // Incompatible
+                IT_SUPPORT_INFRA: 0.20,
+                HEALTH_CARE_OTHER: 0.05
             },
             MARKETING_ECOMM: {
                 MARKETING_ECOMM: 1.0,
@@ -1645,7 +1666,8 @@
                 FINANCE_BANKING: 0.40,
                 SOFTWARE_DEV: 0.35,
                 CYBERSECURITY: 0.15,
-                IT_SUPPORT_INFRA: 0.15 // Incompatible
+                IT_SUPPORT_INFRA: 0.15,
+                HEALTH_CARE_OTHER: 0.05
             },
             FINANCE_BANKING: {
                 FINANCE_BANKING: 1.0,
@@ -1656,7 +1678,8 @@
                 MARKETING_ECOMM: 0.40,
                 CYBERSECURITY: 0.35,
                 SOFTWARE_DEV: 0.20,
-                IT_SUPPORT_INFRA: 0.15
+                IT_SUPPORT_INFRA: 0.15,
+                HEALTH_CARE_OTHER: 0.05
             },
             IT_SUPPORT_INFRA: {
                 IT_SUPPORT_INFRA: 1.0,
@@ -1667,7 +1690,8 @@
                 FINANCE_BANKING: 0.15,
                 MARKETING_ECOMM: 0.15,
                 HR_PEOPLE: 0.15,
-                OPERATIONS_LOG: 0.20
+                OPERATIONS_LOG: 0.20,
+                HEALTH_CARE_OTHER: 0.05
             },
             SOFTWARE_DEV: {
                 SOFTWARE_DEV: 1.0,
@@ -1678,7 +1702,8 @@
                 FINANCE_BANKING: 0.25,
                 MARKETING_ECOMM: 0.35,
                 HR_PEOPLE: 0.20,
-                OPERATIONS_LOG: 0.25
+                OPERATIONS_LOG: 0.25,
+                HEALTH_CARE_OTHER: 0.05
             },
             CYBERSECURITY: {
                 CYBERSECURITY: 1.0,
@@ -1689,7 +1714,8 @@
                 FINANCE_BANKING: 0.35,
                 HR_PEOPLE: 0.15,
                 OPERATIONS_LOG: 0.20,
-                MARKETING_ECOMM: 0.15
+                MARKETING_ECOMM: 0.15,
+                HEALTH_CARE_OTHER: 0.05
             },
             HR_PEOPLE: {
                 HR_PEOPLE: 1.0,
@@ -1700,7 +1726,8 @@
                 MARKETING_ECOMM: 0.40,
                 SOFTWARE_DEV: 0.15,
                 IT_SUPPORT_INFRA: 0.15,
-                CYBERSECURITY: 0.15
+                CYBERSECURITY: 0.15,
+                HEALTH_CARE_OTHER: 0.05
             },
             OPERATIONS_LOG: {
                 OPERATIONS_LOG: 1.0,
@@ -1711,7 +1738,20 @@
                 HR_PEOPLE: 0.45,
                 IT_SUPPORT_INFRA: 0.25,
                 SOFTWARE_DEV: 0.20,
-                CYBERSECURITY: 0.20
+                CYBERSECURITY: 0.20,
+                HEALTH_CARE_OTHER: 0.05
+            },
+            HEALTH_CARE_OTHER: {
+                HEALTH_CARE_OTHER: 1.0,
+                HR_PEOPLE: 0.20,
+                BUSINESS_ADMIN: 0.10,
+                DATA_BI: 0.05,
+                FINANCE_BANKING: 0.05,
+                MARKETING_ECOMM: 0.05,
+                OPERATIONS_LOG: 0.10,
+                IT_SUPPORT_INFRA: 0.05,
+                SOFTWARE_DEV: 0.05,
+                CYBERSECURITY: 0.05
             }
         };
 
@@ -1744,15 +1784,33 @@
         }
 
         function inferJobDomain(job) {
-            if (job.domain && DOMAINS[job.domain]) return job.domain;
-            const text = ((job.title || "") + " " + (job.desc || "") + " " + (job.careerFit || []).join(" ") + " " + (job.sectorLabel || "")).toLowerCase();
-            let bestDom = "BUSINESS_ADMIN";
-            let bestScore = -1;
+            const titleLower = (job.title || "").toLowerCase();
+            const descLower = (job.desc || "").toLowerCase();
+            const text = (titleLower + " " + descLower + " " + (job.careerFit || []).join(" ") + " " + (job.sectorLabel || "")).toLowerCase();
+
+            // Detección estricta de áreas NO afines a Negocios / Tecnología
+            const nonAffinityTitles = [
+                "fonoaudiól", "fonoaudiol", "médic", "medic", "enfermer", "psicól", "psicol",
+                "docente", "profesor", "profesora", "inglés docente", "maestro", "maestra",
+                "educador", "educadora", "odontól", "odontol", "fisioterap", "terapeuta", "kinesiól",
+                "nutricion", "nutrición", "veterinari", "agrónom", "agronom", "consignatario",
+                "abogado", "abogada", "notarial", "cociner", "chef", "gastronom", "panadero",
+                "limpieza", "vigilante", "guardia", "chofer", "peón", "albanil", "construcción",
+                "electricista", "mecánico", "teletón", "clínica médica", "hospital", "sanatorio"
+            ];
+            if (nonAffinityTitles.some(k => titleLower.includes(k) || hasWord(descLower, k))) {
+                return "HEALTH_CARE_OTHER";
+            }
+
+            if (job.domain && DOMAINS[job.domain] && job.domain !== "BUSINESS_ADMIN") return job.domain;
+
+            let bestDom = "HEALTH_CARE_OTHER";
+            let bestScore = 0;
 
             for (const [domKey, domObj] of Object.entries(DOMAINS)) {
                 let score = 0;
                 domObj.keywords.forEach(kw => {
-                    if (hasWord(text, kw)) score += (job.title.toLowerCase().includes(kw) ? 6 : 2);
+                    if (hasWord(text, kw)) score += (titleLower.includes(kw) ? 8 : 2);
                 });
                 domObj.criticalSkills.forEach(cs => {
                     if (hasWord(text, cs)) score += 3;
@@ -1762,6 +1820,7 @@
                     bestDom = domKey;
                 }
             }
+            if (bestScore === 0) return "HEALTH_CARE_OTHER";
             return bestDom;
         }
 
@@ -1786,10 +1845,10 @@
             const jobDomain = DOMAINS[jobDomainKey] || DOMAINS.BUSINESS_ADMIN;
 
             // 2. Matriz de Afinidad
-            let maxAffinity = 0.15;
+            let maxAffinity = 0.05;
             userDomains.forEach(ud => {
                 const matrixRow = DOMAIN_AFFINITY[ud] || {};
-                const aff = matrixRow[jobDomainKey] !== undefined ? matrixRow[jobDomainKey] : 0.20;
+                const aff = matrixRow[jobDomainKey] !== undefined ? matrixRow[jobDomainKey] : 0.05;
                 if (aff > maxAffinity) maxAffinity = aff;
             });
 
@@ -1829,21 +1888,22 @@
             const wants8h = typeof document !== 'undefined' && document.getElementById('filter8h') ? document.getElementById('filter8h').checked : false;
 
             // 4. PUERTA DE DESCARTE (DEALBREAKER GATE)
-            const isDomainIncompatible = maxAffinity < 0.35;
+            const isDomainIncompatible = maxAffinity < 0.35 || jobDomainKey === "HEALTH_CARE_OTHER";
             const isTechnicalRole = ["IT_SUPPORT_INFRA", "SOFTWARE_DEV", "CYBERSECURITY"].includes(jobDomainKey);
             const missingAllCritical = jobCriticalRequired.length > 0 && criticalMet.length === 0;
 
             if (isDomainIncompatible || (isTechnicalRole && missingAllCritical && maxAffinity < 0.50)) {
-                reasonsUnmet.push(`Incompatibilidad de Dominio: El puesto requiere especialización técnica en ${jobDomain.name} (${jobCriticalRequired.slice(0, 3).join(", ") || "área técnica"}).`);
+                if (jobDomainKey === "HEALTH_CARE_OTHER") {
+                    reasonsUnmet.push(`Incompatibilidad Total de Carrera: El aviso pertenece a ${jobDomain.name}, fuera del espectro de Negocios Digitales, Administración y Datos.`);
+                } else {
+                    reasonsUnmet.push(`Incompatibilidad de Dominio: El puesto requiere especialización técnica en ${jobDomain.name} (${jobCriticalRequired.slice(0, 3).join(", ") || "área técnica"}).`);
+                }
                 if (criticalMissing.length > 0) {
                     reasonsUnmet.push(`Competencias troncales faltantes: ${criticalMissing.slice(0, 3).join(", ")}.`);
                 }
-                reasonsMet.push(`Formación universitaria compatible en general.`);
-                if (transversalMet.length > 0) {
-                    reasonsMet.push(`Competencias transversales: ${transversalMet.slice(0, 2).join(", ")}.`);
-                }
+                reasonsMet.push(`Vacante identificada y descartada por incompatibilidad de perfil.`);
 
-                const cappedScore = Math.min(28, Math.max(16, Math.round(maxAffinity * 100)));
+                const cappedScore = Math.min(12, Math.max(4, Math.round(maxAffinity * 100)));
                 return {
                     score: cappedScore,
                     domain: jobDomain,
@@ -1853,9 +1913,8 @@
                     isDealbreaker: true,
                     criticalMet: criticalMet,
                     criticalMissing: criticalMissing,
-                    probability: "Baja",
-                    verdict: `Descarte muy probable. La vacante exige un perfil técnico de ${jobDomain.name} que no concuerda con tu formación.`
-                };
+                    probability: "Descarte",
+                    verdict: `Descarte definitivo: La vacante es para ${jobDomain.name} y no guarda ninguna relación con tu formación académica.`
             }
 
             // 5. CÁLCULO PONDERADO PROFUNDO (DOMINIOS COMPATIBLES)

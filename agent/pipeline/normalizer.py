@@ -60,6 +60,24 @@ DOMAINS = {
         "icon": "📦",
         "keywords": ["operaciones", "logística", "comercio exterior", "supply chain", "cadena de suministro", "depósito", "despacho", "stock", "comex", "customer experience"],
         "critical_skills": ["comercio exterior", "logística", "cadena de suministro", "aduana", "stock", "inventario", "despacho", "importaciones", "customer experience"]
+    },
+    "HEALTH_CARE_OTHER": {
+        "name": "Salud, Educación & Otros Oficios",
+        "icon": "🏥",
+        "keywords": [
+            "fonoaudiología", "fonoaudiólogo", "fonoaudióloga", "fonoaudiologo", "fonoaudiologa",
+            "médico", "médica", "medicina", "enfermería", "enfermero", "enfermera", "salud",
+            "psicología", "psicólogo", "psicóloga", "docente", "profesor", "profesora",
+            "maestro", "maestra", "educador", "educadora", "odontología", "fisioterapia",
+            "terapeuta", "nutrición", "veterinaria", "agrónomo", "agronomía", "ganado", "consignatario",
+            "abogado", "abogada", "legal", "notarial", "cocinero", "chef", "gastronomía",
+            "limpieza", "seguridad", "vigilante", "chofer", "peón", "construcción", "electricista",
+            "mecánico", "teletón", "clínica", "hospital", "pediatría"
+        ],
+        "critical_skills": [
+            "fonoaudiología", "medicina", "enfermería", "terapia", "docencia", "psicología",
+            "diagnóstico clínico", "atención a pacientes", "derecho", "veterinaria"
+        ]
     }
 }
 
@@ -148,21 +166,36 @@ def detect_domain(title: str, desc: str, sector: str = "") -> Tuple[str, str, Li
     Classifies the role into one of the 9 professional domains and extracts critical skills.
     Returns: (domain_key, domain_label, critical_skills)
     """
+    # Strict check for non-business / healthcare / education titles
+    title_lower = title.lower()
+    non_affinity_clues = [
+        "fonoaudiól", "fonoaudiol", "médic", "medic", "enfermer", "psicól", "psicol",
+        "docente", "profesor", "profesora", "maestro", "maestra", "odontól", "terapeut",
+        "fisioterap", "nutricion", "nutrición", "veterinari", "agrónom", "agronom", "consignatario",
+        "abogado", "abogada", "notarial", "cociner", "chef", "limpieza", "vigilante", "chofer",
+        "peón", "construcción", "electricista", "mecánico", "teletón"
+    ]
+    if any(k in title_lower for k in non_affinity_clues):
+        return "HEALTH_CARE_OTHER", DOMAINS["HEALTH_CARE_OTHER"]["name"], []
+
     text = f"{title} {desc} {sector}".lower()
-    best_dom = "BUSINESS_ADMIN"
-    best_score = -1
+    best_dom = "HEALTH_CARE_OTHER"
+    best_score = 0
 
     for dom_key, dom_obj in DOMAINS.items():
         score = 0
         for kw in dom_obj["keywords"]:
             if has_word(text, kw):
-                score += (6 if kw in title.lower() else 2)
+                score += (8 if kw in title.lower() else 2)
         for cs in dom_obj["critical_skills"]:
             if has_word(text, cs):
                 score += 3
         if score > best_score:
             best_score = score
             best_dom = dom_key
+
+    if best_score == 0:
+        return "HEALTH_CARE_OTHER", DOMAINS["HEALTH_CARE_OTHER"]["name"], []
 
     # Extract detected critical skills
     detected_critical = []
