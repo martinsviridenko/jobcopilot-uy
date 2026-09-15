@@ -1,6 +1,7 @@
 /**
- * JobCopilot v3 — High Relevance Feed Renderer
- * Renders verified vacancies with 'No me interesa' blacklist and validated action buttons.
+ * FeedRenderer — Renderizado del Feed de Alta Relevancia
+ * Presenta cada vacante con el diagnóstico transparente del reclutador,
+ * badges de probabilidad calibrada y opciones de postulación.
  */
 
 class FeedRenderer {
@@ -13,19 +14,16 @@ class FeedRenderer {
         const favorites = StorageManager.getFavorites();
         const applications = StorageManager.getApplications();
 
-        // 1. Evaluate & filter for high quality recommendations only
+        // 1. Evaluación mediante el Motor Universal
         const evaluatedList = [];
         jobs.forEach(job => {
             const evalResult = MatchingEngine.evaluate(job, candidateProfile);
             if (FilterController.matches(job, evalResult, filters)) {
-                evaluatedList.push({
-                    job,
-                    eval: evalResult
-                });
+                evaluatedList.push({ job, eval: evalResult });
             }
         });
 
-        // 2. Sort by highest interview probability score
+        // 2. Ordenamiento por probabilidad competitiva
         const sortMode = document.getElementById('sortSelect')?.value || "worth_it";
         evaluatedList.sort((a, b) => {
             const sa = a.eval.score || 0;
@@ -35,25 +33,25 @@ class FeedRenderer {
             return 0;
         });
 
-        // 3. Update counter badge in UI
+        // 3. Actualizar contador
         const countBadge = document.getElementById('countFeed');
         if (countBadge) countBadge.innerText = evaluatedList.length;
 
-        // 4. Handle empty state
+        // 4. Estado vacío
         if (evaluatedList.length === 0) {
             container.innerHTML = `
-                <div style="text-align: center; padding: 48px 24px; background: var(--surface); border: 1px dashed var(--border); border-radius: 14px; color: var(--text-muted);">
+                <div style="text-align: center; padding: 48px 24px; background: var(--surface); border: 1px dashed var(--border); border-radius: 14px; color: var(--text-muted); width: 100%;">
                     <div style="font-size: 32px; margin-bottom: 8px;">🎯</div>
-                    <h3 style="color: #FFF; font-size: 16px; margin-bottom: 6px;">No hay ofertas compatibles con estos filtros</h3>
+                    <h3 style="color: #FFF; font-size: 16px; margin-bottom: 6px;">No hay vacantes que coincidan con estos filtros</h3>
                     <p style="font-size: 13px; max-width: 500px; margin: 0 auto; line-height: 1.5;">
-                        Para mantener la máxima calidad, JobCopilot filtra automáticamente ofertas de otras disciplinas o jerarquías incompatibles. Probá activar más ubicaciones (como Remoto) o ampliar la carga horaria.
+                        El motor universal descarta únicamente búsquedas radicalmente incompatibles. Probá ampliando los filtros de ubicación (como Remoto) o carga horaria para ver más opciones.
                     </p>
                 </div>
             `;
             return;
         }
 
-        // 5. Render cards
+        // 5. Renderizado de tarjetas
         evaluatedList.forEach(({ job, eval: analysis }) => {
             const isFav = favorites.includes(job.id);
             const isApplied = !!applications[job.id];
@@ -61,12 +59,12 @@ class FeedRenderer {
 
             let scoreClr = "score-mid";
             let scoreLabel = `${analysis.score}% Probabilidad de Entrevista`;
-            if (analysis.score >= 80) {
+            if (analysis.score >= 75) {
                 scoreClr = "score-high";
-                scoreLabel = `${analysis.score}% Alta Probabilidad de Entrevista`;
+                scoreLabel = `${analysis.score}% Match Ideal`;
             } else if (analysis.score < 60) {
                 scoreClr = "score-low";
-                scoreLabel = `${analysis.score}% Probabilidad Media / Condicionada`;
+                scoreLabel = `${analysis.score}% Afinidad Parcial / Desafío`;
             }
 
             const card = document.createElement("div");
@@ -87,24 +85,24 @@ class FeedRenderer {
                     </div>
                     <div class="match-score-pill">
                         <span class="match-score-main ${scoreClr}">⚡ ${scoreLabel}</span>
-                        <span class="match-probability-text">Encaje con tu perfil: <strong>${analysis.probability}</strong></span>
+                        <span class="match-probability-text">Encaje: <strong>${analysis.probability}</strong></span>
                     </div>
                 </div>
 
                 <div class="tags-cluster">
-                    <span class="tag-pill t-domain">${analysis.domain ? analysis.domain.icon + " " + analysis.domain.name : (job.domainLabel || "🏢 General")}</span>
-                    <span class="tag-pill t-hours">⏰ ${job.hoursLabel || job.hours}</span>
+                    <span class="tag-pill t-domain">${analysis.domain ? analysis.domain.icon + " " + analysis.domain.name : "🏢 General"}</span>
+                    <span class="tag-pill t-hours">⏰ ${job.hoursLabel || job.hours || "Flexible"}</span>
                     <span class="tag-pill t-modality">📍 ${job.modality || "Presencial"}</span>
                     ${job.seniority ? `<span class="tag-pill t-modality" style="background: rgba(148, 163, 184, 0.12); color: #CBD5E1; border: 1px solid rgba(148, 163, 184, 0.25);">🎖️ ${job.seniority}</span>` : ''}
                 </div>
 
                 <p class="job-quote-desc">${job.desc || job.description || ""}</p>
 
-                <!-- Diagnóstico del Reclutador JobCopilot (X-Ray) -->
+                <!-- Diagnóstico del Reclutador JobCopilot -->
                 <div class="copilot-evaluation-box">
                     <div class="copilot-verdict-header">
                         <span>🤖 Evaluación del Reclutador:</span>
-                        <span style="font-weight: 700; color: ${analysis.score >= 80 ? '#34D399' : '#FCD34D'};">
+                        <span style="font-weight: 700; color: ${analysis.score >= 75 ? '#34D399' : (analysis.score >= 60 ? '#7DD3FC' : '#FCD34D')};">
                             ${analysis.verdict}
                         </span>
                     </div>
@@ -128,7 +126,7 @@ class FeedRenderer {
                         <div class="cons-col">
                             <strong>Puntos de atención / Brechas:</strong>
                             <ul>
-                                ${(analysis.unmet && analysis.unmet.length ? analysis.unmet : ["Sin brechas críticas detectadas"]).slice(0, 3).map(u => `<li>${u}</li>`).join('')}
+                                ${(analysis.unmet || ["Sin brechas críticas"]).slice(0, 3).map(u => `<li>${u}</li>`).join('')}
                             </ul>
                             ${analysis.penalties && analysis.penalties.length > 0 ? `
                                 <div style="margin-top: 6px; font-size: 11px; color: #FB923C;">
@@ -175,4 +173,4 @@ class FeedRenderer {
             container.appendChild(card);
         });
     }
-}
+}\n

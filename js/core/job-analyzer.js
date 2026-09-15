@@ -1,101 +1,90 @@
 /**
- * JobCopilot v3 — Job Deep Analyzer
- * Full text reading of vacancy descriptions, degree requirements, shifts and constraints.
+ * JobAnalyzer — Extractor Semántico Universal de Vacantes
+ * Detecta la familia funcional del puesto, si está abierto a carreras afines (ej. Ciencias Económicas),
+ * su nivel de jerarquía y si impone restricciones estrictamente excluyentes.
  */
 
 class JobAnalyzer {
-    static hasWord(text, kw) {
-        if (!text || !kw) return false;
-        const t = " " + text.toLowerCase().replace(/[^a-záéíóúüñ0-9_+#-]/gi, " ") + " ";
-        const k = " " + kw.toLowerCase().trim() + " ";
-        return t.indexOf(k) !== -1;
-    }
-
     static analyze(job) {
-        const title = job.title || "";
-        const desc = job.desc || job.description || "";
-        const fullText = (title + " " + desc + " " + (job.sectorLabel || "") + " " + (job.company || "")).toLowerCase();
-        const titleLower = title.toLowerCase();
+        if (!job) return null;
 
-        // 1. Discipline / Domain Inference
-        let domainKey = "BUSINESS_MANAGEMENT";
-        
-        // Immediate domain hard-interceptors
-        if (["fonoaudiól", "fonoaudiol", "médic", "medic", "enfermer", "psicól", "psicol", "odontól", "terapeut", "fisioterap", "nutricion", "veterinari", "teletón"].some(k => titleLower.includes(k) || desc.toLowerCase().includes(k))) {
-            domainKey = "HEALTH_MEDICAL";
-        } else if (["jefe de planta", "jefa de planta", "planta y proyectos", "ingeniero de planta", "mantenimiento industrial", "producción industrial", "tornero", "soldador", "electromecánic", "mecánico", "chofer", "peón", "vigilante"].some(k => titleLower.includes(k) || desc.toLowerCase().includes(k))) {
-            domainKey = "INDUSTRIAL_PLANT";
-        } else if (["docente", "profesor", "profesora", "maestro", "maestra", "educador", "educadora", "colegio", "liceo"].some(k => titleLower.includes(k) || desc.toLowerCase().includes(k))) {
-            domainKey = "EDUCATION_TEACHING";
-        } else if (["abogado", "abogada", "escribano", "escribana", "notarial", "procurador"].some(k => titleLower.includes(k) || desc.toLowerCase().includes(k))) {
-            domainKey = "LEGAL_NOTARIAL";
-        } else if (job.domain && DOMAINS[job.domain] && !["BUSINESS_ADMIN", "BUSINESS_MANAGEMENT"].includes(job.domain)) {
-            domainKey = job.domain;
-        } else {
-            let bestScore = 0;
-            for (const [dKey, dObj] of Object.entries(DOMAINS)) {
-                let score = 0;
-                dObj.keywords.forEach(kw => {
-                    if (this.hasWord(fullText, kw)) score += (titleLower.includes(kw) ? 8 : 2);
-                });
-                dObj.criticalSkills.forEach(cs => {
-                    if (this.hasWord(fullText, cs)) score += 3;
-                });
-                if (score > bestScore) {
-                    bestScore = score;
-                    domainKey = dKey;
+        let rawTitle = job.title || "";
+        let normalizedTitle = rawTitle.toLowerCase().replace(/\/(a|as|os|o)\b/g, "");
+
+        let textToScan = `
+            ${normalizedTitle}
+            ${job.company || ""}
+            ${job.desc || job.description || ""}
+            ${job.area || ""}
+            ${job.location || ""}
+        `.toLowerCase().replace(/\/(a|as|os|o)\b/g, "");
+
+        // 1. Scoring semántico para identificar el dominio del puesto
+        const domainScores = {};
+        for (const [key, domain] of Object.entries(DOMAINS)) {
+            let score = 0;
+            for (const kw of domain.keywords) {
+                const regex = new RegExp(`\\b${kw}\\b`, "gi");
+                const matches = textToScan.match(regex);
+                if (matches) {
+                    const inTitle = normalizedTitle.includes(kw);
+                    score += matches.length * (inTitle ? 6 : 1.5);
                 }
             }
-            if (bestScore === 0) domainKey = "INDUSTRIAL_PLANT";
+            domainScores[key] = score;
         }
 
-        // 2. Career & Degree Requirements Extraction
-        const demandedDegrees = [];
-        if (this.hasWord(fullText, "ingeniería en computación") || this.hasWord(fullText, "ingenieria en computacion") || this.hasWord(fullText, "ingeniería en sistemas") || this.hasWord(fullText, "computer science") || this.hasWord(fullText, "licenciatura en computación")) {
-            demandedDegrees.push("INGENIERIA_COMPUTACION_CORE");
-        }
-        if (this.hasWord(fullText, "psicología") || this.hasWord(fullText, "psicologia") || this.hasWord(fullText, "relaciones laborales") || this.hasWord(fullText, "reclutamiento")) {
-            demandedDegrees.push("PSICOLOGIA_RRHH_CORE");
-        }
-        if (this.hasWord(fullText, "negocios digitales") || this.hasWord(fullText, "administración") || this.hasWord(fullText, "ciencias económicas") || this.hasWord(fullText, "economía") || this.hasWord(fullText, "analítica de datos")) {
-            demandedDegrees.push("NEGOCIOS_DIGITALES_DATOS");
-        }
-        if (this.hasWord(fullText, "contador") || this.hasWord(fullText, "contabilidad") || this.hasWord(fullText, "cpa") || this.hasWord(fullText, "finanzas")) {
-            demandedDegrees.push("CONTABILIDAD_FINANZAS");
-        }
+        const sorted = Object.entries(domainScores)
+            .sort((a, b) => b[1] - a[1])
+            .filter(([_, score]) => score > 0);
 
-        // 3. Seniority Analysis
-        const isLeadership = ["jefe", "jefa", "gerente", "gerenta", "director", "directora", "head of", "lead", "senior"].some(w => this.hasWord(titleLower, w));
-        const isStudentLevel = ["pasantía", "pasantia", "estudiante", "trainee", "becario", "student worker", "junior", "sin experiencia"].some(w => this.hasWord(fullText, w));
-        
-        let calculatedSeniority = "Junior";
-        if (isLeadership) calculatedSeniority = "Jefatura / Gerencia";
-        else if (job.seniority) calculatedSeniority = job.seniority;
-        else if (isStudentLevel) calculatedSeniority = "Pasantía / Trainee";
+        const domainKey = sorted.length > 0 ? sorted[0][0] : "ECONOMIC_BUSINESS";
+        const domain = DOMAINS[domainKey] || DOMAINS.ECONOMIC_BUSINESS;
 
-        // 4. Shift Detection (Matutino / Vespertino / Flexible)
-        let shift = "Flexible";
-        if (fullText.includes("mañana") || fullText.includes("matutino") || fullText.includes("8 a 12") || fullText.includes("9 a 13") || fullText.includes("9 a 15")) {
-            shift = "Matutino";
-        } else if (fullText.includes("tarde") || fullText.includes("vespertino") || fullText.includes("13 a 17") || fullText.includes("14 a 18") || fullText.includes("14 a 20")) {
-            shift = "Vespertino";
-        } else if (fullText.includes("noche") || fullText.includes("nocturno")) {
-            shift = "Nocturno";
+        // 2. Apertura explícita a carreras afines
+        const admitsEconomicSciences = /\b(ciencias econ[óo]micas|administraci[óo]n|negocios|econom[íi]a|comercial|marketing|carreras afines)\b/i.test(textToScan);
+        const admitsStudents = /\b(estudiante|pasant[íi]a|practicante|trainee|j[óo]venes profesionales|sin experiencia|primer empleo)\b/i.test(textToScan);
+
+        // 3. Exclusiones Regulatorias / Título Habilitante Estricto
+        const requiresStrictHealthLicense = /\b(t[íi]tulo de m[ée]dico|m[ée]dico general|fonoaudi[óo]logo|licenciatura en fonoaudiolog[íi]a|odont[óo]logo|enfermero matriculado)\b/i.test(textToScan) ||
+            /fonoaudi|médico general|odontólogo|cirujano/i.test(normalizedTitle);
+
+        const requiresStrictLegalBar = /\b(abogado matriculado|t[íi]tulo de abogado|escribano p[úu]blico|firma de balances legal)\b/i.test(textToScan);
+
+        // 4. Seniority del Puesto (Normalizado)
+        let requiredSeniority = "junior";
+        const isExecutive = /\b(jefe de planta|jefatura de planta|jefatura|director general|gerente general|head of|chief)\b/i.test(normalizedTitle);
+        const isSenior = /\b(senior|sr\\b|5\\+ a[ñn]os|8 a[ñn]os|10 a[ñn]os)\b/i.test(textToScan);
+        const isSemiSenior = /\b(semi senior|semi-senior|ssr|2 a[ñn]os|3 a[ñn]os)\b/i.test(textToScan);
+
+        if (isExecutive) requiredSeniority = "executive";
+        else if (isSenior) requiredSeniority = "senior";
+        else if (isSemiSenior) requiredSeniority = "semisenior";
+        else requiredSeniority = "junior";
+
+        // 5. Requisitos técnicos detectados
+        const detectedReqs = [];
+        const commonReqs = [
+            "sql", "power bi", "excel", "python", "sap", "erp", "salesforce",
+            "meta ads", "google ads", "tableau", "inglés", "english"
+        ];
+        for (const req of commonReqs) {
+            const regex = new RegExp(`\\b${req}\\b`, "gi");
+            if (regex.test(textToScan)) {
+                detectedReqs.push(req.toUpperCase());
+            }
         }
-
-        // 5. English Requirement
-        const requiresEnglish = fullText.includes("inglés avanzado") || fullText.includes("ingles avanzado") || fullText.includes("fluent english") || fullText.includes("b2") || fullText.includes("c1");
 
         return {
             domainKey,
-            domain: DOMAINS[domainKey] || DOMAINS.BUSINESS_MANAGEMENT,
-            demandedDegrees,
-            calculatedSeniority,
-            isLeadership,
-            isStudentLevel,
-            shift,
-            requiresEnglish,
-            fullText
+            domain,
+            admitsEconomicSciences,
+            admitsStudents,
+            requiresStrictHealthLicense,
+            requiresStrictLegalBar,
+            requiredSeniority,
+            detectedReqs,
+            rawScan: textToScan
         };
     }
-}
+}\n

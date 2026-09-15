@@ -1,203 +1,178 @@
 /**
- * JobCopilot v3 — Configuration & Professional Taxonomy
+ * JobCopilot Universal Engine v3.1 — Configuración y Taxonomía Profesional
+ * Funciona de forma genérica para cualquier perfil (Médicos, Abogados, Ingenieros,
+ * Contadores, Psicólogos, Negocios Digitales, Diseñadores, etc.).
  */
 
 const CONFIG = {
-    SUPABASE_URL: "https://lbxchpaoltuwpselfiwr.supabase.co",
+    SUPABASE_URL: "https://dohskepbckuvmptptqti.supabase.co",
     SUPABASE_ANON_KEY: "sb_publishable_1ztKeV9Y3UyIRnjkR6-jVg_zj7Wyrlm",
-    MIN_DISPLAY_SCORE: 50, // Vacancies below 50% are deemed non-competitive and hidden from the feed
+    MIN_DISPLAY_SCORE: 45, // Principio In Dubio Pro Candidato: umbral accesible (45%) para no privar al usuario de oportunidades
     STORAGE_KEYS: {
         USER_PROFILE: "jc_user_profile",
+        CV_TEXT: "jc_cv_text",
         DISMISSED_JOBS: "jc_dismissed_jobs",
         APPLIED_JOBS: "jc_applied_pipeline",
+        APPLIED_DATA: "jc_applied_data",
         FAVORITES: "jc_favorites_list"
     }
 };
 
+/**
+ * Familias macro-profesionales universales.
+ * Reconocen carreras afines e interdisciplinarias.
+ */
 const DOMAINS = {
-    DATA_ANALYTICS_BI: {
-        id: "DATA_ANALYTICS_BI",
-        name: "Datos, BI & Analítica",
-        icon: "📊",
-        keywords: ["data", "datos", "bi", "business intelligence", "sql", "power bi", "tableau", "analítica", "analytics", "looker", "etl", "dax", "modelado", "ciencia de datos", "big data", "data warehouse"],
-        criticalSkills: ["sql", "power bi", "tableau", "python", "dax", "looker", "r", "modelado de datos", "etl", "data warehouse", "estadística", "visualización", "dashboards"]
-    },
-    BUSINESS_MANAGEMENT: {
-        id: "BUSINESS_MANAGEMENT",
-        name: "Negocios & Gestión Corporativa",
+    ECONOMIC_BUSINESS: {
+        id: "ECONOMIC_BUSINESS",
+        name: "Ciencias Económicas, Negocios & Gestión",
         icon: "💼",
-        keywords: ["administración", "negocios", "gestión", "procesos", "business", "administrativo", "consultoría", "control de gestión", "facturación", "erp", "reorganización", "organización y métodos"],
-        criticalSkills: ["facturación", "erp", "control de gestión", "flujo de caja", "gestión administrativa", "mejora de procesos", "organización", "sap", "relevamiento", "excel avanzado"]
+        keywords: [
+            "ciencias economicas", "ciencias económicas", "negocios digitales", "administracion", "administración",
+            "economia", "economía", "finanzas", "financiero", "contabilidad", "contable", "auditoria", "auditoría",
+            "comercial", "ventas", "marketing", "business", "business intelligence", "inteligencia comercial",
+            "people analytics", "analista de datos", "comercio exterior", "comex", "control de gestion",
+            "control de gestión", "facturacion", "facturación", "cobranzas", "tax", "impuestos", "e-commerce",
+            "supply chain", "logistica", "logística"
+        ],
+        criticalSkills: ["excel", "power bi", "sql", "analisis", "gestion", "facturacion", "contabilidad", "finanzas"]
     },
-    MARKETING_GROWTH: {
-        id: "MARKETING_GROWTH",
-        name: "Marketing Digital & E-commerce",
-        icon: "🚀",
-        keywords: ["marketing", "e-commerce", "ecommerce", "digital", "growth", "redes", "publicidad", "ads", "seo", "sem", "medios", "content", "community manager", "branding", "pauta"],
-        criticalSkills: ["meta ads", "google ads", "seo", "sem", "e-commerce", "shopify", "growth marketing", "crm", "google analytics", "campañas", "content strategy"]
-    },
-    FINANCE_BANKING: {
-        id: "FINANCE_BANKING",
-        name: "Finanzas, Banca & Contabilidad",
-        icon: "🏦",
-        keywords: ["finanzas", "financiero", "contable", "contabilidad", "banco", "banca", "auditoría", "tax", "impuestos", "crédito", "tesorería", "liquidación", "balance"],
-        criticalSkills: ["contabilidad", "conciliaciones", "niif", "impuestos", "tax", "auditoría contable", "asientos contables", "finanzas corporativas", "balance", "servicios bancarios"]
-    },
-    SALES_COMMERCIAL: {
-        id: "SALES_COMMERCIAL",
-        name: "Ventas B2B & Comercial",
-        icon: "🤝",
-        keywords: ["ventas", "comercial", "b2b", "ejecutivo de cuentas", "account executive", "business developer", "prospección", "negociación", "preventa", "vendedor"],
-        criticalSkills: ["ventas b2b", "prospección", "crm", "negociación comercial", "cierre de ventas", "pipeline comercial", "cuenta clave", "gestión de cartera"]
-    },
-    CUSTOMER_OPERATIONS: {
-        id: "CUSTOMER_OPERATIONS",
-        name: "Customer Experience & Operaciones",
-        icon: "📦",
-        keywords: ["customer experience", "cx", "atención al cliente", "operaciones comerciales", "soporte usuarios", "logística", "comex", "comercio exterior", "supply chain", "despacho", "depósito", "aduana"],
-        criticalSkills: ["customer experience", "atención al cliente", "comercio exterior", "logística", "resolución de reclamos", "zendesk", "crm", "aduana", "supply chain"]
-    },
-    HR_PEOPLE: {
-        id: "HR_PEOPLE",
-        name: "Gestión Humana & People Analytics",
-        icon: "👥",
-        keywords: ["rrhh", "recursos humanos", "people", "talento", "reclutamiento", "selección", "gestión humana", "nómina", "búsquedas it", "clima laboral", "people analytics"],
-        criticalSkills: ["reclutamiento", "selección", "gestión humana", "people analytics", "nómina", "evaluación de desempeño", "clima laboral", "entrevistas"]
-    },
-    SOFTWARE_ENGINEERING: {
-        id: "SOFTWARE_ENGINEERING",
-        name: "Ingeniería de Software & Desarrollo",
+    TECH_SOFTWARE: {
+        id: "TECH_SOFTWARE",
+        name: "Tecnología, Software & Datos",
         icon: "💻",
-        keywords: ["developer", "software", "programador", "backend", "frontend", "fullstack", "desarrollo", "código", "dev", "programación", "react", "node", "java", "qa", "tester", "ai developer"],
-        criticalSkills: ["javascript", "react", "node", "java", "c#", ".net", "python dev", "git", "apis", "backend", "frontend", "docker", "typescript", "qa automation"]
-    },
-    CYBERSECURITY: {
-        id: "CYBERSECURITY",
-        name: "Ciberseguridad & Auditoría IT",
-        icon: "🔒",
-        keywords: ["ciberseguridad", "seguridad de la información", "auditoría it", "iso 27001", "vulnerabilidades", "pentesting", "infosec", "soc", "siem"],
-        criticalSkills: ["ciberseguridad", "firewalls", "iso 27001", "pentesting", "vulnerabilidades", "seguridad de la información", "soc", "siem", "auditoría de sistemas"]
-    },
-    IT_INFRA_SUPPORT: {
-        id: "IT_INFRA_SUPPORT",
-        name: "Soporte TI & Infraestructura",
-        icon: "🛠️",
-        keywords: ["soporte", "it", "ti", "infraestructura", "redes", "help desk", "mesa de ayuda", "hardware", "técnico", "servidores", "sysadmin", "linux", "cisco", "cableado"],
-        criticalSkills: ["linux", "redes", "cisco", "hardware", "active directory", "soporte técnico", "help desk", "mesa de ayuda", "tcp/ip", "antivirus", "mantenimiento"]
+        keywords: [
+            "software", "desarrollo", "developer", "programador", "frontend", "backend", "fullstack",
+            "ingenieria de software", "sistemas", "computacion", "computación", "python", "javascript",
+            "react", "node", "sql", "cloud", "aws", "docker", "devops", "qa", "testing", "soporte ti",
+            "infraestructura", "redes", "data engineer", "machine learning", "ia", "inteligencia artificial"
+        ],
+        criticalSkills: ["javascript", "python", "react", "node", "sql", "git", "cloud", "docker"]
     },
     HEALTH_MEDICAL: {
         id: "HEALTH_MEDICAL",
-        name: "Salud, Medicina & Terapias Clínicas",
-        icon: "🏥",
+        name: "Salud & Ciencias Médicas",
+        icon: "🩺",
+        isRegulatedStrict: true,
         keywords: [
-            "fonoaudiología", "fonoaudiólogo", "fonoaudióloga", "fonoaudiologo", "fonoaudiologa",
-            "médico", "médica", "medicina", "enfermería", "enfermero", "enfermera", "salud", "clínica", "hospital",
-            "psicología clínica", "psicólogo", "psicóloga", "odontología", "fisioterapia", "kinesiología",
-            "terapeuta", "nutrición", "veterinaria", "pediatría", "teletón", "sanatorio", "farmacéutico"
+            "medicina", "medico", "médico", "enfermeria", "enfermería", "fonoaudiologia", "fonoaudiología",
+            "fonoaudiologo", "fonoaudiólogo", "odontologia", "odontología", "clinica", "clínica", "hospital",
+            "paciente", "psiquiatria", "farmacia", "bioquimica", "kinesiologia", "terapia ocupacional", "salud"
         ],
-        criticalSkills: ["fonoaudiología", "medicina", "enfermería", "terapia clínica", "diagnóstico médico", "atención de pacientes"]
-    },
-    INDUSTRIAL_PLANT: {
-        id: "INDUSTRIAL_PLANT",
-        name: "Planta Industrial, Fábricas & Oficios",
-        icon: "🏭",
-        keywords: [
-            "jefe de planta", "jefa de planta", "planta y proyectos", "ingeniero de planta", "mantenimiento industrial",
-            "producción industrial", "fábrica", "operario", "tornero", "soldador", "electromecánico", "mecánico",
-            "obra", "construcción", "electricista", "peón", "chofer", "vigilante", "limpieza", "seguridad física"
-        ],
-        criticalSkills: ["ingeniería de planta", "mantenimiento industrial", "seguridad industrial", "operaciones de fábrica"]
-    },
-    EDUCATION_TEACHING: {
-        id: "EDUCATION_TEACHING",
-        name: "Docencia & Educación Escolar",
-        icon: "🎓",
-        keywords: [
-            "docente", "profesor", "profesora", "maestro", "maestra", "educador", "educadora", "colegio", "liceo", "escuela", "pedagogía", "docencia inglés"
-        ],
-        criticalSkills: ["docencia", "pedagogía", "planificación escolar", "didáctica"]
+        criticalSkills: ["atencion clinica", "pacientes", "farmacologia", "enfermeria"]
     },
     LEGAL_NOTARIAL: {
         id: "LEGAL_NOTARIAL",
-        name: "Legal, Abogacía & Notarial",
+        name: "Ciencias Jurídicas & Derecho",
         icon: "⚖️",
-        keywords: ["abogado", "abogada", "notarial", "escribano", "escribana", "procurador", "procuradora", "derecho corporativo", "litigios", "juzgados"],
-        criticalSkills: ["derecho", "legislación", "redacción contractual", "procuración", "trámites judiciales"]
+        isRegulatedStrict: true,
+        keywords: [
+            "abogado", "abogada", "abogacia", "abogacía", "derecho", "notariado", "escribano", "escribana",
+            "procurador", "juridico", "jurídico", "litigios", "legal", "contratos", "societario"
+        ],
+        criticalSkills: ["derecho", "redaccion legal", "contratos", "litigios"]
+    },
+    HR_PSYCHOLOGY: {
+        id: "HR_PSYCHOLOGY",
+        name: "Gestión Humana & Psicología",
+        icon: "👥",
+        keywords: [
+            "recursos humanos", "rrhh", "gestion humana", "gestión humana", "capital humano",
+            "psicologia", "psicología", "seleccion", "selección", "reclutamiento", "recruiting",
+            "talent acquisition", "clima laboral", "capacitacion", "people"
+        ],
+        criticalSkills: ["entrevistas", "seleccion", "reclutamiento", "gestion humana"]
+    },
+    DESIGN_CREATIVE: {
+        id: "DESIGN_CREATIVE",
+        name: "Diseño & Comunicación Visual",
+        icon: "🎨",
+        keywords: [
+            "diseno", "diseño", "ux", "ui", "product design", "diseno grafico", "audiovisual",
+            "multimedia", "branding", "figma", "photoshop", "illustrator", "comunicacion visual"
+        ],
+        criticalSkills: ["figma", "photoshop", "illustrator", "diseno ux/ui"]
+    },
+    INDUSTRIAL_PLANT: {
+        id: "INDUSTRIAL_PLANT",
+        name: "Operaciones Industriales & Fábrica",
+        icon: "🏭",
+        keywords: [
+            "jefe de planta", "jefatura de planta", "planta industrial", "mantenimiento industrial",
+            "produccion industrial", "producción industrial", "planta de produccion", "planta de producción",
+            "produccion pesada", "producción pesada", "ingenieria quimica", "ingenieria mecanica", "calidad industrial"
+        ],
+        criticalSkills: ["procesos industriales", "mantenimiento industrial", "seguridad laboral"]
     }
 };
 
+/**
+ * Matriz de Afinidad y Transferibilidad Funcional entre Familias.
+ * Permite que un estudiante de Negocios Digitales sea compatible con Ciencias Económicas,
+ * Administración, Analítica de Datos, Inteligencia Comercial, Finanzas y People Analytics.
+ */
 const DOMAIN_AFFINITY = {
-    DATA_ANALYTICS_BI: {
-        DATA_ANALYTICS_BI: 1.0,
-        BUSINESS_MANAGEMENT: 0.85,
-        MARKETING_GROWTH: 0.85,
-        FINANCE_BANKING: 0.80,
-        SALES_COMMERCIAL: 0.65,
-        CUSTOMER_OPERATIONS: 0.65,
-        HR_PEOPLE: 0.60,
-        SOFTWARE_ENGINEERING: 0.35,
-        CYBERSECURITY: 0.25,
-        IT_INFRA_SUPPORT: 0.10,
-        HEALTH_MEDICAL: 0.0,
-        INDUSTRIAL_PLANT: 0.0,
-        EDUCATION_TEACHING: 0.0,
-        LEGAL_NOTARIAL: 0.0
+    ECONOMIC_BUSINESS: {
+        ECONOMIC_BUSINESS: 1.0,
+        TECH_SOFTWARE: 0.65,      // BI, analítica, SQL, datos de negocio
+        HR_PSYCHOLOGY: 0.60,      // People analytics, compensaciones, gestión
+        DESIGN_CREATIVE: 0.45,    // Marketing, e-commerce, pauta
+        INDUSTRIAL_PLANT: 0.25,   // Operaciones comerciales / compras, pero NO jefatura pesada
+        LEGAL_NOTARIAL: 0.20,
+        HEALTH_MEDICAL: 0.0       // Incompatibilidad radical estricta
     },
-    BUSINESS_MANAGEMENT: {
-        BUSINESS_MANAGEMENT: 1.0,
-        DATA_ANALYTICS_BI: 0.85,
-        FINANCE_BANKING: 0.85,
-        MARKETING_GROWTH: 0.80,
-        SALES_COMMERCIAL: 0.80,
-        CUSTOMER_OPERATIONS: 0.80,
-        HR_PEOPLE: 0.70,
-        SOFTWARE_ENGINEERING: 0.20,
-        CYBERSECURITY: 0.20,
-        IT_INFRA_SUPPORT: 0.10,
-        HEALTH_MEDICAL: 0.0,
-        INDUSTRIAL_PLANT: 0.0,
-        EDUCATION_TEACHING: 0.0,
-        LEGAL_NOTARIAL: 0.05
+    TECH_SOFTWARE: {
+        TECH_SOFTWARE: 1.0,
+        ECONOMIC_BUSINESS: 0.65,
+        DESIGN_CREATIVE: 0.60,
+        HR_PSYCHOLOGY: 0.30,
+        INDUSTRIAL_PLANT: 0.25,
+        LEGAL_NOTARIAL: 0.15,
+        HEALTH_MEDICAL: 0.0
     },
-    MARKETING_GROWTH: {
-        MARKETING_GROWTH: 1.0,
-        DATA_ANALYTICS_BI: 0.85,
-        BUSINESS_MANAGEMENT: 0.80,
-        SALES_COMMERCIAL: 0.75,
-        CUSTOMER_OPERATIONS: 0.60,
-        HR_PEOPLE: 0.45,
-        FINANCE_BANKING: 0.40,
-        SOFTWARE_ENGINEERING: 0.25,
-        CYBERSECURITY: 0.10,
-        IT_INFRA_SUPPORT: 0.10,
-        HEALTH_MEDICAL: 0.0,
-        INDUSTRIAL_PLANT: 0.0,
-        EDUCATION_TEACHING: 0.0,
-        LEGAL_NOTARIAL: 0.0
+    HEALTH_MEDICAL: {
+        HEALTH_MEDICAL: 1.0,
+        HR_PSYCHOLOGY: 0.25,
+        ECONOMIC_BUSINESS: 0.0,
+        TECH_SOFTWARE: 0.0,
+        LEGAL_NOTARIAL: 0.0,
+        DESIGN_CREATIVE: 0.0,
+        INDUSTRIAL_PLANT: 0.0
     },
-    FINANCE_BANKING: {
-        FINANCE_BANKING: 1.0,
-        BUSINESS_MANAGEMENT: 0.85,
-        DATA_ANALYTICS_BI: 0.80,
-        CUSTOMER_OPERATIONS: 0.65,
-        SALES_COMMERCIAL: 0.60,
-        HR_PEOPLE: 0.50,
-        MARKETING_GROWTH: 0.40,
-        LEGAL_NOTARIAL: 0.30,
-        CYBERSECURITY: 0.25,
-        SOFTWARE_ENGINEERING: 0.15,
-        IT_INFRA_SUPPORT: 0.10,
+    HR_PSYCHOLOGY: {
+        HR_PSYCHOLOGY: 1.0,
+        ECONOMIC_BUSINESS: 0.65,
+        TECH_SOFTWARE: 0.30,
+        HEALTH_MEDICAL: 0.20,
+        DESIGN_CREATIVE: 0.25,
+        LEGAL_NOTARIAL: 0.20,
+        INDUSTRIAL_PLANT: 0.15
+    },
+    LEGAL_NOTARIAL: {
+        LEGAL_NOTARIAL: 1.0,
+        ECONOMIC_BUSINESS: 0.50,
+        HR_PSYCHOLOGY: 0.35,
+        TECH_SOFTWARE: 0.20,
         HEALTH_MEDICAL: 0.0,
-        INDUSTRIAL_PLANT: 0.0,
-        EDUCATION_TEACHING: 0.0
+        DESIGN_CREATIVE: 0.0,
+        INDUSTRIAL_PLANT: 0.10
+    },
+    DESIGN_CREATIVE: {
+        DESIGN_CREATIVE: 1.0,
+        TECH_SOFTWARE: 0.65,
+        ECONOMIC_BUSINESS: 0.50,
+        HR_PSYCHOLOGY: 0.20,
+        HEALTH_MEDICAL: 0.0,
+        LEGAL_NOTARIAL: 0.0,
+        INDUSTRIAL_PLANT: 0.10
+    },
+    INDUSTRIAL_PLANT: {
+        INDUSTRIAL_PLANT: 1.0,
+        ECONOMIC_BUSINESS: 0.50,
+        TECH_SOFTWARE: 0.40,
+        HEALTH_MEDICAL: 0.0,
+        LEGAL_NOTARIAL: 0.10,
+        HR_PSYCHOLOGY: 0.15,
+        DESIGN_CREATIVE: 0.10
     }
-};
-
-const TRANSVERSAL_SKILLS = [
-    "excel", "inglés", "ingles", "office", "word", "powerpoint",
-    "comunicación", "comunicacion", "trabajo en equipo", "proactividad",
-    "capacidad analítica", "resolución de problemas"
-];
-
-
-const FALLBACK_JOBS_DB = [];
+};\n

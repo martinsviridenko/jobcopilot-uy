@@ -1,232 +1,224 @@
 /**
- * JobCopilot v3 — Matching Engine & Recruiter Decision Gate
- * Calibrated interview probability score with career exclusion gates.
+ * MatchingEngine — Evaluador Universal en Dos Etapas con Principio "In Dubio Pro Candidato"
+ * 
+ * Etapa 1: Viability Gate (Descarte silencioso SOLO ante incompatibilidad radical indiscutible)
+ * - Puestos de Salud Médica/Clínica vs perfiles ajenos a la salud.
+ * - Títulos habilitantes legales excluyentes (Abogado matriculado).
+ * - Jefaturas de Planta / Direcciones de 10+ años vs perfiles junior/estudiantes.
+ * 
+ * Regla de Oro: Si la IA duda o hay matices, NO SE DESCARTA. Pasa al feed ranqueada con menor score (45%-60%)
+ * para que el usuario siempre tenga la libertad de postularse.
+ * 
+ * Etapa 2: Probabilidad Real de ser Competitivo (Puntaje Ponderado Transparente)
  */
 
 class MatchingEngine {
     static evaluate(job, candidateProfile) {
         if (!candidateProfile) {
-            return { score: null, isDealbreaker: false, whyAppeared: "Cargá tu CV para ver el análisis de reclutador." };
+            return {
+                score: 70,
+                isDealbreaker: false,
+                whyAppeared: "Cargá tu CV para ver el análisis de reclutador personalizado.",
+                probability: "Estándar",
+                verdict: "Oportunidad disponible para postulación.",
+                domain: DOMAINS.ECONOMIC_BUSINESS,
+                met: ["Vacante activa en el mercado uruguayo"],
+                unmet: [],
+                boosters: [],
+                penalties: []
+            };
         }
 
         const jobAnalysis = JobAnalyzer.analyze(job);
-        const domainKey = jobAnalysis.domainKey;
         const jobDomain = jobAnalysis.domain;
-
-        // 1. Check Domain Affinity from Candidate's primary domains
-        let maxAffinity = 0.0;
-        candidateProfile.primaryTargetDomains.forEach(pDom => {
-            const row = DOMAIN_AFFINITY[pDom] || {};
-            const aff = row[domainKey] !== undefined ? row[domainKey] : 0.0;
-            if (aff > maxAffinity) maxAffinity = aff;
-        });
-
-        // 2. Candidate Skills & Tools Check
-        const candidateSkillsLower = (candidateProfile.skills || []).map(s => s.toLowerCase());
-        const jobCriticalRequired = (job.criticalSkills && job.criticalSkills.length > 0)
-            ? job.criticalSkills.map(s => s.toLowerCase())
-            : (jobDomain.criticalSkills || []).map(s => s.toLowerCase());
-
-        const criticalMet = [];
-        const criticalMissing = [];
-        jobCriticalRequired.forEach(cs => {
-            const hasSkill = candidateSkillsLower.some(us => us.includes(cs) || cs.includes(us));
-            if (hasSkill) criticalMet.push(cs);
-            else criticalMissing.push(cs);
-        });
+        const jobDomainKey = jobAnalysis.domainKey;
+        const candDomainKey = candidateProfile.primaryDomainKey || "ECONOMIC_BUSINESS";
 
         // =========================================================================
-        // COMPUERTAS DE ADMISIÓN (RECRUITER HARD GATES)
+        // ETAPA 1: VIABILITY GATE (Descarte duro SOLO ante incompatibilidad radical)
         // =========================================================================
 
-        // GATE A: Non-Business / Non-Analytics Disciplines (Salud, Fábricas, Docencia, Leyes)
-        const nonCompatibleDomains = ["HEALTH_MEDICAL", "INDUSTRIAL_PLANT", "EDUCATION_TEACHING", "LEGAL_NOTARIAL"];
-        if (nonCompatibleDomains.includes(domainKey) || maxAffinity === 0) {
+        // 1. Descarte Clínico/Salud Estricto
+        if ((jobDomainKey === "HEALTH_MEDICAL" || jobAnalysis.requiresStrictHealthLicense) && candDomainKey !== "HEALTH_MEDICAL") {
             return {
-                score: 4,
+                score: 0,
                 isDealbreaker: true,
-                dealbreakerReason: `Disciplina incompatible: ${jobDomain.name}`,
-                whyAppeared: `Descarte automático: Vacante de ${jobDomain.name}, fuera del ámbito de Negocios y Datos.`,
+                dealbreakerReason: "Incompatibilidad médica asistencial",
+                whyAppeared: "Descarte radical: Puesto clínico/asistencial que exige título de la salud.",
                 probability: "Descarte",
-                verdict: `Descarte definitivo: Rol ajeno a tu formación universitaria.`,
+                verdict: "Descarte: Requiere formación profesional en ciencias médicas o de la salud.",
                 domain: jobDomain,
                 met: [],
-                unmet: [`Carrera requerida no afín a Negocios Digitales (${jobDomain.name})`],
+                unmet: ["Título y formación asistencial/médica requerida"],
                 boosters: [],
-                penalties: ["Especialidad incompatible (-95%)"]
+                penalties: ["Sector salud excluyente"]
             };
         }
 
-        // GATE B: Pure Software Engineering / AI Development Degree Exclusion
-        // If a vacancy demands a Computer Science / Engineering degree for production code or AI dev
-        if (jobAnalysis.demandedDegrees.includes("INGENIERIA_COMPUTACION_CORE")) {
-            const isFullstackOrAI = ["ai developer", "software developer", "fullstack", "backend", "developer trainee"].some(w => job.title.toLowerCase().includes(w));
-            if (isFullstackOrAI) {
-                return {
-                    score: 8,
-                    isDealbreaker: true,
-                    dealbreakerReason: "Exige titulación excluyente en Ingeniería en Computación / Sistemas",
-                    whyAppeared: "Descarte técnico: Puesto de desarrollo de código o IA que exige formación en Ingeniería de Sistemas.",
-                    probability: "Descarte",
-                    verdict: "El reclutador exige perfil graduado o avanzado de Ingeniería en Computación pura.",
-                    domain: jobDomain,
-                    met: criticalMet.map(c => `Conocimiento complementario: ${c.toUpperCase()}`),
-                    unmet: ["Título universitario en Ingeniería en Computación / Sistemas requerido por el aviso"],
-                    boosters: [],
-                    penalties: ["Carrera de grado requerida distinta a Negocios Digitales (-90%)"]
-                };
-            }
-        }
-
-        // GATE C: Pure HR Recruiting / Psychology Degree Exclusion
-        if (jobAnalysis.demandedDegrees.includes("PSICOLOGIA_RRHH_CORE")) {
-            const isPureRecruiting = ["reclutamiento", "selección", "recruiting", "talent acquisition"].some(w => job.title.toLowerCase().includes(w));
-            if (isPureRecruiting) {
-                return {
-                    score: 12,
-                    isDealbreaker: true,
-                    dealbreakerReason: "Exige formación específica en Psicología o Relaciones Laborales para Selección",
-                    whyAppeared: "Descarte de perfil: Rol de reclutamiento masivo o evaluación psicotécnica, no analítica de personas.",
-                    probability: "Descarte",
-                    verdict: "Vacante orientada a Licenciados en Psicología o Relaciones Laborales con foco en entrevistas.",
-                    domain: jobDomain,
-                    met: ["Habilidades generales de gestión"],
-                    unmet: ["Formación troncal en Psicología / Selección de Personal"],
-                    boosters: [],
-                    penalties: ["Perfil de selección pura fuera del ámbito de Negocios Digitales (-85%)"]
-                };
-            }
-        }
-
-        // GATE D: Seniority / Leadership Gate
-        if (jobAnalysis.isLeadership) {
+        // 2. Descarte Jurídico Matriculado Estricto
+        if (jobAnalysis.requiresStrictLegalBar && candDomainKey !== "LEGAL_NOTARIAL") {
             return {
-                score: 8,
+                score: 0,
                 isDealbreaker: true,
-                dealbreakerReason: `Jerarquía Incompatible: ${jobAnalysis.calculatedSeniority}`,
-                whyAppeared: "Descarte por experiencia: Puesto directivo o jefatura que requiere más de 5 años de trayectoria.",
+                dealbreakerReason: "Incompatibilidad regulatoria legal",
+                whyAppeared: "Descarte radical: Exige matrícula habilitante de Abogado o Escribano.",
                 probability: "Descarte",
-                verdict: "Exige liderazgo de equipos o gestión de planta senior, incompatible con tu etapa universitaria.",
+                verdict: "Descarte: Requiere título habilitante legal para litigar o actuar como notario.",
                 domain: jobDomain,
-                met: criticalMet.map(c => `Conocimiento técnico: ${c.toUpperCase()}`),
-                unmet: ["Exige trayectoria comprobable de jefatura / gerencia previa"],
+                met: [],
+                unmet: ["Matrícula profesional de abogado habilitado"],
                 boosters: [],
-                penalties: ["Nivel jerárquico directivo (-85%)"]
+                penalties: ["Requisito legal excluyente"]
             };
         }
 
-        // GATE E: IT Hardware & Networking Infrastructure Gate
-        if (domainKey === "IT_INFRA_SUPPORT" && criticalMet.length === 0) {
+        // 3. Descarte de Brecha Jerárquica Extrema / Planta Industrial Pesada
+        if (jobAnalysis.requiredSeniority === "executive" && candidateProfile.seniority === "junior") {
             return {
-                score: 10,
+                score: 0,
                 isDealbreaker: true,
-                dealbreakerReason: "Especialidad en Redes Físicas y Hardware TI ajena a Negocios",
-                whyAppeared: "Descarte técnico: Requiere cableado, servidores Linux o routers Cisco.",
+                dealbreakerReason: "Brecha jerárquica insalvable",
+                whyAppeared: "Descarte radical: Jefatura de planta o dirección ejecutiva con alta experiencia requerida.",
                 probability: "Descarte",
-                verdict: "Se busca técnico de soporte físico de hardware, no analista funcional ni de datos.",
+                verdict: "Descarte: Puesto directivo/industrial que requiere años de liderazgo operativo.",
                 domain: jobDomain,
-                met: ["Manejo informático básico"],
-                unmet: ["Conocimientos en redes físicas, servidores y soporte de hardware"],
+                met: [],
+                unmet: ["Experiencia comprobada de 8+ años en gestión directiva o de planta industrial"],
                 boosters: [],
-                penalties: ["Especialidad técnica ajena (-80%)"]
+                penalties: ["Jerarquía ejecutiva incompatible con perfil junior"]
             };
         }
 
         // =========================================================================
-        // CALCULO PONDERADO DE PROBABILIDAD DE ENTREVISTA (ROLES COMPATIBLES)
+        // PRINCIPIO: IN DUBIO PRO CANDIDATO (Ante la duda, es VIABLE)
         // =========================================================================
-        let score = 0;
-        const reasonsMet = [];
-        const reasonsUnmet = [];
+        
+        // Si el puesto pide "Ciencias Económicas" o afines y el candidato proviene o se vincula con esa macro-área:
+        const isEconomicAffinity = jobAnalysis.admitsEconomicSciences && 
+            (candDomainKey === "ECONOMIC_BUSINESS" || (candidateProfile.secondaryDomainKeys || []).includes("ECONOMIC_BUSINESS"));
+
+        // Calcular afinidad del campo (0.0 a 1.0)
+        let affinity = DOMAIN_AFFINITY[candDomainKey]?.[jobDomainKey] ?? 0.40;
+        if (isEconomicAffinity) {
+            affinity = Math.max(affinity, 0.90);
+        }
+
+        // Si la afinidad es prácticamente nula (< 0.15) y no admite estudiantes:
+        if (affinity < 0.15 && !jobAnalysis.admitsStudents) {
+            return {
+                score: 20,
+                isDealbreaker: true,
+                dealbreakerReason: `Disciplina lejana (${jobDomain.name})`,
+                whyAppeared: `Descarte: Rol en ${jobDomain.name} sin relación con tu campo.`,
+                probability: "Descarte",
+                verdict: "Descarte por falta de afinidad funcional.",
+                domain: jobDomain,
+                met: [],
+                unmet: ["Formación en área especializada del puesto"],
+                boosters: [],
+                penalties: ["Baja transferibilidad"]
+            };
+        }
+
+        // =========================================================================
+        // ETAPA 2: SCORING COMPETITIVO Y TRANSPARENCIA
+        // =========================================================================
+
+        const met = [];
+        const unmet = [];
         const boosters = [];
         const penalties = [];
 
-        // 1. Afinidad de Carrera y Dominio (35 pts)
-        score += (maxAffinity * 35);
-        reasonsMet.push(`Afinidad directa con ${jobDomain.name} (${Math.round(maxAffinity * 100)}%)`);
-        if (maxAffinity >= 0.85) boosters.push("Afinidad central con Negocios y Analítica");
-
-        // 2. Herramientas Críticas Requeridas (30 pts)
-        if (jobCriticalRequired.length > 0) {
-            const ratio = criticalMet.length / jobCriticalRequired.length;
-            score += (ratio * 30);
-            criticalMet.forEach(c => {
-                reasonsMet.push(`Herramienta clave dominada: ${c.toUpperCase()}`);
-                boosters.push(`Dominio de ${c.toUpperCase()}`);
-            });
-            criticalMissing.slice(0, 2).forEach(c => {
-                reasonsUnmet.push(`Herramienta no destacada en CV: ${c}`);
-                penalties.push(`Falta certificar ${c}`);
-            });
+        // 1. Puntos por Afinidad de Campo (0 a 45 pts)
+        let fieldScore = Math.round(45 * affinity);
+        if (candDomainKey === jobDomainKey || isEconomicAffinity) {
+            met.push(`Formación alineada al área de ${jobDomain.name}`);
+            boosters.push("Afinidad directa con la disciplina del puesto");
         } else {
-            score += 25;
-            reasonsMet.push("Requisitos técnicos accesibles para tu nivel");
+            met.push(`Habilidades transferibles hacia ${jobDomain.name}`);
+            penalties.push("Área profesional adyacente");
         }
 
-        // 3. Nivel de Seniority & Foco en Estudiantes (15 pts)
-        if (jobAnalysis.isStudentLevel || job.hours === '4h') {
-            score += 15;
-            reasonsMet.push("Vacante ideal para estudiantes: Pasantía o Jr con desarrollo");
-            boosters.push("Pasantía orientada a estudiantes universitarios");
-        } else {
-            score += 8;
-        }
+        // 2. Cobertura de Requisitos y Herramientas (0 a 30 pts)
+        let skillsScore = 15;
+        const candidateSkills = (candidateProfile.skills || []).map(s => s.toLowerCase());
 
-        // 4. Régimen Horario Compatible con Cursada (10 pts)
-        if (job.hours === '4h' || job.hours === '6h' || jobAnalysis.shift === "Matutino" || jobAnalysis.shift === "Vespertino") {
-            score += 10;
-            reasonsMet.push(`Jornada compatible con facultad: ${job.hoursLabel || 'Medio turno'}`);
-            boosters.push("Carga horaria adaptable a cursada universitaria");
-        } else {
-            score += 5;
-            reasonsUnmet.push(`Jornada laboral completa: ${job.hoursLabel || '8 horas'}`);
-        }
-
-        // 5. Inglés Profesional (10 pts)
-        if (jobAnalysis.requiresEnglish) {
-            if ((candidateProfile.lang || "").includes("B2") || (candidateProfile.lang || "").includes("First") || (candidateProfile.lang || "").includes("C1")) {
-                score += 10;
-                reasonsMet.push("Inglés profesional certificado (Cambridge B2 First)");
-                boosters.push("Nivel de inglés validado");
-            } else {
-                penalties.push("Aviso solicita inglés fluido");
+        if (jobAnalysis.detectedReqs.length > 0) {
+            let matchedCount = 0;
+            for (const req of jobAnalysis.detectedReqs) {
+                const reqLower = req.toLowerCase();
+                const hasSkill = candidateSkills.some(cs => cs.includes(reqLower) || reqLower.includes(cs));
+                if (hasSkill) {
+                    matchedCount++;
+                    met.push(`Dominio de herramienta requerida: ${req}`);
+                } else {
+                    unmet.push(`Requisito a compensar o adquirir: ${req}`);
+                }
             }
+            const ratio = matchedCount / jobAnalysis.detectedReqs.length;
+            skillsScore = Math.round(30 * ratio);
+            if (ratio >= 0.6) boosters.push(`Cumplís con el ${Math.round(ratio * 100)}% de herramientas clave`);
         } else {
-            score += 7;
+            skillsScore = 22;
+            met.push("Competencias analíticas y de gestión valoradas para el rol");
         }
 
-        const finalScore = Math.min(98, Math.max(20, Math.round(score)));
-        let prob = "Baja";
+        // 3. Seniority y Nivel Formativo (0 a 20 pts)
+        let seniorityScore = 15;
+        if (jobAnalysis.admitsStudents && candidateProfile.isStudent) {
+            seniorityScore = 20;
+            met.push("Perfil universitario/estudiante admitido por la vacante");
+            boosters.push("Puesto diseñado para formación y jóvenes profesionales");
+        } else if (jobAnalysis.requiredSeniority === "semisenior" && candidateProfile.seniority === "junior") {
+            seniorityScore = 10;
+            penalties.push("Puesto semi-senior: conviene destacar proyectos autónomos");
+        } else {
+            seniorityScore = 18;
+        }
+
+        // 4. Idiomas (0 a 5 pts)
+        let langScore = 4;
+        if (/inglés|english/i.test(jobAnalysis.rawScan)) {
+            if (candidateProfile.lang && /b2|c1|c2|advanced|first/i.test(candidateProfile.lang)) {
+                langScore = 5;
+                met.push("Cumplís con el nivel de inglés requerido");
+            }
+        }
+
+        let totalScore = fieldScore + skillsScore + seniorityScore + langScore;
+        totalScore = Math.min(Math.max(totalScore, 40), 96);
+
+        // Determinación del Veredicto y Por qué te conviene
         let verdict = "";
+        let probability = "Moderada";
+        let whyAppeared = "";
 
-        if (finalScore >= 80) {
-            prob = "Alta";
-            verdict = "¡Excelente oportunidad! Tu perfil universitario y herramientas coinciden plenamente con lo solicitado.";
-        } else if (finalScore >= 60) {
-            prob = "Media";
-            verdict = "Postulación viable. Tenés buen encaje general; destacá proyectos universitarios relevantes en tu carta.";
+        if (totalScore >= 75) {
+            probability = "Alta";
+            verdict = "Match Ideal: Tu formación y herramientas te posicionan como candidato muy competitivo.";
+            whyAppeared = `Afinidad directa con ${jobDomain.name} y dominio de competencias requeridas por ${job.company}.`;
+        } else if (totalScore >= 60) {
+            probability = "Buena";
+            verdict = "Buena Oportunidad: Cumplís con la base principal del puesto y podés postularte con sólidas chances.";
+            whyAppeared = `El perfil de ${job.company} valora disciplinas afines a tu carrera y competencias transferibles.`;
         } else {
-            prob = "Baja";
-            verdict = "Puesto con brechas técnicas o incompatibilidad de jornada frente a tu perfil actual.";
+            probability = "Afinidad Parcial / Desafío";
+            verdict = "Oportunidad Adyacente: El puesto presenta matices o requisitos a reforzar, pero tenés perfil para intentarlo.";
+            whyAppeared = `Oportunidad en área adyacente. Se recomienda adaptar el CV para destacar proyectos relacionados.`;
         }
-
-        const matchedTools = criticalMet.slice(0, 2).map(s => s.toUpperCase()).join(" y ");
-        const whyAppeared = matchedTools
-            ? `Recomendada por tu dominio de ${matchedTools} y la compatibilidad con tu formación en Negocios Digitales.`
-            : `Recomendada por su alineación con el área de ${jobDomain.name} y disponibilidad universitaria.`;
 
         return {
-            score: finalScore,
+            score: totalScore,
             isDealbreaker: false,
             dealbreakerReason: null,
             whyAppeared,
-            probability: prob,
+            probability,
             verdict,
             domain: jobDomain,
-            met: reasonsMet,
-            unmet: reasonsUnmet,
+            met,
+            unmet: unmet.length > 0 ? unmet : ["Sin brechas críticas detectadas"],
             boosters,
             penalties
         };
     }
-}
+}\n

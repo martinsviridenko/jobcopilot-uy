@@ -1,88 +1,123 @@
 /**
- * JobCopilot v3 — Candidate Profile Analyzer (Candidate-First Ontology)
+ * ProfileAnalyzer — Extractor Semántico Universal de Perfil Profesional
+ * 100% genérico: funciona para médicos, abogados, desarrolladores, contadores,
+ * estudiantes de negocios digitales, psicólogos, diseñadores o cualquier oficio.
+ * El CV es la única fuente de verdad. Cero reglas cableadas por usuario o carrera.
  */
 
 class ProfileAnalyzer {
     static parse(rawText, existingProfile = null) {
-        const text = (rawText || "").toLowerCase();
+        let text = (rawText || "").toLowerCase();
+        // Normalización inclusiva: jefe/a -> jefe, contador/a -> contador
+        text = text.replace(/\/(a|as|os|o)\b/g, "");
         
-        let name = (existingProfile && existingProfile.name) || "Martín Sviridenko";
-        let edu = (existingProfile && existingProfile.edu) || "Licenciatura en Negocios Digitales — Universidad ORT Uruguay (Estudiante)";
-        let summary = (existingProfile && existingProfile.summary) || "Estudiante universitario en Negocios Digitales enfocado en Business Intelligence, SQL, Power BI, Excel avanzado y analítica comercial.";
-        let lang = (existingProfile && existingProfile.lang) || "Cambridge B2 First";
-        let skills = existingProfile && existingProfile.skills ? [...existingProfile.skills] : [
-            "Excel", "Power BI", "SQL", "Python", "Meta Ads", "Análisis de Datos", "E-commerce", "Modelado de Datos"
-        ];
-
-        // Automatic career detection from raw text
-        if (text.includes("negocios digitales")) {
-            edu = "Licenciatura en Negocios Digitales — Universidad ORT Uruguay (Estudiante)";
-        } else if (text.includes("administración") || text.includes("ciencias económicas")) {
-            edu = "Ciencias Económicas y Administración (Estudiante)";
-        }
-
-        // Automatic English level detection
-        if (text.includes("b2 first") || text.includes("first certificate")) {
-            lang = "Cambridge B2 First";
-        } else if (text.includes("c1") || text.includes("advanced")) {
-            lang = "Avanzado / C1";
-        }
-
-        // Technical skills extraction
-        const SKILLS_MAP = {
-            "excel": "Excel Avanzado",
-            "power bi": "Power BI",
-            "sql": "SQL",
-            "python": "Python (Data/Análisis)",
-            "meta ads": "Meta Ads",
-            "google ads": "Google Ads",
-            "google analytics": "Google Analytics",
-            "tableau": "Tableau",
-            "dax": "DAX",
-            "e-commerce": "E-commerce",
-            "shopify": "Shopify",
-            "crm": "CRM",
-            "sap": "SAP (Nociones)"
-        };
-
-        for (const [key, label] of Object.entries(SKILLS_MAP)) {
-            if (text.includes(key) && !skills.includes(label)) {
-                skills.push(label);
+        // 1. Detección genérica del Nombre
+        let name = "Candidato";
+        if (existingProfile && existingProfile.name && existingProfile.name !== "Martín Sviridenko") {
+            name = existingProfile.name;
+        } else if (rawText) {
+            const firstLines = rawText.split("\n").map(l => l.trim()).filter(l => l.length > 2 && l.length < 50);
+            if (firstLines.length > 0 && !firstLines[0].toLowerCase().includes("curr") && !firstLines[0].toLowerCase().includes("resume")) {
+                name = firstLines[0];
+            } else if (existingProfile && existingProfile.name) {
+                name = existingProfile.name;
             }
         }
 
-        // Determine candidate ontological category & compatibility limits
-        const careerCategory = "BUSINESS_DIGITAL_ANALYTICS";
-        const primaryTargetDomains = [
-            "DATA_ANALYTICS_BI",
-            "BUSINESS_MANAGEMENT",
-            "FINANCE_BANKING",
-            "MARKETING_GROWTH",
-            "CUSTOMER_OPERATIONS"
+        // 2. Mapeo Semántico a Familias Profesionales (Scoring de Afinidad)
+        const familyScores = {};
+        for (const [key, domain] of Object.entries(DOMAINS)) {
+            let score = 0;
+            for (const kw of domain.keywords) {
+                const regex = new RegExp(`\\b${kw}\\b`, "gi");
+                const matches = text.match(regex);
+                if (matches) {
+                    score += matches.length * (kw.includes(" ") ? 3 : 1.5);
+                }
+            }
+            familyScores[key] = score;
+        }
+
+        const sortedDomains = Object.entries(familyScores)
+            .sort((a, b) => b[1] - a[1])
+            .filter(([_, score]) => score > 0);
+
+        const primaryDomainKey = sortedDomains.length > 0 ? sortedDomains[0][0] : "ECONOMIC_BUSINESS";
+        const secondaryDomainKeys = sortedDomains.slice(1, 3).map(([key]) => key);
+
+        // 3. Formación Académica inferida del texto
+        let edu = "Formación Profesional";
+        if (text.includes("negocios digitales")) {
+            edu = "Licenciatura en Negocios Digitales (Estudiante)";
+        } else if (text.includes("ciencias económicas") || text.includes("ciencias economicas") || text.includes("administración") || text.includes("administracion")) {
+            edu = "Ciencias Económicas / Administración (Estudiante o Graduado)";
+        } else if (text.includes("ingeniería en computación") || text.includes("ingenieria en computacion") || text.includes("sistemas")) {
+            edu = "Ingeniería en Computación / Sistemas";
+        } else if (text.includes("medicina") || text.includes("médico")) {
+            edu = "Ciencias Médicas / Salud";
+        } else if (text.includes("abogacía") || text.includes("abogado") || text.includes("derecho")) {
+            edu = "Ciencias Jurídicas / Derecho";
+        } else if (text.includes("contador público") || text.includes("contador publico")) {
+            edu = "Contador Público";
+        } else if (text.includes("psicología") || text.includes("psicologia")) {
+            edu = "Psicología / RRHH";
+        }
+
+        const isStudent = /\b(estudiante|cursando|cursante|tercer a[ñn]o|segundo a[ñn]o|cuarto a[ñn]o|semestre)\b/i.test(text);
+
+        // 4. Seniority inferido
+        let seniority = "junior";
+        if (/\b(gerente|director|jefe de planta|head of|chief|lead de [0-9]+ a[ñn]os)\b/i.test(text)) {
+            seniority = "senior";
+        } else if (/\b(semi-senior|semi senior|ssr|3 a[ñn]os de experiencia|4 a[ñn]os de experiencia)\b/i.test(text)) {
+            seniority = "semisenior";
+        } else {
+            seniority = "junior";
+        }
+
+        // 5. Inventario universal de herramientas y competencias
+        const SKILL_CATALOG = [
+            "sql", "power bi", "excel", "python", "meta ads", "google ads", "google analytics",
+            "tableau", "dax", "sap", "erp", "salesforce", "jira", "git", "javascript", "react",
+            "node", "aws", "docker", "crm", "hubspot", "r", "figma", "photoshop", "tributaria",
+            "balances", "conciliaciones", "niif", "liquidación de sueldos", "facturación",
+            "comercio exterior", "logística", "selección de personal", "entrevistas por competencias"
         ];
 
-        // Degrees/specialties that are completely out of reach for this candidate
-        const excludedCareerDegrees = [
-            "ingeniería en computación", "ingenieria en computacion",
-            "ingeniería de sistemas", "ingenieria de sistemas",
-            "licenciatura en computación", "computer science",
-            "psicología", "psicologia", "licenciatura en relaciones laborales",
-            "medicina", "fonoaudiología", "fonoaudiologia", "enfermería",
-            "ingeniería industrial mecánica", "ingeniero químico",
-            "abogacía", "notariado", "magisterio", "profesorado"
-        ];
+        const detectedSkills = [];
+        for (const skill of SKILL_CATALOG) {
+            const regex = new RegExp(`\\b${skill}\\b`, "gi");
+            if (regex.test(text)) {
+                detectedSkills.push(skill.toUpperCase());
+            }
+        }
+
+        // 6. Detección de idiomas
+        let lang = "Español nativo";
+        if (/first certificate|b2 first|fce/i.test(text)) {
+            lang = "Inglés Cambridge B2 First";
+        } else if (/c1|advanced|cae|proficiency|fluent english/i.test(text)) {
+            lang = "Inglés Avanzado (C1/C2)";
+        } else if (/inglés|english/i.test(text)) {
+            lang = "Inglés (Mencionado en CV)";
+        }
+
+        // 7. Resumen dinámico
+        const domainObj = DOMAINS[primaryDomainKey] || DOMAINS.ECONOMIC_BUSINESS;
+        const summary = `Perfil: ${domainObj.name}. Seniority inferido: ${seniority.toUpperCase()}${isStudent ? ' (en formación universitaria)' : ''}.`;
 
         return {
             name,
             edu,
             summary,
             lang,
-            skills,
-            seniorityLevel: "Junior / Estudiante Universitario",
-            careerCategory,
-            primaryTargetDomains,
-            excludedCareerDegrees,
-            experienceYears: 1
+            isStudent,
+            seniority,
+            primaryDomainKey,
+            secondaryDomainKeys,
+            primaryTargetDomains: [primaryDomainKey, ...secondaryDomainKeys],
+            skills: detectedSkills.length > 0 ? detectedSkills : (existingProfile?.skills || ["Gestión", "Análisis"]),
+            rawText
         };
     }
-}
+}\n
