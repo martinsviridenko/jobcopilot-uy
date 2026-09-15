@@ -1,26 +1,27 @@
-name: JobCopilot Automated Ingestion Pipeline
+name: JobCopilot Autonomous Job Hunter Pipeline
 
 on:
   schedule:
-    # Corre todos los días a las 11:00 UTC (08:00 AM hora de Uruguay)
-    - cron: '0 11 * * *'
-  workflow_dispatch: # Permite ejecutarlo manualmente desde GitHub en cualquier momento
+    # Corre automáticamente cada 12 horas (00:00 y 12:00 UTC)
+    - cron: '0 0,12 * * *'
+  workflow_dispatch: # Permite ejecución manual con 1 clic desde la pestaña Actions de GitHub
 
 jobs:
-  scrape-and-update:
+  hunt-and-sync:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout del Repositorio
         uses: actions/checkout@v4
 
-      - name: Configurar Python
+      - name: Configurar Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Ejecutar Pipeline de Ingesta y Deduplicación
+      - name: Ejecutar Agente Autónomo Multi-Fuente
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          JOBCOPILOT_COUNTRY: 'UY'
         run: |
-          python3 ingestion_pipeline.py
+          python3 -m agent.runner --country UY

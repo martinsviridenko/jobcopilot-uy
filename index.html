@@ -2072,9 +2072,10 @@
 
                     <div class="tags-cluster">
                         <span class="tag-pill t-domain">${analysis.domain ? analysis.domain.icon + " " + analysis.domain.name : (job.domainLabel || "🏢 General")}</span>
-                        <span class="tag-pill t-hours">⏰ ${job.hoursLabel}</span>
+                        <span class="tag-pill t-hours">⏰ ${job.hoursLabel}${job.is_hours_estimated ? ' (Estimado por IA)' : ''}</span>
                         <span class="tag-pill t-modality">📍 ${job.modality}</span>
                         <span class="tag-pill t-sector">🏢 ${job.sectorLabel}</span>
+                        ${job.seniority ? `<span class="tag-pill t-modality" style="background: rgba(148, 163, 184, 0.12); color: #CBD5E1; border: 1px solid rgba(148, 163, 184, 0.25);">🎖️ ${job.seniority}</span>` : ''}
                         ${job.isTalentPool ? '<span class="tag-pill t-pool">📥 Base de Talentos</span>' : ''}
                     </div>
 
