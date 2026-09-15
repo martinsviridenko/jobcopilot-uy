@@ -1,0 +1,26 @@
+name: JobCopilot Automated Ingestion Pipeline
+
+on:
+  schedule:
+    # Corre todos los días a las 11:00 UTC (08:00 AM hora de Uruguay)
+    - cron: '0 11 * * *'
+  workflow_dispatch: # Permite ejecutarlo manualmente desde GitHub en cualquier momento
+
+jobs:
+  scrape-and-update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del Repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Ejecutar Pipeline de Ingesta y Deduplicación
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          python3 ingestion_pipeline.py

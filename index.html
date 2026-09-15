@@ -16,7 +16,316 @@
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     </script>
 
-    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        :root {
+            --bg: #070B12;
+            --surface: #0E1626;
+            --surface-card: #131E33;
+            --surface-hover: #1B2945;
+            --border: #1E2D4A;
+            --border-highlight: #2F4570;
+            --primary: #38BDF8;
+            --primary-hover: #0EA5E9;
+            --primary-glow: rgba(56, 189, 248, 0.15);
+            --accent-green: #10B981;
+            --accent-amber: #F59E0B;
+            --accent-purple: #A855F7;
+            --accent-rose: #F43F5E;
+            --text-main: #F8FAFC;
+            --text-muted: #94A3B8;
+            --text-subtle: #64748B;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background-color: var(--bg); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; line-height: 1.5; }
+
+        .app-container { max-width: 1440px; margin: 0 auto; width: 100%; padding: 20px; }
+
+        /* Top Nav & Branding */
+        .top-nav {
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--surface); border: 1px solid var(--border);
+            padding: 16px 24px; border-radius: 14px; margin-bottom: 20px; flex-wrap: wrap; gap: 14px;
+        }
+        .brand-group { display: flex; align-items: center; gap: 14px; }
+        .brand-logo {
+            width: 40px; height: 40px; background: linear-gradient(135deg, var(--primary), var(--accent-purple));
+            border-radius: 10px; display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 18px; color: #FFF; box-shadow: 0 0 20px rgba(56, 189, 248, 0.25);
+        }
+        .brand-text h1 { font-size: 19px; font-weight: 800; letter-spacing: -0.5px; }
+        .brand-text p { font-size: 11.5px; color: var(--primary); font-weight: 600; }
+
+        .nav-stats-bar { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; font-size: 12.5px; }
+        .stat-badge {
+            background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border);
+            padding: 6px 12px; border-radius: 8px; color: var(--text-muted);
+        }
+        .stat-badge strong { color: var(--text-main); }
+        .btn-config-ai {
+            background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.35);
+            color: #D8B4FE; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600;
+            cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px;
+        }
+        .btn-config-ai:hover { background: rgba(168, 85, 247, 0.25); border-color: var(--accent-purple); color: #FFF; }
+
+        /* Conversational Copilot Prompt */
+        .copilot-prompt-card {
+            background: linear-gradient(135deg, rgba(30, 45, 74, 0.6), rgba(19, 30, 51, 0.9));
+            border: 1px solid var(--border-highlight); border-radius: 14px;
+            padding: 16px 20px; margin-bottom: 22px; display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
+        }
+        .copilot-prompt-icon { font-size: 26px; }
+        .copilot-prompt-wrap { flex: 1; min-width: 280px; position: relative; }
+        .copilot-prompt-input {
+            width: 100%; background: rgba(7, 11, 18, 0.85); border: 1px solid var(--border-highlight);
+            color: #FFF; padding: 12px 16px; border-radius: 10px; font-size: 13.5px; outline: none;
+            transition: all 0.2s;
+        }
+        .copilot-prompt-input:focus { border-color: var(--primary); box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }
+        .copilot-prompt-btn {
+            background: var(--primary); color: #070B12; border: none; font-weight: 700;
+            padding: 12px 18px; border-radius: 10px; font-size: 13px; cursor: pointer;
+            transition: all 0.2s; display: flex; align-items: center; gap: 6px;
+        }
+        .copilot-prompt-btn:hover { background: var(--primary-hover); transform: translateY(-1px); }
+
+        /* Main Grid */
+        .main-grid { display: grid; grid-template-columns: 360px 1fr; gap: 24px; }
+        @media (max-width: 1024px) { .main-grid { grid-template-columns: 1fr; } }
+
+        /* Sidebar Panels */
+        .sidebar { display: flex; flex-direction: column; gap: 20px; }
+        .panel {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 14px; padding: 20px;
+        }
+        .panel-header {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;
+        }
+        .panel-title { font-size: 13.5px; font-weight: 700; color: #FFF; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* Dropzone Component */
+        .dropzone-label {
+            display: block; border: 2px dashed var(--border-highlight); border-radius: 12px;
+            padding: 24px 16px; text-align: center; cursor: pointer; transition: all 0.2s;
+            background: rgba(14, 22, 38, 0.7); margin-bottom: 12px; user-select: none;
+        }
+        .dropzone-label:hover { border-color: var(--primary); background: rgba(56, 189, 248, 0.05); }
+        .dropzone-label input[type="file"] { position: absolute; width: 0.1px; height: 0.1px; opacity: 0; overflow: hidden; z-index: -1; }
+        .dropzone-icon { font-size: 28px; margin-bottom: 6px; }
+        .dropzone-title { font-size: 13.5px; font-weight: 700; color: #FFF; margin-bottom: 4px; }
+        .dropzone-sub { font-size: 12px; color: var(--text-muted); }
+        .dropzone-link { color: var(--primary); text-decoration: underline; font-weight: 600; }
+
+        .btn-action-outline {
+            width: 100%; background: transparent; border: 1px solid var(--border-highlight);
+            color: #CBD5E1; font-size: 12px; font-weight: 600; padding: 9px 12px;
+            border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex;
+            align-items: center; justify-content: center; gap: 6px; margin-bottom: 8px;
+        }
+        .btn-action-outline:hover { border-color: var(--primary); color: #FFF; background: rgba(255,255,255,0.03); }
+
+        /* Profile Card */
+        .profile-summary-box {
+            background: var(--surface-card); border: 1px solid var(--border-highlight);
+            border-radius: 12px; padding: 16px; margin-top: 12px;
+        }
+        .profile-avatar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+        .profile-avatar {
+            width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--accent-purple));
+            color: #FFF; font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 14px;
+        }
+        .profile-meta h4 { font-size: 14.5px; font-weight: 700; color: #FFF; }
+        .profile-meta p { font-size: 12px; color: var(--text-muted); }
+        .profile-summary-text {
+            font-size: 12px; color: #CBD5E1; background: rgba(0,0,0,0.25); border-left: 3px solid var(--primary);
+            padding: 8px 10px; border-radius: 0 6px 6px 0; margin-bottom: 10px; line-height: 1.45;
+        }
+        .chips-cloud { display: flex; flex-wrap: wrap; gap: 5px; }
+        .chip-skill {
+            background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.25);
+            color: var(--primary); font-size: 11px; padding: 3px 8px; border-radius: 16px; font-weight: 600;
+        }
+
+        /* Filter Controls */
+        .filter-group { margin-bottom: 18px; }
+        .filter-group:last-child { margin-bottom: 0; }
+        .filter-header-label { font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+        .check-pill {
+            display: flex; align-items: center; justify-content: space-between;
+            background: rgba(14, 22, 38, 0.6); border: 1px solid var(--border);
+            padding: 8px 12px; border-radius: 8px; margin-bottom: 6px; cursor: pointer;
+            transition: all 0.15s; font-size: 12.5px; color: #E2E8F0; user-select: none;
+        }
+        .check-pill:hover { border-color: var(--border-highlight); background: rgba(27, 41, 69, 0.5); }
+        .check-pill input[type="checkbox"] { margin-right: 8px; cursor: pointer; width: 15px; height: 15px; accent-color: var(--primary); }
+        .check-pill .label-left { display: flex; align-items: center; flex: 1; }
+        .badge-hours { font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 700; }
+        .b-4h { background: rgba(16, 185, 129, 0.2); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .b-6h { background: rgba(56, 189, 248, 0.2); color: #7DD3FC; border: 1px solid rgba(56, 189, 248, 0.3); }
+        .b-8h { background: rgba(148, 163, 184, 0.2); color: #CBD5E1; border: 1px solid rgba(148, 163, 184, 0.3); }
+
+        /* Main Content Section */
+        .content-area { display: flex; flex-direction: column; gap: 18px; }
+
+        /* Tabs and View Bar */
+        .views-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--surface); border: 1px solid var(--border);
+            padding: 12px 18px; border-radius: 12px; gap: 12px; flex-wrap: wrap;
+        }
+        .tab-nav-buttons { display: flex; gap: 6px; align-items: center; }
+        .tab-item {
+            background: transparent; border: 1px solid transparent; color: var(--text-muted);
+            padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 600;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .tab-item:hover { color: #FFF; }
+        .tab-item.active { background: var(--surface-card); color: var(--primary); border-color: var(--border-highlight); }
+        .sort-select {
+            background: #070B12; border: 1px solid var(--border-highlight); color: #CBD5E1;
+            padding: 7px 12px; border-radius: 8px; font-size: 12px; outline: none; cursor: pointer;
+        }
+
+        /* Job Cards */
+        .job-list-container { display: flex; flex-direction: column; gap: 16px; }
+        .job-card {
+            background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+            padding: 22px; display: flex; flex-direction: column; gap: 16px; transition: all 0.2s;
+            position: relative; overflow: hidden;
+        }
+        .job-card:hover { border-color: var(--border-highlight); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+        .job-card.is-applied { border-left: 4px solid var(--accent-green); }
+        .job-card.is-favorite { border-top: 2px solid var(--accent-amber); }
+
+        .job-top-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; flex-wrap: wrap; }
+        .job-title-block h3 { font-size: 17px; font-weight: 800; color: #FFF; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+        .btn-fav { background: none; border: none; font-size: 16px; cursor: pointer; opacity: 0.4; transition: 0.2s; }
+        .btn-fav.active, .btn-fav:hover { opacity: 1; transform: scale(1.15); }
+        .job-company-row { font-size: 13px; font-weight: 600; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+        .job-company-row span.location { color: var(--text-muted); font-size: 12px; font-weight: 400; }
+
+        /* Intelligent Match Breakdown Badge */
+        .match-score-pill {
+            display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0;
+        }
+        .match-score-main {
+            font-size: 13px; font-weight: 800; padding: 5px 12px; border-radius: 20px;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .score-high { background: rgba(16, 185, 129, 0.15); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.4); }
+        .score-mid { background: rgba(56, 189, 248, 0.15); color: #7DD3FC; border: 1px solid rgba(56, 189, 248, 0.4); }
+        .score-low { background: rgba(245, 158, 11, 0.15); color: #FCD34D; border: 1px solid rgba(245, 158, 11, 0.4); }
+        .score-none { background: rgba(148, 163, 184, 0.1); color: var(--text-muted); border: 1px solid rgba(148, 163, 184, 0.2); }
+        .match-probability-text { font-size: 10.5px; color: var(--text-muted); margin-top: 3px; font-weight: 600; }
+
+        /* Tags */
+        .tags-cluster { display: flex; flex-wrap: wrap; gap: 6px; }
+        .tag-pill { font-size: 11px; padding: 3px 9px; border-radius: 6px; font-weight: 600; }
+        .t-hours { background: rgba(56, 189, 248, 0.1); color: #7DD3FC; border: 1px solid rgba(56, 189, 248, 0.2); }
+        .t-modality { background: rgba(168, 85, 247, 0.1); color: #D8B4FE; border: 1px solid rgba(168, 85, 247, 0.2); }
+        .t-sector { background: rgba(245, 158, 11, 0.1); color: #FCD34D; border: 1px solid rgba(245, 158, 11, 0.2); }
+        .t-pool { background: rgba(244, 63, 94, 0.12); color: #FB7185; border: 1px solid rgba(244, 63, 94, 0.25); font-weight: 700; }
+
+        .job-quote-desc { font-size: 13.5px; color: #CBD5E1; line-height: 1.5; }
+        .job-quote-desc em { color: var(--text-muted); font-size: 12px; }
+
+        /* AI Copilot Evaluation Box */
+        .copilot-evaluation-box {
+            background: rgba(7, 11, 18, 0.6); border: 1px solid var(--border-highlight);
+            border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px;
+        }
+        .copilot-verdict-header {
+            display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; font-weight: 700; color: #FFF;
+        }
+        .breakdown-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 12px; }
+        @media (max-width: 600px) { .breakdown-row { grid-template-columns: 1fr; } }
+        .pros-col { color: #A7F3D0; }
+        .pros-col ul, .cons-col ul { list-style: none; padding-left: 0; margin-top: 4px; }
+        .pros-col li::before { content: "✔ "; color: #34D399; font-weight: bold; }
+        .cons-col { color: #FED7AA; }
+        .cons-col li::before { content: "⚠ "; color: #FB923C; font-weight: bold; }
+
+        /* Card Action Bar */
+        .job-card-actions {
+            display: flex; justify-content: space-between; align-items: center;
+            border-top: 1px solid rgba(255,255,255,0.06); padding-top: 14px; flex-wrap: wrap; gap: 10px;
+        }
+        .copilot-tool-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+        
+        .btn-copilot-action {
+            background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3);
+            color: #7DD3FC; font-size: 12px; font-weight: 700; padding: 8px 12px;
+            border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px;
+        }
+        .btn-copilot-action:hover { background: rgba(56, 189, 248, 0.2); border-color: var(--primary); color: #FFF; }
+        
+        .btn-apply-direct {
+            background: var(--primary); color: #070B12; font-size: 12.5px; font-weight: 800;
+            padding: 8px 16px; border-radius: 8px; text-decoration: none; transition: all 0.2s;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .btn-apply-direct:hover { background: var(--primary-hover); transform: translateY(-1px); }
+        .btn-apply-direct.linkedin { background: #0A66C2; color: #FFF; }
+        .btn-apply-direct.linkedin:hover { background: #084e96; }
+
+        .btn-status-toggle {
+            background: var(--surface-card); border: 1px solid var(--border-highlight); color: #FFF;
+            font-size: 12px; font-weight: 600; padding: 8px 12px; border-radius: 8px;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .btn-status-toggle.applied { background: rgba(16, 185, 129, 0.2); border-color: var(--accent-green); color: var(--accent-green); }
+
+        /* Kanban Tracking View */
+        .kanban-board {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 10px;
+        }
+        @media (max-width: 900px) { .kanban-board { grid-template-columns: 1fr; } }
+        .kanban-col {
+            background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+            padding: 14px; min-height: 400px; display: flex; flex-direction: column; gap: 10px;
+        }
+        .kanban-col-title { font-size: 13px; font-weight: 700; color: #FFF; display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .kanban-card {
+            background: var(--surface-card); border: 1px solid var(--border-highlight); border-radius: 8px;
+            padding: 12px; font-size: 12.5px; display: flex; flex-direction: column; gap: 6px;
+        }
+        .kanban-card-title { font-weight: 700; color: #FFF; }
+        .kanban-card-company { color: var(--primary); font-size: 11.5px; font-weight: 600; }
+        .kanban-card-date { font-size: 11px; color: var(--text-subtle); }
+        .kanban-status-select {
+            background: #070B12; border: 1px solid var(--border-highlight); color: #CBD5E1;
+            padding: 4px 6px; border-radius: 6px; font-size: 11px; outline: none; margin-top: 4px;
+        }
+
+        /* Generic Modal Dialogs */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(4px);
+            display: none; align-items: center; justify-content: center; z-index: 2000; padding: 20px;
+        }
+        .modal-container {
+            background: var(--surface); border: 1px solid var(--border-highlight); border-radius: 16px;
+            max-width: 680px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 26px;
+            display: flex; flex-direction: column; gap: 18px; box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+        }
+        .modal-head { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
+        .modal-head h3 { font-size: 17px; color: #FFF; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+        .btn-modal-close { background: none; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer; }
+        .btn-modal-close:hover { color: #FFF; }
+
+        .modal-code-box {
+            background: #070B12; border: 1px solid var(--border-highlight); border-radius: 10px;
+            padding: 14px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: #E2E8F0;
+            white-space: pre-wrap; line-height: 1.6; max-height: 380px; overflow-y: auto;
+        }
+        .modal-actions-row { display: flex; justify-content: flex-end; gap: 10px; }
+
+        /* Compare Modal Grid */
+        .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        @media (max-width: 640px) { .compare-grid { grid-template-columns: 1fr; } }
+        .compare-col { background: var(--surface-card); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+    </style>
 </head>
 <body>
     <div class="app-container">
@@ -408,33 +717,1344 @@
         </div>
     </div>
 
-    <!-- MODAL 7: Configuración de API de IA Gratuita -->
+    <!-- MODAL 7: Configuración de Base de Datos & Motor de IA -->
     <div class="modal-overlay" id="modalApiKey">
-        <div class="modal-container" style="max-width: 540px;">
+        <div class="modal-container" style="max-width: 560px;">
             <div class="modal-head">
-                <h3>⚙️ Conectar Motor LLM Directo (Opcional & Gratis)</h3>
+                <h3>⚙️ Base de Datos en Vivo & IA (100% Gratis)</h3>
                 <button class="btn-modal-close" onclick="closeModal('modalApiKey')">&times;</button>
             </div>
-            <p style="font-size: 12.5px; color: var(--text-muted);">
-                JobCopilot funciona 100% de forma autónoma con su motor heurístico offline. Si querés que las cartas y análisis se generen con modelos de última generación (Google Gemini o Groq Llama 3), podés ingresar una API Key gratuita. Queda guardada solo en tu navegador.
-            </p>
+
+            <!-- Sección Base de Datos Supabase -->
+            <div style="border-bottom: 1px solid var(--border); padding-bottom: 14px; margin-bottom: 4px;">
+                <h4 style="color: #FFF; font-size: 13.5px; margin-bottom: 4px;">1. Base de Datos en la Nube (Supabase PostgreSQL)</h4>
+                <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">
+                    Al conectar Supabase, las vacantes se cargan automáticamente desde la base de datos sin depender de código estático.
+                </p>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div>
+                        <label style="font-size: 11.5px; color: var(--text-muted); display: block; margin-bottom: 3px;">Project URL</label>
+                        <input type="text" id="inputSupabaseUrl" placeholder="https://xyzcompany.supabase.co" style="width: 100%; background: #070B12; border: 1px solid var(--border-highlight); color: #FFF; padding: 8px 12px; border-radius: 7px; font-size: 12.5px;">
+                    </div>
+                    <div>
+                        <label style="font-size: 11.5px; color: var(--text-muted); display: block; margin-bottom: 3px;">Anon Public Key</label>
+                        <input type="password" id="inputSupabaseAnonKey" placeholder="eyJhbGciOiJIUzI1NiIsIn..." style="width: 100%; background: #070B12; border: 1px solid var(--border-highlight); color: #FFF; padding: 8px 12px; border-radius: 7px; font-size: 12.5px;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección LLM -->
             <div>
-                <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px;">Google Gemini API Key (o Groq)</label>
-                <input type="password" id="inputApiKey" placeholder="AIzaSy..." style="width: 100%; background: #070B12; border: 1px solid var(--border-highlight); color: #FFF; padding: 9px 12px; border-radius: 8px;">
+                <h4 style="color: #FFF; font-size: 13.5px; margin-bottom: 4px;">2. Motor de Inteligencia Artificial (Opcional)</h4>
+                <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">
+                    Clave gratuita de Google Gemini o Groq para redacción de cartas de presentación hiperpersonalizadas.
+                </p>
+                <div>
+                    <label style="font-size: 11.5px; color: var(--text-muted); display: block; margin-bottom: 3px;">Google Gemini API Key (o Groq)</label>
+                    <input type="password" id="inputApiKey" placeholder="AIzaSy..." style="width: 100%; background: #070B12; border: 1px solid var(--border-highlight); color: #FFF; padding: 8px 12px; border-radius: 7px; font-size: 12.5px;">
+                </div>
             </div>
-            <div style="font-size: 11px; color: var(--text-subtle);">
-                Podés conseguir tu clave gratuita en <a href="https://aistudio.google.com/" target="_blank" style="color: var(--primary);">Google AI Studio</a> o en <a href="https://console.groq.com/" target="_blank" style="color: var(--primary);">Groq Console</a> en 1 minuto.
-            </div>
-            <div class="modal-actions-row">
+
+            <div class="modal-actions-row" style="margin-top: 6px;">
                 <button class="btn-action-outline" onclick="closeModal('modalApiKey')" style="width:auto; margin-bottom:0;">Cancelar</button>
-                <button class="btn-apply-direct" onclick="saveApiKey()">Guardar Clave</button>
+                <button class="btn-apply-direct" onclick="saveSettingsModal()">Guardar Configuración</button>
             </div>
         </div>
     </div>
 
-    <!-- Base de datos de vacantes -->
-    <script src="js/jobs.js"></script>
-    <!-- Lógica de la aplicación y Copilot AI -->
-    <script src="js/app.js"></script>
+    <script>
+        // =========================================================================
+        // BASE DE DATOS DE OFERTAS LABORALES REALES CON REQUISITOS CLASIFICADOS
+        // =========================================================================
+        const FALLBACK_JOBS_DB = [
+            // --- 4 HORAS (PART-TIME / PASANTÍAS) ---
+            {
+                id: "linkedin-grant-thornton-ciberseguridad",
+                company: "Grant Thornton Uruguay",
+                title: "Pasante en Ciberseguridad & Auditoría de Sistemas",
+                hours: "4h",
+                hoursLabel: "4 horas diarias (Lunes a Viernes)",
+                modality: "Híbrido / Presencial",
+                modalityKey: "hybrid",
+                sector: "consulting",
+                sectorLabel: "Consultoría & Auditoría IT",
+                location: "Montevideo",
+                desc: "Pasantía de 3 meses en la firma internacional Grant Thornton. Carga horaria de 4 horas diarias de lunes a viernes. Relevamiento de procesos tecnológicos, controles de seguridad y soporte analítico.",
+                careerFit: ["Negocios Digitales", "Sistemas", "Ingeniería", "Administración"],
+                requirements: {
+                    mandatory: ["Segundo año universitario aprobado", "Disponibilidad 4 horas diarias"],
+                    desirable: ["Interés en ciberseguridad y auditoría", "Manejo de herramientas analíticas"],
+                    bonus: ["Conocimientos de bases de datos", "Inglés intermedio"]
+                },
+                salaryGuide: "$22.000 - $28.000 UYU (Pasantía 4h)",
+                applyUrl: "https://uy.linkedin.com/jobs/view/pasante-en-ciberseguridad-at-grant-thornton-uruguay-4464220434",
+                isLinkedIn: true,
+                isTalentPool: false
+            },
+            {
+                id: "linkedin-prota-admin-parttime",
+                company: "Prota (Consultora RRHH)",
+                title: "Administrativa Jr Part-Time (4 a 6 horas)",
+                hours: "4h",
+                hoursLabel: "4 a 6 horas (A convenir de 9 a 18 hs)",
+                modality: "Presencial (Centro)",
+                modalityKey: "presential",
+                sector: "consulting",
+                sectorLabel: "Administración & Soporte",
+                location: "Montevideo Centro",
+                desc: "Puesto Part-Time de 4 a 6 horas diarias de lunes a viernes coordinables. Contrato a término por 1 año con opción a renovación. Tareas: facturación, planillas de cálculo y archivo.",
+                careerFit: ["Administración", "Ciencias Económicas", "Negocios Digitales"],
+                requirements: {
+                    mandatory: ["Estudiante universitario de Administración o carreras afines", "Manejo de Excel"],
+                    desirable: ["Inglés intermedio", "Experiencia previa administrativa"],
+                    bonus: ["Manejo de ERP o herramientas contables"]
+                },
+                salaryGuide: "$24.000 - $32.000 UYU (según horas acordadas)",
+                applyUrl: "https://uy.linkedin.com/jobs/view/administrativa-part-time-at-prota-4465221749",
+                isLinkedIn: true,
+                isTalentPool: false
+            },
+            {
+                id: "linkedin-bestseller-student-worker",
+                company: "BESTSELLER (Multinacional Retail)",
+                title: "Student Worker (Comercial & Base de Datos)",
+                hours: "4h",
+                hoursLabel: "Part-Time / Horario Estudiante",
+                modality: "Híbrido",
+                modalityKey: "hybrid",
+                sector: "retail",
+                sectorLabel: "Retail & Moda Global",
+                location: "Montevideo",
+                desc: "Vacante Part-Time en BESTSELLER (Jack & Jones, Only, Vero Moda). Soporte al área comercial en actualización de bases de datos, generación de reportes y carga de órdenes.",
+                careerFit: ["Negocios Digitales", "Administración", "Economía", "Ingeniería"],
+                requirements: {
+                    mandatory: ["Estudiante de 1er o 2do año universitario", "Dominio de Excel"],
+                    desirable: ["Inglés intermedio (compañía internacional)", "Habilidades de reporte"],
+                    bonus: ["Conocimiento de retail o e-commerce"]
+                },
+                salaryGuide: "$26.000 - $32.000 UYU (Régimen estudiante)",
+                applyUrl: "https://uy.linkedin.com/jobs/view/student-worker-contrato-a-t%C3%A9rmino-at-bestseller-4462451747",
+                isLinkedIn: true,
+                isTalentPool: false
+            },
+            {
+                id: "ort-portal-empleo",
+                company: "Universidad ORT Uruguay",
+                title: "Bolsa de Empleo & Pasantías Exclusivas para Alumnos ORT",
+                hours: "4h",
+                hoursLabel: "4 a 6 horas (Convenios Académicos)",
+                modality: "Presencial / Híbrido",
+                modalityKey: "presential",
+                sector: "univ",
+                sectorLabel: "Bolsa Universitaria",
+                location: "Montevideo",
+                desc: "Portal oficial de convenios de pasantía académica de ORT Uruguay. Acceso exclusivo a ofertas part-time de empresas socias que coordinan horarios con la facultad.",
+                careerFit: ["Negocios Digitales", "Sistemas", "Administración", "Analítica"],
+                requirements: {
+                    mandatory: ["Ser estudiante activo o graduado de Universidad ORT Uruguay"],
+                    desirable: ["Escolaridad destacada"],
+                    bonus: ["Nivel B2 de inglés"]
+                },
+                salaryGuide: "Regulado por convenios universitarios de pasantía",
+                applyUrl: "https://empleo.ort.edu.uy/",
+                isLinkedIn: false,
+                isTalentPool: true
+            },
+
+            // --- 6 HORAS (MEDIA JORNADA / BANCA & TECH) ---
+            {
+                id: "linkedin-pento-ai-trainee",
+                company: "Pento (AI & Software)",
+                title: "AI Developer Trainee — 6 horas diarias",
+                hours: "6h",
+                hoursLabel: "6 horas diarias (Modalidad Híbrida)",
+                modality: "Híbrido",
+                modalityKey: "hybrid",
+                sector: "tech",
+                sectorLabel: "Tecnología & IA",
+                location: "Montevideo",
+                desc: "Programa formativo Trainee de 6 horas diarias en empresa enfocada en soluciones de inteligencia artificial. Aprendizaje práctico en modelos, desarrollo y analítica de datos.",
+                careerFit: ["Negocios Digitales", "Sistemas", "Ciencia de Datos", "Ingeniería"],
+                requirements: {
+                    mandatory: ["Estudiante universitario activo", "Fundamentos de programación o datos", "Inglés intermedio/avanzado"],
+                    desirable: ["Nociones de Python", "Curiosidad por IA generativa"],
+                    bonus: ["Proyectos personales o GitHub"]
+                },
+                salaryGuide: "$30.000 - $38.000 UYU (Trainee 6h)",
+                applyUrl: "https://uy.linkedin.com/jobs/view/ai-developer-trainee-at-pento-4465228447",
+                isLinkedIn: true,
+                isTalentPool: false
+            },
+            {
+                id: "linkedin-quantik-pasante-ti",
+                company: "Quantik Group",
+                title: "Pasante de TI & Soporte de Plataformas — 6 horas",
+                hours: "6h",
+                hoursLabel: "6 horas diarias (Lunes a Viernes)",
+                modality: "Híbrido",
+                modalityKey: "hybrid",
+                sector: "tech",
+                sectorLabel: "Telecomunicaciones & Software",
+                location: "Montevideo",
+                desc: "Pasantía de 6 horas diarias de lunes a viernes en Quantik Group. Atención a usuarios, soporte sobre plataformas digitales y resolución de incidentes operativos.",
+                careerFit: ["Sistemas", "Negocios Digitales", "Tecnología"],
+                requirements: {
+                    mandatory: ["Estudiante de carreras tecnológicas o afines", "Disponibilidad 6 horas"],
+                    desirable: ["Sistemas operativos Windows", "Vocación de servicio"],
+                    bonus: ["Redes básicas o scripting"]
+                },
+                salaryGuide: "$28.000 - $35.000 UYU",
+                applyUrl: "https://uy.linkedin.com/jobs/view/pasante-de-ti-at-quantik-group-4461373330",
+                isLinkedIn: true,
+                isTalentPool: false
+            },
+            {
+                id: "linkedin-pwc-junior-auditoria",
+                company: "PwC Uruguay",
+                title: "Junior — Auditoría Externa (Régimen Part-Time)",
+                hours: "6h",
+                hoursLabel: "6 horas / Part-time formal",
+                modality: "Híbrido",
+                modalityKey: "hybrid",
+                sector: "consulting",
+                sectorLabel: "Consultoría & Auditoría",
+                location: "Montevideo",
+                desc: "Puesto Part-Time formal en PwC Uruguay para estudiantes universitarios con licencias de estudio. Revisión analítica de operaciones, análisis de procesos y control interno.",
+                careerFit: ["Contabilidad", "Administración", "Economía", "Negocios"],
+                requirements: {
+                    mandatory: ["Estudiante universitario con al menos 50% de avance académico", "No requiere experiencia previa"],
+                    desirable: ["Inglés intermedio", "Manejo fluido de Excel"],
+                    bonus: ["Capacidad analítica y trabajo en equipo"]
+                },
+                salaryGuide: "$32.000 - $42.000 UYU + Beneficios Big Four",
+                applyUrl: "https://uy.linkedin.com/jobs/view/junior-auditor%C3%ADa-externa-contable-at-pwc-uruguay-4465656096",
+                isLinkedIn: true,
+                isTalentPool: false
+            },
+            {
+                id: "linkedin-meli-customer-experience",
+                company: "Mercado Libre Uruguay",
+                title: "Representante de Customer Experience — 6 horas",
+                hours: "6h",
+                hoursLabel: "6 horas diarias (Turno fijo)",
+                modality: "Híbrido",
+                modalityKey: "hybrid",
+                sector: "tech",
+                sectorLabel: "E-commerce & Fintech",
+                location: "WTC Montevideo",
+                desc: "Atención y soporte a usuarios de Mercado Libre y Mercado Pago en WTC Free Zone. Resolución de consultas sobre pagos digitales, cobros y envíos.",
+                careerFit: ["Negocios Digitales", "Administración", "Comunicación"],
+                requirements: {
+                    mandatory: ["Secundario completo / estudiante universitario", "Disponibilidad 6 horas"],
+                    desirable: ["Excelente redacción y empatía", "Manejo de herramientas digitales"],
+                    bonus: ["Experiencia en plataformas de e-commerce o atención"]
+                },
+                salaryGuide: "$35.000 - $45.000 UYU + Almuerzo y prepaga",
+                applyUrl: "https://uy.linkedin.com/jobs/view/representante-de-customer-experience-at-mercado-libre-4454696054",
+                isLinkedIn: true,
+                isTalentPool: false
+            },
+            {
+                id: "linkedin-rua-operador-telefonico",
+                company: "RUA Asistencia",
+                title: "Operador de Servicios & Asistencia — 6 horas",
+                hours: "6h",
+                hoursLabel: "6 horas diarias (Horario fijo)",
+                modality: "Presencial",
+                modalityKey: "presential",
+                sector: "retail",
+                sectorLabel: "Servicios Corporativos",
+                location: "Montevideo",
+                desc: "Jornada fija de 6 horas diarias para atención y coordinación de servicios solicitados por socios. Seguimiento de casos en plataformas informáticas.",
+                careerFit: ["Administración", "General"],
+                requirements: {
+                    mandatory: ["Disponibilidad 6 horas diarias", "Manejo básico de Office"],
+                    desirable: ["Experiencia en atención telefónica"],
+                    bonus: ["Resolución rápida de incidentes"]
+                },
+                salaryGuide: "$25.000 - $30.000 UYU",
+                applyUrl: "https://uy.linkedin.com/jobs/view/operador-telef%C3%B3nico-call-center-at-rua-asistencia-4466738461",
+                isLinkedIn: true,
+                isTalentPool: false
+            },
+            {
+                id: "itau-base-talentos",
+                company: "Banco Itaú Uruguay",
+                title: "Base de Talentos: Postulación Espontánea (Jornada 6h)",
+                hours: "6h",
+                hoursLabel: "6 horas (Jornada bancaria estándar)",
+                modality: "Híbrido",
+                modalityKey: "hybrid",
+                sector: "bank",
+                sectorLabel: "Banca & Finanzas",
+                location: "Montevideo",
+                desc: "Canal oficial para ingresar CV al sistema de Recursos Humanos de Itaú para futuras vacantes de 6 horas en áreas comerciales y operativas.",
+                careerFit: ["Ciencias Económicas", "Negocios Digitales", "Administración"],
+                requirements: {
+                    mandatory: ["Estudiante universitario activo"],
+                    desirable: ["Manejo de Excel y orientación analítica"],
+                    bonus: ["Inglés profesional"]
+                },
+                salaryGuide: "Escalafón bancario AEBU (6 horas)",
+                applyUrl: "https://www.itau.com.uy/inst/trabajaConNosotros.html",
+                isLinkedIn: false,
+                isTalentPool: true
+            },
+            {
+                id: "dlocal-careers-montevideo",
+                company: "dLocal (Fintech Global)",
+                title: "Portal de Carreras & Pasantías Fintech Montevideo",
+                hours: "6h",
+                hoursLabel: "Flexible / Estudiantes (6h - 8h)",
+                modality: "Híbrido",
+                modalityKey: "hybrid",
+                sector: "tech",
+                sectorLabel: "Fintech & Pagos Digitales",
+                location: "Montevideo",
+                desc: "Portal oficial del unicornio fintech uruguayo. Oportunidades en operaciones cross-border, conciliaciones bancarias y analítica de datos.",
+                careerFit: ["Negocios Digitales", "Economía", "Sistemas", "Ingeniería"],
+                requirements: {
+                    mandatory: ["Inglés avanzado (ambiente multinacional)", "Afinidad cuantitativa"],
+                    desirable: ["Manejo de SQL o Power BI"],
+                    bonus: ["Conocimiento de medios de pago"]
+                },
+                salaryGuide: "Competitivo mercado fintech global",
+                applyUrl: "https://www.dlocal.com/careers/",
+                isLinkedIn: false,
+                isTalentPool: true
+            },
+
+            // --- 8 HORAS (TIEMPO COMPLETO) ---
+            {
+                id: "linkedin-cash-inteligencia-comercial",
+                company: "CASH (Sector Financiero)",
+                title: "Analista de Inteligencia Comercial — SQL, Power BI, Excel",
+                hours: "8h",
+                hoursLabel: "8 horas (Tiempo Completo)",
+                modality: "Presencial (Ciudad Vieja)",
+                modalityKey: "presential",
+                sector: "bank",
+                sectorLabel: "Finanzas & Analítica",
+                location: "Montevideo, Ciudad Vieja",
+                desc: "Extracción, análisis y modelado de datos para generar insights comerciales y tableros en Power BI/Tableau. Soporte al área de negocios.",
+                careerFit: ["Ciencia de Datos", "Negocios Digitales", "Economía", "Administración"],
+                requirements: {
+                    mandatory: ["Estudiantes avanzados de carreras cuantitativas", "Dominio de Excel", "Manejo de SQL"],
+                    desirable: ["Power BI, Tableau o Looker", "Uso frecuente de herramientas de IA"],
+                    bonus: ["Experiencia en sector financiero"]
+                },
+                salaryGuide: "$50.000 - $65.000 UYU (Full-time)",
+                applyUrl: "https://uy.linkedin.com/jobs/view/analista-de-inteligencia-comercial-at-cash-4466412215",
+                isLinkedIn: true,
+                isTalentPool: false
+            },
+            {
+                id: "linkedin-farmashop-people-analytics",
+                company: "Farmashop",
+                title: "Asistente de People Analytics — Dashboards & KPIs",
+                hours: "8h",
+                hoursLabel: "8 horas (Tiempo Completo)",
+                modality: "Presencial",
+                modalityKey: "presential",
+                sector: "retail",
+                sectorLabel: "Retail & People Analytics",
+                location: "Montevideo",
+                desc: "Reportes directivos de gestión humana (rotación, ausentismo, productividad), tableros y automatización en el equipo de RRHH.",
+                careerFit: ["Ingeniería", "Análisis de Datos", "Negocios Digitales"],
+                requirements: {
+                    mandatory: ["Estudiante de Ingeniería o Análisis de Datos", "Excel avanzado (excluyente)"],
+                    desirable: ["Power BI o Tableau", "Python básico para automatizaciones"],
+                    bonus: ["Conocimiento de métricas de personal"]
+                },
+                salaryGuide: "$45.000 - $55.000 UYU (Full-time)",
+                applyUrl: "https://uy.linkedin.com/jobs/view/asistente-de-people-analytics-at-farmashop-4464229669",
+                isLinkedIn: true,
+                isTalentPool: false
+            },
+            {
+                id: "cpa-ferrere-procesos-negocios",
+                company: "CPA Ferrere",
+                title: "Analista de Proceso y Negocios (Banca y Tecnología)",
+                hours: "8h",
+                hoursLabel: "8 horas (Tiempo Completo - 9 a 18 hs)",
+                modality: "Híbrido",
+                modalityKey: "hybrid",
+                sector: "consulting",
+                sectorLabel: "Consultoría & Procesos",
+                location: "Montevideo",
+                desc: "Relevamiento y rediseño de procesos operativos para clientes del sistema bancario nacional e internacional en CPA Ferrere (ID 662164).",
+                careerFit: ["Administración", "Economía", "Negocios Digitales", "Ingeniería"],
+                requirements: {
+                    mandatory: ["Estudiante avanzado o graduado universitario", "Disponibilidad 9 a 18 hs"],
+                    desirable: ["Metodologías de procesos (BPM)", "Excel avanzado"],
+                    bonus: ["Experiencia bancaria previa"]
+                },
+                salaryGuide: "$50.000 - $65.000 UYU (Full-time)",
+                applyUrl: "https://talento.cpaferrere.com/jobs/662164-analista-de-proceso-y-negocios-banca-y-tecnologia",
+                isLinkedIn: false,
+                isTalentPool: false
+            },
+            {
+                id: "cpa-ferrere-analista-jr-banca-tech",
+                company: "CPA Ferrere",
+                title: "Analista Junior en Banca y Tecnología",
+                hours: "8h",
+                hoursLabel: "8 horas (Tiempo Completo)",
+                modality: "Híbrido",
+                modalityKey: "hybrid",
+                sector: "consulting",
+                sectorLabel: "Consultoría & Banca",
+                location: "Montevideo",
+                desc: "Relevamiento de requerimientos con clientes bancarios, testing funcional y apoyo en transformación tecnológica en CPA Ferrere (ID 696910).",
+                careerFit: ["Administración", "Contabilidad", "Negocios Digitales"],
+                requirements: {
+                    mandatory: ["Estudiante avanzado de Ciencias Económicas", "Inglés intermedio/avanzado"],
+                    desirable: ["Testing funcional o software bancario"],
+                    bonus: ["Excel avanzado"]
+                },
+                salaryGuide: "$45.000 - $60.000 UYU (Full-time)",
+                applyUrl: "https://talento.cpaferrere.com/jobs/696910-analista-junior-en-banca-y-tecnologia",
+                isLinkedIn: false,
+                isTalentPool: false
+            },
+            {
+                id: "buscojobs-analista-funcional-nexit",
+                company: "Nexit (vía BuscoJobs)",
+                title: "Analista Funcional Jr (ERP & Consultoría)",
+                hours: "8h",
+                hoursLabel: "8 horas (Tiempo Completo: 9 a 18 hs)",
+                modality: "Presencial / Híbrido",
+                modalityKey: "presential",
+                sector: "consulting",
+                sectorLabel: "Consultoría & ERP",
+                location: "Montevideo",
+                desc: "Relevamiento de necesidades del cliente corporativo, parametrización y soporte sobre módulos de software de gestión ERP (ID 274020).",
+                careerFit: ["Administración", "Negocios Digitales", "Contabilidad"],
+                requirements: {
+                    mandatory: ["Disponibilidad 9 a 18 hs", "Formación en administración o negocios"],
+                    desirable: ["Nociones de sistemas ERP", "Excel analítico"],
+                    bonus: ["Capacidad pedagógica con usuarios"]
+                },
+                salaryGuide: "$40.000 - $52.000 UYU (Full-time)",
+                applyUrl: "https://www.buscojobs.com.uy/analista-funcional-jr-contador-lic-en-administracion-en-montevideo-ID-274020",
+                isLinkedIn: false,
+                isTalentPool: false
+            },
+            {
+                id: "buscojobs-urudata-comercial-jr",
+                company: "Urudata (vía BuscoJobs)",
+                title: "Ejecutivo Comercial Junior / Business Tech",
+                hours: "8h",
+                hoursLabel: "8 horas (Tiempo Completo: 9 a 18 hs)",
+                modality: "Presencial / Híbrido",
+                modalityKey: "presential",
+                sector: "tech",
+                sectorLabel: "Tecnología Corporativa",
+                location: "Montevideo",
+                desc: "Gestión de cartera de clientes corporativos B2B y elaboración de propuestas de servicios de infraestructura IT (ID 276252).",
+                careerFit: ["Negocios Digitales", "Administración", "Marketing"],
+                requirements: {
+                    mandatory: ["Perfil comercial B2B", "Disponibilidad 9 a 18 hs"],
+                    desirable: ["Conocimiento de servicios cloud e IT"],
+                    bonus: ["Habilidades de negociación"]
+                },
+                salaryGuide: "$42.000 - $55.000 UYU + Comisiones comerciales",
+                applyUrl: "https://www.buscojobs.com.uy/ejecutivo-comercial-junior-en-montevideo-ID-276252",
+                isLinkedIn: false,
+                isTalentPool: false
+            },
+            {
+                id: "advice-digital-media-finance",
+                company: "Advice Recursos Humanos",
+                title: "Digital Media Finance Analyst",
+                hours: "8h",
+                hoursLabel: "8 horas (Tiempo Completo)",
+                modality: "Híbrido",
+                modalityKey: "hybrid",
+                sector: "consulting",
+                sectorLabel: "Consultora & Selección",
+                location: "Montevideo",
+                desc: "Conciliaciones financieras de plataformas de medios digitales (Meta Ads, Google), reportes analíticos de inversión y control de gestión.",
+                careerFit: ["Negocios Digitales", "Economía", "Administración"],
+                requirements: {
+                    mandatory: ["Excel avanzado", "Inglés profesional fluido (excluyente)"],
+                    desirable: ["Manejo de Meta Ads o Google Ads", "Experiencia en finanzas"],
+                    bonus: ["Power BI o Tableau"]
+                },
+                salaryGuide: "$55.000 - $70.000 UYU (Full-time)",
+                applyUrl: "https://advice.zohorecruit.com/jobs/Careers/731279000017056074",
+                isLinkedIn: false,
+                isTalentPool: false
+            }
+        ];
+
+        // Estado global de la aplicación
+        let userProfile = null;
+        let currentView = 'feed';
+        let appliedData = JSON.parse(localStorage.getItem('jc_applied_data') || '{}');
+        let favoriteIds = JSON.parse(localStorage.getItem('jc_favorites') || '[]');
+        let userApiKey = localStorage.getItem('jc_api_key') || '';
+        let compareSelection = [];
+
+        // Inicialización
+        // Supabase Live Data Integration
+        let SUPABASE_URL = localStorage.getItem('jc_supabase_url') || "";
+        let SUPABASE_ANON_KEY = localStorage.getItem('jc_supabase_anon_key') || "";
+        let JOBS_DB = [...FALLBACK_JOBS_DB];
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            initProfileFromStorage();
+            setupDragAndDrop();
+            renderAll();
+            // Fetch live database vacancies in background
+            await fetchLiveJobsFromSupabase();
+        });
+
+        async function fetchLiveJobsFromSupabase() {
+            if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return;
+            try {
+                const endpoint = `${SUPABASE_URL.replace(/\/$/, '')}/rest/v1/jobs?is_active=eq.true&order=created_at.desc`;
+                const res = await fetch(endpoint, {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.length > 0) {
+                        JOBS_DB = data.map(j => ({
+                            id: j.hash_dedup || j.id,
+                            company: j.company,
+                            title: j.title,
+                            hours: j.hours,
+                            hoursLabel: j.hours_label || j.hours,
+                            modality: j.modality,
+                            modalityKey: j.modality_key,
+                            sector: j.sector,
+                            sectorLabel: j.sector_label,
+                            location: j.location,
+                            desc: j.description,
+                            careerFit: j.career_fit || [],
+                            requirements: j.requirements || { mandatory: [], desirable: [], bonus: [] },
+                            salaryGuide: j.salary_guide || "A convenir",
+                            applyUrl: j.apply_url,
+                            isLinkedIn: !!j.is_linkedin,
+                            isTalentPool: !!j.is_talent_pool
+                        }));
+                        renderAll();
+                        const stat = document.getElementById('statAnalyzed');
+                        if (stat) stat.innerText = JOBS_DB.length + " (En vivo)";
+                    }
+                }
+            } catch (err) {
+                console.warn("[JobCopilot] Usando base local por error de red:", err);
+            }
+        }
+
+        // =========================================================================
+        // GESTIÓN DEL CV CON LECTURA NATIVA DE PDF (PDF.JS)
+        // =========================================================================
+        function initProfileFromStorage() {
+            const saved = localStorage.getItem('jc_user_profile');
+            if (saved) {
+                try {
+                    userProfile = JSON.parse(saved);
+                    renderProfileBox(userProfile);
+                    return;
+                } catch(e) {}
+            }
+            userProfile = null;
+            document.getElementById('profileSummaryBox').style.display = 'none';
+            document.getElementById('cvBadgeStatus').innerText = "● Sin cargar";
+            document.getElementById('cvBadgeStatus').style.color = "var(--text-muted)";
+        }
+
+        function setupDragAndDrop() {
+            const dz = document.getElementById('dropzoneLabel');
+            dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.style.borderColor = 'var(--primary)'; dz.style.background = 'rgba(56, 189, 248, 0.08)'; });
+            dz.addEventListener('dragleave', () => { dz.style.borderColor = 'var(--border-highlight)'; dz.style.background = 'rgba(14, 22, 38, 0.7)'; });
+            dz.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dz.style.borderColor = 'var(--border-highlight)';
+                dz.style.background = 'rgba(14, 22, 38, 0.7)';
+                if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                    processUploadedDocument(e.dataTransfer.files[0]);
+                }
+            });
+        }
+
+        function handleFileSelected(event) {
+            if (event.target.files && event.target.files.length > 0) {
+                processUploadedDocument(event.target.files[0]);
+            }
+        }
+
+        async function processUploadedDocument(file) {
+            let extractedText = "";
+
+            if (file.name.toLowerCase().endsWith('.pdf')) {
+                try {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                    for (let i = 1; i <= pdf.numPages; i++) {
+                        const page = await pdf.getPage(i);
+                        const textContent = await page.getTextContent();
+                        const pageText = textContent.items.map(item => item.str).join(' ');
+                        extractedText += pageText + "\n";
+                    }
+                } catch(err) {
+                    console.error("PDF.js error:", err);
+                    extractedText = await file.text();
+                }
+            } else {
+                extractedText = await file.text();
+            }
+
+            // Análisis semántico del texto extraído
+            const profile = parseResumeTextSemantics(extractedText, file.name);
+            userProfile = profile;
+            localStorage.setItem('jc_user_profile', JSON.stringify(profile));
+            renderProfileBox(profile);
+            renderAll();
+        }
+
+        function parseResumeTextSemantics(rawText, filename) {
+            const text = rawText.toLowerCase();
+            const cleanName = filename.replace(/\.[^/.]+$/, "");
+
+            // Detección de habilidades
+            const dictionary = [
+                "excel", "sql", "power bi", "python", "meta ads", "google ads",
+                "looker studio", "e-commerce", "analítica", "analytics", "sap",
+                "tableau", "negocios", "marketing digital", "crm", "ciberseguridad"
+            ];
+            const detectedSkills = [];
+            dictionary.forEach(term => {
+                if (text.includes(term)) {
+                    let formatted = term.charAt(0).toUpperCase() + term.slice(1);
+                    if (term === "power bi") formatted = "Power BI";
+                    if (term === "sql") formatted = "SQL";
+                    if (term === "meta ads") formatted = "Meta Ads";
+                    if (term === "e-commerce") formatted = "E-commerce";
+                    if (!detectedSkills.includes(formatted)) detectedSkills.push(formatted);
+                }
+            });
+            if (detectedSkills.length === 0) detectedSkills.push("Excel", "Negocios", "Analítica");
+
+            // Detección de carrera
+            let detectedCareer = "Licenciatura en Negocios Digitales / Administración";
+            if (text.includes("negocios digitales")) detectedCareer = "Lic. en Negocios Digitales (ORT Uruguay)";
+            else if (text.includes("contador")) detectedCareer = "Carrera de Contador Público";
+            else if (text.includes("sistemas") || text.includes("ingeniería")) detectedCareer = "Ingeniería en Sistemas / Computación";
+            else if (text.includes("economía")) detectedCareer = "Licenciatura en Economía";
+
+            // Detección de idioma
+            let detectedLang = "Inglés Intermedio";
+            if (text.includes("b2") || text.includes("first") || text.includes("fce")) detectedLang = "Cambridge B2 First (FCE)";
+            else if (text.includes("c1") || text.includes("advanced") || text.includes("cae")) detectedLang = "Inglés Avanzado / C1";
+
+            // Generación de Resumen Profesional Automático
+            const summary = `Estudiante de ${detectedCareer} con dominio de ${detectedSkills.slice(0, 3).join(", ")} y nivel ${detectedLang}. Perfil analítico orientado a proyectos de negocio, tecnología y optimización de procesos.`;
+
+            return {
+                name: cleanName.length > 2 ? cleanName : "Postulante",
+                initials: cleanName.slice(0, 2).toUpperCase(),
+                edu: detectedCareer,
+                lang: detectedLang,
+                summary: summary,
+                skills: detectedSkills
+            };
+        }
+
+        function loadDemoCandidate() {
+            userProfile = {
+                name: "Martín Sviridenko",
+                initials: "MS",
+                edu: "Licenciatura en Negocios Digitales (ORT Uruguay) • Promedio 91/100",
+                lang: "Cambridge B2 First (FCE Oficial)",
+                summary: "Estudiante avanzado de Negocios Digitales en ORT Uruguay (Promedio 91/100). Especializado en analítica de datos comerciales con SQL, Power BI y Python, campañas digitales y e-commerce. Buscando régimen de 4h o 6h.",
+                skills: ["Excel", "SQL", "Power BI", "Python", "Looker Studio", "Meta Ads", "E-commerce", "Negocios", "Analítica", "Inglés"]
+            };
+            localStorage.setItem('jc_user_profile', JSON.stringify(userProfile));
+            renderProfileBox(userProfile);
+            renderAll();
+        }
+
+        function renderProfileBox(p) {
+            document.getElementById('pName').innerText = p.name;
+            document.getElementById('pEdu').innerText = p.edu;
+            document.getElementById('pLang').innerText = p.lang;
+            document.getElementById('pAvatar').innerText = p.initials || 'CV';
+            document.getElementById('pSummaryText').innerText = p.summary || 'Resumen del candidato cargado.';
+
+            const container = document.getElementById('pSkillsChips');
+            container.innerHTML = '';
+            (p.skills || []).forEach(s => {
+                const sp = document.createElement('span');
+                sp.className = 'chip-skill';
+                sp.innerText = s;
+                container.appendChild(sp);
+            });
+
+            document.getElementById('profileSummaryBox').style.display = 'block';
+            document.getElementById('cvBadgeStatus').innerText = "● CV Activo";
+            document.getElementById('cvBadgeStatus').style.color = "var(--accent-green)";
+        }
+
+        function resetProfile() {
+            localStorage.removeItem('jc_user_profile');
+            userProfile = null;
+            document.getElementById('profileSummaryBox').style.display = 'none';
+            document.getElementById('cvBadgeStatus').innerText = "● Sin cargar";
+            document.getElementById('cvBadgeStatus').style.color = "var(--text-muted)";
+            renderAll();
+        }
+
+        // =========================================================================
+        // SCORE INTELIGENTE PONDERADO (Carrera 35%, Exp 25%, Tools 15%, etc.)
+        // =========================================================================
+        function calculateWeightedScore(job) {
+            if (!userProfile) return { score: null, breakdown: null };
+
+            let total = 0;
+            const reasonsMet = [];
+            const reasonsUnmet = [];
+
+            // 1. Carrera / Formación Académica (Ponderación 35%)
+            const userEdu = (userProfile.edu || "").toLowerCase();
+            const matchesCareer = (job.careerFit || []).some(c => userEdu.includes(c.toLowerCase()));
+            if (matchesCareer) {
+                total += 35;
+                reasonsMet.push(`Formación alineada (${job.careerFit[0]})`);
+            } else {
+                total += 15; // Parcial por afinidad universitaria general
+                reasonsUnmet.push(`Puesto prioriza egresados de: ${job.careerFit.slice(0, 2).join(", ")}`);
+            }
+
+            // 2. Experiencia / Requisitos Excluyentes (Ponderación 25%)
+            let mandatoryMet = 0;
+            const mandatories = job.requirements.mandatory || [];
+            mandatories.forEach(m => {
+                // Si pide estudiante o 4h, chequeamos si cumplimos
+                if (m.toLowerCase().includes("estudiante") || m.toLowerCase().includes("disponibilidad")) {
+                    mandatoryMet++;
+                    reasonsMet.push(m);
+                } else if (m.toLowerCase().includes("excel") && userProfile.skills.includes("Excel")) {
+                    mandatoryMet++;
+                    reasonsMet.push("Cumplís requisito excluyente: " + m);
+                } else {
+                    reasonsUnmet.push("Excluyente a considerar: " + m);
+                }
+            });
+            const mandScore = mandatories.length > 0 ? (mandatoryMet / mandatories.length) * 25 : 20;
+            total += mandScore;
+
+            // 3. Herramientas Técnicas (Ponderación 15%)
+            let techMatches = 0;
+            const desirables = [...(job.requirements.desirable || []), ...(job.requirements.bonus || [])];
+            desirables.forEach(d => {
+                const hasSkill = (userProfile.skills || []).some(s => d.toLowerCase().includes(s.toLowerCase()));
+                if (hasSkill) {
+                    techMatches++;
+                    reasonsMet.push(`Manejo de ${d}`);
+                }
+            });
+            total += Math.min(15, techMatches * 5 + 4);
+
+            // 4. Idiomas (Ponderación 10%)
+            const userLang = (userProfile.lang || "").toLowerCase();
+            if (userLang.includes("b2") || userLang.includes("c1") || userLang.includes("avanzado")) {
+                total += 10;
+                reasonsMet.push("Nivel de inglés profesional certificado");
+            } else {
+                total += 5;
+            }
+
+            // 5. Ubicación / Modalidad (Ponderación 10%)
+            total += (job.modalityKey === 'hybrid' || job.modalityKey === 'remote') ? 10 : 8;
+
+            // 6. Carga Horaria y Disponibilidad (Ponderación 5%)
+            const wants4h = document.getElementById('filter4h').checked;
+            const wants6h = document.getElementById('filter6h').checked;
+            if ((job.hours === '4h' && wants4h) || (job.hours === '6h' && wants6h)) {
+                total += 5;
+                reasonsMet.push(`Horario compatible de ${job.hours}`);
+            } else if (job.hours === '8h') {
+                reasonsUnmet.push("Régimen de 8 horas (jornada completa)");
+            }
+
+            const finalScore = Math.min(96, Math.max(38, Math.round(total)));
+            return {
+                score: finalScore,
+                met: reasonsMet,
+                unmet: reasonsUnmet,
+                probability: finalScore >= 80 ? "Alta" : finalScore >= 65 ? "Media" : "Baja"
+            };
+        }
+
+        // =========================================================================
+        // RENDER DE VISTAS (Feed & Kanban)
+        // =========================================================================
+        function renderAll() {
+            renderFeed();
+            renderKanban();
+            updateGlobalCounters();
+        }
+
+        function switchView(view) {
+            currentView = view;
+            document.getElementById('tabFeed').classList.toggle('active', view === 'feed');
+            document.getElementById('tabKanban').classList.toggle('active', view === 'kanban');
+            document.getElementById('tabFavorites').classList.toggle('active', view === 'favorites');
+
+            document.getElementById('feedView').style.display = view === 'kanban' ? 'none' : 'flex';
+            document.getElementById('kanbanView').style.display = view === 'kanban' ? 'block' : 'none';
+
+            if (view !== 'kanban') renderFeed();
+        }
+
+        function applyFilters() {
+            renderAll();
+        }
+
+        function renderFeed() {
+            const container = document.getElementById('feedView');
+            container.innerHTML = '';
+
+            const wants4h = document.getElementById('filter4h').checked;
+            const wants6h = document.getElementById('filter6h').checked;
+            const wants8h = document.getElementById('filter8h').checked;
+
+            const secBank = document.getElementById('secBank').checked;
+            const secConsulting = document.getElementById('secConsulting').checked;
+            const secTech = document.getElementById('secTech').checked;
+            const secRetail = document.getElementById('secRetail').checked;
+            const secUniv = document.getElementById('secUniv').checked;
+
+            const modHybrid = document.getElementById('modHybrid').checked;
+            const modRemote = document.getElementById('modRemote').checked;
+            const modPresential = document.getElementById('modPresential').checked;
+            const hideApplied = document.getElementById('hideAppliedToggle').checked;
+
+            let filtered = JOBS_DB.filter(job => {
+                if (currentView === 'favorites' && !favoriteIds.includes(job.id)) return false;
+                if (hideApplied && appliedData[job.id]) return false;
+
+                if (job.hours === '4h' && !wants4h) return false;
+                if (job.hours === '6h' && !wants6h) return false;
+                if (job.hours === '8h' && !wants8h) return false;
+
+                if (job.sector === 'bank' && !secBank) return false;
+                if (job.sector === 'consulting' && !secConsulting) return false;
+                if (job.sector === 'tech' && !secTech) return false;
+                if (job.sector === 'retail' && !secRetail) return false;
+                if (job.sector === 'univ' && !secUniv) return false;
+
+                if (job.modalityKey === 'hybrid' && !modHybrid) return false;
+                if (job.modalityKey === 'remote' && !modRemote) return false;
+                if (job.modalityKey === 'presential' && !modPresential) return false;
+
+                return true;
+            });
+
+            // Ordenamiento inteligente
+            const sortMode = document.getElementById('sortSelect').value;
+            filtered.sort((a, b) => {
+                const sa = calculateWeightedScore(a).score || 0;
+                const sb = calculateWeightedScore(b).score || 0;
+                if (sortMode === 'worth_it' || sortMode === 'score_desc') return sb - sa;
+                if (sortMode === 'hours_asc') return a.hours.localeCompare(b.hours);
+                return 0;
+            });
+
+            document.getElementById('countFeed').innerText = filtered.length;
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; background: var(--surface); border: 1px dashed var(--border); border-radius: 12px; color: var(--text-muted);">
+                        <h3>No hay ofertas que coincidan con estos filtros</h3>
+                        <p style="font-size: 13px; margin-top: 6px;">Probá habilitar más sectores o activar la opción de 8 horas.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            filtered.forEach(job => {
+                const analysis = calculateWeightedScore(job);
+                const isApplied = !!appliedData[job.id];
+                const isFav = favoriteIds.includes(job.id);
+
+                let scoreBadgeHtml = '';
+                if (analysis.score !== null) {
+                    const clr = analysis.score >= 80 ? 'score-high' : analysis.score >= 65 ? 'score-mid' : 'score-low';
+                    scoreBadgeHtml = `
+                        <div class="match-score-pill">
+                            <span class="match-score-main ${clr}">⚡ ${analysis.score}% Coincidencia</span>
+                            <span class="match-probability-text">Probabilidad de llamada: <strong>${analysis.probability}</strong></span>
+                        </div>
+                    `;
+                } else {
+                    scoreBadgeHtml = `
+                        <div class="match-score-pill">
+                            <span class="match-score-main score-none" onclick="document.getElementById('cvFileInput').click()" style="cursor: pointer;">
+                                📄 Subí CV para Score Ponderado
+                            </span>
+                        </div>
+                    `;
+                }
+
+                const card = document.createElement('div');
+                card.className = `job-card ${isApplied ? 'is-applied' : ''} ${isFav ? 'is-favorite' : ''}`;
+                card.innerHTML = `
+                    <div class="job-top-header">
+                        <div class="job-title-block">
+                            <h3>
+                                <button class="btn-fav ${isFav ? 'active' : ''}" onclick="toggleFavorite('${job.id}')" title="Marcar empresa favorita">★</button>
+                                ${job.title}
+                            </h3>
+                            <div class="job-company-row">
+                                <span>${job.company}</span>
+                                <span class="location">• ${job.location}</span>
+                                <span style="color: var(--text-subtle); font-size: 11px;">(Sueldo ref: ${job.salaryGuide})</span>
+                            </div>
+                        </div>
+                        <div>${scoreBadgeHtml}</div>
+                    </div>
+
+                    <div class="tags-cluster">
+                        <span class="tag-pill t-hours">⏰ ${job.hoursLabel}</span>
+                        <span class="tag-pill t-modality">📍 ${job.modality}</span>
+                        <span class="tag-pill t-sector">🏢 ${job.sectorLabel}</span>
+                        ${job.isTalentPool ? '<span class="tag-pill t-pool">📥 Base de Talentos</span>' : ''}
+                    </div>
+
+                    <p class="job-quote-desc">${job.desc}</p>
+
+                    <!-- Diagnóstico del Copiloto -->
+                    <div class="copilot-evaluation-box">
+                        <div class="copilot-verdict-header">
+                            <span>🤖 Diagnóstico de tu Copiloto:</span>
+                            <span style="font-weight: 600; color: ${analysis.score >= 80 ? '#34D399' : '#FCD34D'};">
+                                ${analysis.score >= 80 ? '¡Muy recomendada para postularte!' : analysis.score >= 65 ? 'Vale la pena si te interesa el área' : 'Postularte con expectativas moderadas'}
+                            </span>
+                        </div>
+                        <div class="breakdown-row">
+                            <div class="pros-col">
+                                <strong>Lo que cumplís:</strong>
+                                <ul>
+                                    ${(analysis.met || job.requirements.mandatory).slice(0, 2).map(m => `<li>${m}</li>`).join('')}
+                                </ul>
+                            </div>
+                            <div class="cons-col">
+                                <strong>Puntos de atención:</strong>
+                                <ul>
+                                    ${(analysis.unmet && analysis.unmet.length ? analysis.unmet : ["Puesto competitivo con alta demanda"]).slice(0, 2).map(u => `<li>${u}</li>`).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Bar -->
+                    <div class="job-card-actions">
+                        <div class="copilot-tool-buttons">
+                            <button class="btn-copilot-action" onclick="openAnalysisModal('${job.id}')">
+                                🔍 ¿Me conviene?
+                            </button>
+                            <button class="btn-copilot-action" onclick="generateCoverLetterModal('${job.id}')">
+                                ✉️ Generar Carta
+                            </button>
+                            <button class="btn-copilot-action" onclick="openOptimizeCvModal('${job.id}')">
+                                ⚡ Adaptar CV
+                            </button>
+                            <button class="btn-copilot-action" onclick="openSkillGapsModal('${job.id}')">
+                                📚 Cursos
+                            </button>
+                            <button class="btn-copilot-action" onclick="addToCompare('${job.id}')">
+                                ⚖️ Comparar
+                            </button>
+                        </div>
+
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <a href="${job.applyUrl}" target="_blank" rel="noopener noreferrer" class="btn-apply-direct ${job.isLinkedIn ? 'linkedin' : ''}">
+                                Postularme en ${job.isLinkedIn ? 'LinkedIn' : 'Portal'} &rarr;
+                            </a>
+                            <button class="btn-status-toggle ${isApplied ? 'applied' : ''}" onclick="toggleApplicationPipeline('${job.id}')">
+                                ${isApplied ? '✓ Postulado (' + appliedData[job.id].status + ')' : '+ Registrar Postulación'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // =========================================================================
+        // KANBAN PIPELINE DE POSTULACIONES
+        // =========================================================================
+        function renderKanban() {
+            const cols = {
+                sent: document.getElementById('colSent'),
+                review: document.getElementById('colReview'),
+                interview: document.getElementById('colInterview'),
+                offer: document.getElementById('colOffer')
+            };
+            Object.values(cols).forEach(c => c.innerHTML = '');
+
+            let counts = { sent: 0, review: 0, interview: 0, offer: 0 };
+
+            Object.entries(appliedData).forEach(([jobId, data]) => {
+                const job = JOBS_DB.find(j => j.id === jobId);
+                if (!job) return;
+
+                const status = data.status || 'sent';
+                if (counts[status] !== undefined) counts[status]++;
+
+                const targetCol = cols[status] || cols.sent;
+                const card = document.createElement('div');
+                card.className = 'kanban-card';
+                card.innerHTML = `
+                    <div class="kanban-card-title">${job.title}</div>
+                    <div class="kanban-card-company">${job.company} • ${job.hours}</div>
+                    <div class="kanban-card-date">Fecha: ${data.date || 'Reciente'}</div>
+                    <select class="kanban-status-select" onchange="updateApplicationStatus('${job.id}', this.value)">
+                        <option value="sent" ${status === 'sent' ? 'selected' : ''}>CV Enviado</option>
+                        <option value="review" ${status === 'review' ? 'selected' : ''}>En Revisión</option>
+                        <option value="interview" ${status === 'interview' ? 'selected' : ''}>En Entrevista</option>
+                        <option value="offer" ${status === 'offer' ? 'selected' : ''}>Oferta / Cerrado</option>
+                    </select>
+                `;
+                targetCol.appendChild(card);
+            });
+
+            document.getElementById('kCountSent').innerText = counts.sent;
+            document.getElementById('kCountReview').innerText = counts.review;
+            document.getElementById('kCountInterview').innerText = counts.interview;
+            document.getElementById('kCountOffer').innerText = counts.offer;
+            document.getElementById('countPipeline').innerText = Object.keys(appliedData).length;
+        }
+
+        function toggleApplicationPipeline(jobId) {
+            if (appliedData[jobId]) {
+                delete appliedData[jobId];
+            } else {
+                appliedData[jobId] = {
+                    status: 'sent',
+                    date: new Date().toLocaleDateString('es-UY', { day: '2-digit', month: 'short' })
+                };
+            }
+            localStorage.setItem('jc_applied_data', JSON.stringify(appliedData));
+            renderAll();
+        }
+
+        function updateApplicationStatus(jobId, newStatus) {
+            if (appliedData[jobId]) {
+                appliedData[jobId].status = newStatus;
+                localStorage.setItem('jc_applied_data', JSON.stringify(appliedData));
+                renderAll();
+            }
+        }
+
+        function toggleFavorite(jobId) {
+            if (favoriteIds.includes(jobId)) {
+                favoriteIds = favoriteIds.filter(id => id !== jobId);
+            } else {
+                favoriteIds.push(jobId);
+            }
+            localStorage.setItem('jc_favorites', JSON.stringify(favoriteIds));
+            renderAll();
+        }
+
+        function updateGlobalCounters() {
+            document.getElementById('statAnalyzed').innerText = JOBS_DB.length;
+            document.getElementById('statApplied').innerText = Object.keys(appliedData).length;
+            document.getElementById('countFavs').innerText = favoriteIds.length;
+
+            const wants4h = document.getElementById('filter4h').checked;
+            const wants6h = document.getElementById('filter6h').checked;
+            const wants8h = document.getElementById('filter8h').checked;
+            const arr = [];
+            if (wants4h) arr.push('4h');
+            if (wants6h) arr.push('6h');
+            if (wants8h) arr.push('8h');
+            document.getElementById('statFilterHours').innerText = arr.length > 0 ? arr.join(' & ') : 'Ninguno';
+        }
+
+        // =========================================================================
+        // HERRAMIENTAS COPILOT (Modales & Generación)
+        // =========================================================================
+        function openAnalysisModal(jobId) {
+            const job = JOBS_DB.find(j => j.id === jobId);
+            if (!job) return;
+            const analysis = calculateWeightedScore(job);
+
+            document.getElementById('analysisModalContent').innerHTML = `
+                <div style="background: var(--surface-card); padding: 14px; border-radius: 10px; border: 1px solid var(--border-highlight);">
+                    <h4 style="color: #FFF; font-size: 15px;">${job.title}</h4>
+                    <p style="color: var(--primary); font-size: 13px; font-weight: 600;">${job.company} • ${job.hoursLabel}</p>
+                </div>
+
+                <div style="font-size: 13px; color: #CBD5E1; line-height: 1.5;">
+                    <strong style="color:#FFF;">Lo que realmente busca la empresa:</strong>
+                    <p style="margin-top: 4px;">${job.desc}</p>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 12.5px;">
+                    <div style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); padding: 12px; border-radius: 8px;">
+                        <strong style="color: #34D399;">Lo que cumplís a tu favor:</strong>
+                        <ul style="margin-top: 6px; padding-left: 18px;">
+                            ${(analysis.met || job.requirements.mandatory).map(m => `<li>${m}</li>`).join('')}
+                        </ul>
+                    </div>
+
+                    <div style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); padding: 12px; border-radius: 8px;">
+                        <strong style="color: #FCD34D;">Posibles desventajas o filtros:</strong>
+                        <ul style="margin-top: 6px; padding-left: 18px;">
+                            ${(analysis.unmet && analysis.unmet.length ? analysis.unmet : ["Competencia con graduados"]).map(u => `<li>${u}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>
+
+                <div style="background: rgba(56,189,248,0.1); border: 1px solid rgba(56,189,248,0.3); padding: 14px; border-radius: 8px; font-size: 13px;">
+                    <strong style="color: var(--primary);">Veredicto honesto del Copiloto:</strong>
+                    <p style="margin-top: 4px; color: #E2E8F0;">
+                        ${analysis.score >= 80 ? 'La vacante tiene un encaje extraordinario con tus horas y perfil. Dedicale tiempo a enviar tu CV y una carta personalizada.' : 'Es una opción válida si te interesa ingresar a esta firma, aunque debés destacar en la postulación tu rápido aprendizaje en herramientas donde no tengás tanta experiencia.'}
+                    </p>
+                    <div style="margin-top: 6px; font-weight: 700; color: #FFF;">
+                        Expectativa salarial sugerida: ${job.salaryGuide}
+                    </div>
+                </div>
+            `;
+            openModal('modalAnalysis');
+        }
+
+        function generateCoverLetterModal(jobId) {
+            const job = JOBS_DB.find(j => j.id === jobId);
+            if (!job) return;
+
+            const name = userProfile ? userProfile.name : "Postulante";
+            const career = userProfile ? userProfile.edu : "Estudiante Universitario";
+            const skills = userProfile ? userProfile.skills.slice(0, 4).join(", ") : "análisis de datos y gestión";
+
+            const letter = `Estimado equipo de Selección de ${job.company},
+
+Me dirijo a ustedes con gran entusiasmo para presentar mi postulación a la vacante de ${job.title} en Montevideo.
+
+Actualmente me encuentro cursando ${career}. A lo largo de mi formación he desarrollado sólidas competencias prácticas en ${skills}, combinadas con una fuerte orientación al cumplimiento de objetivos y trabajo en equipo.
+
+Me resulta sumamente atractivo el desafío planteado por ${job.company}, particularmente en lo referente a ${job.desc.slice(0, 100)}... Considero que mi perfil se alinea con las necesidades del puesto, aportando rigor analítico, rápida curva de aprendizaje y una alta motivación por agregar valor desde el primer día. Asimismo, el régimen de ${job.hoursLabel} resulta perfectamente compatible con mis responsabilidades universitarias.
+
+Agradezco de antemano su tiempo y consideración en evaluar mi postulación. Quedo a entera disposición para profundizar en una entrevista.
+
+Atentamente,
+${name}
+Montevideo, Uruguay`;
+
+            document.getElementById('coverLetterText').innerText = letter;
+            openModal('modalCoverLetter');
+        }
+
+        function openOptimizeCvModal(jobId) {
+            const job = JOBS_DB.find(j => j.id === jobId);
+            if (!job) return;
+
+            const keywords = [...job.requirements.mandatory, ...job.requirements.desirable];
+
+            document.getElementById('optimizeCvContent').innerHTML = `
+                <div style="font-size: 13px; color: #CBD5E1;">
+                    Para que tu currículum supere los filtros automáticos (ATS) de <strong>${job.company}</strong>, asegurate de incluir estas palabras clave en tu resumen y experiencia:
+                </div>
+
+                <div class="chips-cloud" style="margin-top: 8px;">
+                    ${keywords.map(k => `<span class="chip-skill" style="background: rgba(16,185,129,0.15); color:#34D399; border-color: rgba(16,185,129,0.3); font-size:12px; padding: 4px 10px;">${k}</span>`).join('')}
+                </div>
+
+                <div style="background: #070B12; border: 1px solid var(--border-highlight); padding: 14px; border-radius: 8px; font-size: 12.5px; color: #E2E8F0; margin-top: 10px;">
+                    <strong style="color: var(--primary);">Resumen recomendado para la cabecera de tu CV:</strong>
+                    <p style="margin-top: 6px; font-style: italic;">
+                        "Estudiante universitario de ${userProfile ? userProfile.edu : 'carreras afines'} con perfil analítico y competencias en ${keywords.slice(0, 3).join(", ")}. Orientado a optimizar procesos y colaborar en proyectos de alto impacto en ${job.company} bajo modalidad ${job.hoursLabel}."
+                    </p>
+                </div>
+            `;
+            openModal('modalOptimizeCv');
+        }
+
+        function openSkillGapsModal(jobId) {
+            const job = JOBS_DB.find(j => j.id === jobId);
+            if (!job) return;
+
+            const desirable = job.requirements.desirable || ["Excel Avanzado", "Power BI"];
+
+            document.getElementById('skillGapsContent').innerHTML = `
+                <div style="font-size: 13px; color: #CBD5E1;">
+                    Requisitos deseables para esta posición en <strong>${job.company}</strong> y recursos recomendados para dominarlos gratis:
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 8px;">
+                    ${desirable.map(d => `
+                        <div style="background: var(--surface-card); border: 1px solid var(--border); padding: 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                            <div>
+                                <strong style="color: #FFF; font-size: 13px;">${d}</strong>
+                                <p style="font-size: 11.5px; color: var(--text-muted);">Habilidad requerida / valorada</p>
+                            </div>
+                            <div style="display: flex; gap: 6px;">
+                                <a href="https://www.youtube.com/results?search_query=curso+${encodeURIComponent(d)}" target="_blank" class="btn-action-outline" style="width:auto; margin-bottom:0; font-size:11px; padding:4px 8px;">
+                                    ▶ YouTube Gratis
+                                </a>
+                                <a href="https://learn.microsoft.com/es-es/training/" target="_blank" class="btn-action-outline" style="width:auto; margin-bottom:0; font-size:11px; padding:4px 8px;">
+                                    🎓 Microsoft Learn
+                                </a>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            openModal('modalSkillGaps');
+        }
+
+        // Comparador de ofertas
+        function addToCompare(jobId) {
+            if (compareSelection.includes(jobId)) {
+                alert("Ya agregaste esta oferta al comparador.");
+                return;
+            }
+            if (compareSelection.length >= 2) compareSelection.shift();
+            compareSelection.push(jobId);
+
+            if (compareSelection.length === 2) {
+                renderCompareModal();
+            } else {
+                alert("Agregaste 1 oferta al comparador. Seleccioná una segunda oferta para verlas frente a frente.");
+            }
+        }
+
+        function renderCompareModal() {
+            const j1 = JOBS_DB.find(j => j.id === compareSelection[0]);
+            const j2 = JOBS_DB.find(j => j.id === compareSelection[1]);
+            if (!j1 || !j2) return;
+
+            const a1 = calculateWeightedScore(j1);
+            const a2 = calculateWeightedScore(j2);
+
+            document.getElementById('compareGridContent').innerHTML = `
+                <div class="compare-col">
+                    <h4 style="color: #FFF; font-size: 16px;">${j1.title}</h4>
+                    <p style="color: var(--primary); font-size: 13px; font-weight:700;">${j1.company}</p>
+                    <div style="margin: 10px 0; font-size: 20px; font-weight: 800; color: #34D399;">⚡ ${a1.score || '--'}% Match</div>
+                    <ul style="font-size: 12px; color: #CBD5E1; padding-left: 16px; line-height: 1.6;">
+                        <li><strong>Carga:</strong> ${j1.hoursLabel}</li>
+                        <li><strong>Modalidad:</strong> ${j1.modality}</li>
+                        <li><strong>Sector:</strong> ${j1.sectorLabel}</li>
+                        <li><strong>Sueldo ref:</strong> ${j1.salaryGuide}</li>
+                    </ul>
+                </div>
+
+                <div class="compare-col">
+                    <h4 style="color: #FFF; font-size: 16px;">${j2.title}</h4>
+                    <p style="color: var(--primary); font-size: 13px; font-weight:700;">${j2.company}</p>
+                    <div style="margin: 10px 0; font-size: 20px; font-weight: 800; color: #34D399;">⚡ ${a2.score || '--'}% Match</div>
+                    <ul style="font-size: 12px; color: #CBD5E1; padding-left: 16px; line-height: 1.6;">
+                        <li><strong>Carga:</strong> ${j2.hoursLabel}</li>
+                        <li><strong>Modalidad:</strong> ${j2.modality}</li>
+                        <li><strong>Sector:</strong> ${j2.sectorLabel}</li>
+                        <li><strong>Sueldo ref:</strong> ${j2.salaryGuide}</li>
+                    </ul>
+                </div>
+            `;
+            openModal('modalCompare');
+        }
+
+        // Búsqueda conversacional
+        function executeConversationalSearch() {
+            const query = (document.getElementById('conversationalPrompt').value || '').toLowerCase();
+            if (!query) return;
+
+            // Detección de intención por lenguaje natural
+            if (query.includes("4h") || query.includes("4 horas") || query.includes("part-time")) {
+                document.getElementById('filter4h').checked = true;
+                document.getElementById('filter6h').checked = false;
+                document.getElementById('filter8h').checked = false;
+            } else if (query.includes("6h") || query.includes("6 horas") || query.includes("banca")) {
+                document.getElementById('filter4h').checked = false;
+                document.getElementById('filter6h').checked = true;
+                document.getElementById('filter8h').checked = false;
+            } else if (query.includes("completo") || query.includes("8 horas") || query.includes("full-time")) {
+                document.getElementById('filter8h').checked = true;
+            }
+
+            if (query.includes("tecnolog") || query.includes("tech") || query.includes("software")) {
+                document.getElementById('secTech').checked = true;
+                document.getElementById('secRetail').checked = false;
+            }
+
+            applyFilters();
+            alert(`JobCopilot analizó tu consulta: "${query}". Ajustó automáticamente los filtros y ordenó las oportunidades.`);
+        }
+
+        // Modales genéricos
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        function copyModalContent(elementId) {
+            const text = document.getElementById(elementId).innerText;
+            navigator.clipboard.writeText(text);
+            alert("✓ Copiado al portapapeles con éxito.");
+        }
+
+        function openManualProfileModal() {
+            if (userProfile) {
+                document.getElementById('mName').value = userProfile.name || '';
+                document.getElementById('mEdu').value = userProfile.edu || '';
+                document.getElementById('mLang').value = userProfile.lang || '';
+                document.getElementById('mSkills').value = (userProfile.skills || []).join(', ');
+            }
+            openModal('modalManualProfile');
+        }
+
+        function saveManualProfile() {
+            const name = document.getElementById('mName').value.trim() || 'Candidato';
+            const edu = document.getElementById('mEdu').value.trim() || 'Estudiante Universitario';
+            const lang = document.getElementById('mLang').value.trim() || 'Inglés Intermedio';
+            const skills = document.getElementById('mSkills').value.split(',').map(s => s.trim()).filter(s => s.length > 0);
+
+            userProfile = {
+                name: name,
+                initials: name.slice(0, 2).toUpperCase(),
+                edu: edu,
+                lang: lang,
+                summary: `Estudiante de ${edu} con competencias en ${skills.slice(0, 3).join(", ")}.`,
+                skills: skills.length > 0 ? skills : ["Excel", "Negocios"]
+            };
+            localStorage.setItem('jc_user_profile', JSON.stringify(userProfile));
+            renderProfileBox(userProfile);
+            closeModal('modalManualProfile');
+            renderAll();
+        }
+
+        function openApiKeyModal() {
+            document.getElementById('inputApiKey').value = userApiKey;
+            document.getElementById('inputSupabaseUrl').value = SUPABASE_URL;
+            document.getElementById('inputSupabaseAnonKey').value = SUPABASE_ANON_KEY;
+            openModal('modalApiKey');
+        }
+
+        async function saveSettingsModal() {
+            userApiKey = document.getElementById('inputApiKey').value.trim();
+            SUPABASE_URL = document.getElementById('inputSupabaseUrl').value.trim();
+            SUPABASE_ANON_KEY = document.getElementById('inputSupabaseAnonKey').value.trim();
+
+            localStorage.setItem('jc_api_key', userApiKey);
+            localStorage.setItem('jc_supabase_url', SUPABASE_URL);
+            localStorage.setItem('jc_supabase_anon_key', SUPABASE_ANON_KEY);
+
+            closeModal('modalApiKey');
+
+            if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+                alert("✓ Conectando a Supabase PostgreSQL... Actualizando vacantes en vivo.");
+                await fetchLiveJobsFromSupabase();
+            } else {
+                alert("✓ Configuración guardada.");
+            }
+        }
+    </script>
 </body>
 </html>
