@@ -123,4 +123,4 @@ class StorageManager {
         localStorage.setItem(CONFIG.STORAGE_KEYS.APPLIED_DATA, JSON.stringify(applications));
         return applications;
     }
-}\n
+}

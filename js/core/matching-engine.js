@@ -221,4 +221,4 @@ class MatchingEngine {
             penalties
         };
     }
-}\n
+}

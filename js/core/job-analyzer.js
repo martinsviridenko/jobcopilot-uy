@@ -87,4 +87,4 @@ class JobAnalyzer {
             rawScan: textToScan
         };
     }
-}\n
+}

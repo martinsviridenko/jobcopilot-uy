@@ -120,4 +120,4 @@ class ProfileAnalyzer {
             rawText
         };
     }
-}\n
+}

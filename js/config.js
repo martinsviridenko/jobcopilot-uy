@@ -175,4 +175,4 @@ const DOMAIN_AFFINITY = {
         HR_PSYCHOLOGY: 0.15,
         DESIGN_CREATIVE: 0.10
     }
-};\n
+};
