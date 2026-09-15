@@ -1288,8 +1288,8 @@
 
         // Inicialización
         // Supabase Live Data Integration
-        let SUPABASE_URL = localStorage.getItem('jc_supabase_url') || "";
-        let SUPABASE_ANON_KEY = localStorage.getItem('jc_supabase_anon_key') || "";
+        let SUPABASE_URL = localStorage.getItem('jc_supabase_url') || "https://lbxchpaoltuwpselfiwr.supabase.co";
+        let SUPABASE_ANON_KEY = localStorage.getItem('jc_supabase_anon_key') || "sb_publishable_1ztKeV9Y3UyIRnjkR6-jVg_zj7Wyrlm";
         let JOBS_DB = [...FALLBACK_JOBS_DB];
 
         document.addEventListener('DOMContentLoaded', async () => {
@@ -1319,13 +1319,18 @@
                             title: j.title,
                             hours: j.hours,
                             hoursLabel: j.hours_label || j.hours,
+                            isHoursEstimated: !!j.is_hours_estimated,
                             modality: j.modality,
                             modalityKey: j.modality_key,
                             sector: j.sector,
                             sectorLabel: j.sector_label,
+                            domain: j.domain,
+                            domainLabel: j.domain_label,
+                            seniority: j.seniority,
                             location: j.location,
                             desc: j.description,
                             careerFit: j.career_fit || [],
+                            criticalSkills: j.critical_skills || [],
                             requirements: j.requirements || { mandatory: [], desirable: [], bonus: [] },
                             salaryGuide: j.salary_guide || "A convenir",
                             applyUrl: j.apply_url,
