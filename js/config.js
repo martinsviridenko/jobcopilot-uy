@@ -198,3 +198,6 @@ const TRANSVERSAL_SKILLS = [
     "comunicación", "comunicacion", "trabajo en equipo", "proactividad",
     "capacidad analítica", "resolución de problemas"
 ];
+
+
+const FALLBACK_JOBS_DB = [];

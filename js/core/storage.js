@@ -52,7 +52,7 @@ class StorageManager {
     // Favorites
     static getFavorites() {
         try {
-            const raw = localStorage.getItem(CONFIG.STORAGE_KEYS.FAVORITES);
+            const raw = localStorage.getItem(CONFIG.STORAGE_KEYS.FAVORITES) || localStorage.getItem('jc_favorites');
             return raw ? JSON.parse(raw) : [];
         } catch (e) {
             return [];
@@ -67,28 +67,64 @@ class StorageManager {
             list.push(jobId);
         }
         localStorage.setItem(CONFIG.STORAGE_KEYS.FAVORITES, JSON.stringify(list));
+        localStorage.setItem('jc_favorites', JSON.stringify(list));
         return list.includes(jobId);
     }
 
-    // Applied Applications Pipeline
+    // Applied Applications Pipeline (Reads both jc_applied_data and jc_applied_pipeline)
     static getApplications() {
         try {
-            const raw = localStorage.getItem(CONFIG.STORAGE_KEYS.APPLIED_JOBS);
-            return raw ? JSON.parse(raw) : {};
+            const rawNew = localStorage.getItem(CONFIG.STORAGE_KEYS.APPLIED_JOBS);
+            const rawOld = localStorage.getItem('jc_applied_data');
+            const parsedNew = rawNew ? JSON.parse(rawNew) : {};
+            const parsedOld = rawOld ? JSON.parse(rawOld) : {};
+            return { ...parsedOld, ...parsedNew };
         } catch (e) {
             return {};
         }
     }
 
-    static saveApplication(jobId, status = "Postulado") {
+    static saveApplication(job, status = "sent") {
         const apps = this.getApplications();
-        apps[jobId] = { status, timestamp: new Date().toISOString() };
+        const jobId = typeof job === 'string' ? job : job.id;
+        const jobMeta = typeof job === 'object' ? {
+            title: job.title,
+            company: job.company,
+            location: job.location,
+            hours: job.hoursLabel || job.hours,
+            applyUrl: job.applyUrl
+        } : {};
+
+        apps[jobId] = {
+            status: status,
+            date: new Date().toLocaleDateString('es-UY', { day: '2-digit', month: 'short' }),
+            ...jobMeta,
+            ...(apps[jobId] || {})
+        };
+        apps[jobId].status = status;
+
         localStorage.setItem(CONFIG.STORAGE_KEYS.APPLIED_JOBS, JSON.stringify(apps));
+        localStorage.setItem('jc_applied_data', JSON.stringify(apps));
+    }
+
+    static updateApplicationStatus(jobId, newStatus) {
+        const apps = this.getApplications();
+        if (apps[jobId]) {
+            apps[jobId].status = newStatus;
+            localStorage.setItem(CONFIG.STORAGE_KEYS.APPLIED_JOBS, JSON.stringify(apps));
+            localStorage.setItem('jc_applied_data', JSON.stringify(apps));
+        }
     }
 
     static removeApplication(jobId) {
         const apps = this.getApplications();
         delete apps[jobId];
         localStorage.setItem(CONFIG.STORAGE_KEYS.APPLIED_JOBS, JSON.stringify(apps));
+        localStorage.setItem('jc_applied_data', JSON.stringify(apps));
+    }
+
+    static clearAllApplications() {
+        localStorage.removeItem(CONFIG.STORAGE_KEYS.APPLIED_JOBS);
+        localStorage.removeItem('jc_applied_data');
     }
 }

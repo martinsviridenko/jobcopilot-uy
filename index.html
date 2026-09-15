@@ -247,8 +247,47 @@
                 <!-- Feed View -->
                 <div id="feedView" class="job-list-container"></div>
 
-                <!-- Kanban Pipeline View -->
-                <div id="kanbanView" style="display: none;"></div>
+                                <!-- Kanban Pipeline View -->
+                <div id="kanbanView" style="display: none;">
+                    <div style="display: flex; justify-content: flex-end; margin-bottom: 8px;">
+                        <button onclick="App.resetAllApplications()" style="background: transparent; border: 1px solid rgba(239,68,68,0.35); color: #FCA5A5; font-size: 11.5px; padding: 5px 12px; border-radius: 8px; cursor: pointer;">
+                            🗑️ Limpiar todas las postulaciones
+                        </button>
+                    </div>
+                    <div class="kanban-board">
+                        <div class="kanban-col">
+                            <div class="kanban-col-title">
+                                <span>📤 CV Enviado</span>
+                                <span id="kCountSent" class="badge-hours b-6h">0</span>
+                            </div>
+                            <div id="colSent" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                        </div>
+
+                        <div class="kanban-col">
+                            <div class="kanban-col-title">
+                                <span>👀 En Revisión</span>
+                                <span id="kCountReview" class="badge-hours b-4h">0</span>
+                            </div>
+                            <div id="colReview" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                        </div>
+
+                        <div class="kanban-col">
+                            <div class="kanban-col-title">
+                                <span>🎙️ En Entrevista</span>
+                                <span id="kCountInterview" class="badge-hours b-6h" style="background: rgba(168,85,247,0.2); color:#D8B4FE;">0</span>
+                            </div>
+                            <div id="colInterview" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                        </div>
+
+                        <div class="kanban-col">
+                            <div class="kanban-col-title">
+                                <span>🏆 Oferta / Final</span>
+                                <span id="kCountOffer" class="badge-hours b-4h" style="background: rgba(16,185,129,0.2); color:#34D399;">0</span>
+                            </div>
+                            <div id="colOffer" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                        </div>
+                    </div>
+                </div>
 
             </main>
 

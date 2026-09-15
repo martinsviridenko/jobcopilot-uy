@@ -15,7 +15,8 @@ const App = {
         // 2. Setup Drag and Drop / PDF input
         this.setupFileInput();
 
-        // 3. Load Vacancies (Supabase live data first)
+        // 3. Load Jobs (Start with fallback database so no saved application is ever lost)
+        this.allJobs = typeof FALLBACK_JOBS_DB !== 'undefined' ? [...FALLBACK_JOBS_DB] : [];
         await this.loadJobs();
 
         // 4. Initial Render
@@ -31,7 +32,12 @@ const App = {
     },
 
     getJobById(jobId) {
-        return this.allJobs.find(j => j.id === jobId);
+        if (!jobId) return null;
+        let found = this.allJobs.find(j => j.id === jobId);
+        if (!found && typeof FALLBACK_JOBS_DB !== 'undefined') {
+            found = FALLBACK_JOBS_DB.find(j => j.id === jobId);
+        }
+        return found;
     },
 
     async loadJobs() {
@@ -46,7 +52,7 @@ const App = {
             if (res.ok) {
                 const data = await res.json();
                 if (data && data.length > 0) {
-                    this.allJobs = data.map(j => ({
+                    const supabaseJobs = data.map(j => ({
                         id: j.hash_dedup || j.id,
                         company: j.company,
                         title: j.title,
@@ -67,10 +73,19 @@ const App = {
                         applyUrl: j.apply_url,
                         isLinkedIn: !!j.is_linkedin
                     }));
+
+                    // Merge avoiding duplicates
+                    const existingIds = new Set(this.allJobs.map(j => j.id));
+                    supabaseJobs.forEach(sj => {
+                        if (!existingIds.has(sj.id)) {
+                            this.allJobs.push(sj);
+                            existingIds.add(sj.id);
+                        }
+                    });
                 }
             }
         } catch (e) {
-            console.warn("[JobCopilot] No se pudo conectar a Supabase en vivo, usando datos locales:", e);
+            console.warn("[JobCopilot] Usando base local por error de conexión:", e);
         }
 
         const statElem = document.getElementById('statAnalyzed');
@@ -148,13 +163,26 @@ const App = {
     },
 
     registerApplication(jobId) {
-        StorageManager.saveApplication(jobId, "Postulado");
+        const job = this.getJobById(jobId) || { id: jobId, title: "Postulación registrada", company: "Empresa" };
+        StorageManager.saveApplication(job, "sent");
         this.applyFilters();
     },
 
     removeApplication(jobId) {
         StorageManager.removeApplication(jobId);
         this.applyFilters();
+    },
+
+    resetAllApplications() {
+        if (confirm("¿Estás seguro de que querés desmarcar todas las postulaciones guardadas?")) {
+            StorageManager.clearAllApplications();
+            this.applyFilters();
+        }
+    },
+
+    updateApplicationStatus(jobId, newStatus) {
+        StorageManager.updateApplicationStatus(jobId, newStatus);
+        this.renderKanban();
     },
 
     renderProfileCard() {
@@ -230,36 +258,79 @@ const App = {
         this.applyFilters();
     },
 
+    // Renders the 4 Kanban columns without dropping ANY stored application!
     renderKanban() {
-        const kanbanBoard = document.getElementById('kanbanView');
-        if (!kanbanBoard) return;
+        const cols = {
+            sent: document.getElementById('colSent'),
+            review: document.getElementById('colReview'),
+            interview: document.getElementById('colInterview'),
+            offer: document.getElementById('colOffer')
+        };
+        if (!cols.sent) return;
+
+        Object.values(cols).forEach(c => { if (c) c.innerHTML = ''; });
+        const counts = { sent: 0, review: 0, interview: 0, offer: 0 };
 
         const applications = StorageManager.getApplications();
-        const appliedJobs = this.allJobs.filter(j => !!applications[j.id]);
+        const entries = Object.entries(applications);
 
-        let itemsHtml = appliedJobs.map(job => `
-            <div style="background: var(--surface-card); border: 1px solid var(--border); padding: 12px; border-radius: 8px; margin-bottom: 8px;">
-                <strong style="color: #FFF; font-size: 13px;">${job.title}</strong>
-                <p style="color: var(--primary); font-size: 11.5px; margin-top: 2px;">${job.company} • ${job.location}</p>
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
-                    <span style="font-size: 11px; color: var(--accent-green);">● Postulación activa</span>
-                    <button onclick="App.removeApplication('${job.id}')" style="background: none; border: none; color: #F87171; font-size: 11px; cursor: pointer;">
-                        ✕ Quitar
+        entries.forEach(([jobId, data]) => {
+            // Find job details in allJobs or fallback, or reconstruct from saved data/id
+            let job = this.getJobById(jobId);
+            if (!job) {
+                // Humanize ID into title if missing
+                const humanized = jobId.replace(/^linkedin-/, '').replace(/-/g, ' ');
+                job = {
+                    id: jobId,
+                    title: data.title || humanized.replace(/\b\w/g, l => l.toUpperCase()),
+                    company: data.company || "Empresa en Uruguay",
+                    hours: data.hours || "Part-time / 6h",
+                    location: data.location || "Montevideo",
+                    applyUrl: data.applyUrl || "#"
+                };
+            }
+
+            const rawStatus = (data.status || 'sent').toLowerCase();
+            let status = 'sent';
+            if (rawStatus.includes('review') || rawStatus.includes('revisi')) status = 'review';
+            else if (rawStatus.includes('interview') || rawStatus.includes('entrevista')) status = 'interview';
+            else if (rawStatus.includes('offer') || rawStatus.includes('oferta') || rawStatus.includes('cerrado')) status = 'offer';
+
+            if (counts[status] !== undefined) counts[status]++;
+
+            const targetCol = cols[status] || cols.sent;
+            const card = document.createElement('div');
+            card.className = 'kanban-card';
+            card.innerHTML = `
+                <div class="kanban-card-title">${job.title}</div>
+                <div class="kanban-card-company">${job.company} • ${job.hoursLabel || job.hours || '6h'}</div>
+                <div class="kanban-card-date">Fecha: ${data.date || 'Reciente'}</div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; gap: 6px;">
+                    <select class="kanban-status-select" style="flex: 1;" onchange="App.updateApplicationStatus('${job.id}', this.value)">
+                        <option value="sent" ${status === 'sent' ? 'selected' : ''}>CV Enviado</option>
+                        <option value="review" ${status === 'review' ? 'selected' : ''}>En Revisión</option>
+                        <option value="interview" ${status === 'interview' ? 'selected' : ''}>En Entrevista</option>
+                        <option value="offer" ${status === 'offer' ? 'selected' : ''}>Oferta / Cerrado</option>
+                    </select>
+                    <button onclick="App.removeApplication('${job.id}')" style="background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: #FCA5A5; font-size: 11px; padding: 4px 8px; border-radius: 6px; cursor: pointer;" title="Quitar postulación">
+                        ✕
                     </button>
                 </div>
-            </div>
-        `).join('');
+            `;
+            targetCol.appendChild(card);
+        });
 
-        if (appliedJobs.length === 0) {
-            itemsHtml = '<p style="font-size: 12px; color: var(--text-muted); text-align: center; padding: 20px 0;">No has registrado postulaciones todavía.</p>';
-        }
+        const kCountSent = document.getElementById('kCountSent');
+        if (kCountSent) kCountSent.innerText = counts.sent;
+        const kCountReview = document.getElementById('kCountReview');
+        if (kCountReview) kCountReview.innerText = counts.review;
+        const kCountInterview = document.getElementById('kCountInterview');
+        if (kCountInterview) kCountInterview.innerText = counts.interview;
+        const kCountOffer = document.getElementById('kCountOffer');
+        if (kCountOffer) kCountOffer.innerText = counts.offer;
 
-        kanbanBoard.innerHTML = `
-            <div style="max-width: 600px; margin: 0 auto; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px;">
-                <h3 style="font-size: 16px; color: #FFF; margin-bottom: 12px;">Pipeline de Postulaciones Realizadas</h3>
-                ${itemsHtml}
-            </div>
-        `;
+        const countPipeline = document.getElementById('countPipeline');
+        if (countPipeline) countPipeline.innerText = entries.length;
     }
 };
 

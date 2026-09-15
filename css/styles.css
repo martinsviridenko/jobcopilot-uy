@@ -247,3 +247,25 @@ body { background-color: var(--bg); color: var(--text-main); min-height: 100vh; 
 .btn-close-modal { background: none; border: none; font-size: 20px; color: var(--text-muted); cursor: pointer; line-height: 1; }
 .btn-close-modal:hover { color: #FFF; }
 .modal-body { padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
+
+/* Kanban Tracking View */
+.kanban-board {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 10px;
+}
+@media (max-width: 900px) { .kanban-board { grid-template-columns: 1fr; } }
+.kanban-col {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 14px; min-height: 420px; display: flex; flex-direction: column; gap: 10px;
+}
+.kanban-col-title { font-size: 13px; font-weight: 700; color: #FFF; display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.kanban-card {
+    background: var(--surface-card); border: 1px solid var(--border-highlight); border-radius: 8px;
+    padding: 12px; font-size: 12.5px; display: flex; flex-direction: column; gap: 6px;
+}
+.kanban-card-title { font-weight: 700; color: #FFF; }
+.kanban-card-company { color: var(--primary); font-size: 11.5px; font-weight: 600; }
+.kanban-card-date { font-size: 11px; color: var(--text-subtle); }
+.kanban-status-select {
+    background: #070B12; border: 1px solid var(--border-highlight); color: #CBD5E1;
+    padding: 4px 6px; border-radius: 6px; font-size: 11px; outline: none; margin-top: 4px; cursor: pointer;
+}
