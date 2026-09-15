@@ -312,26 +312,23 @@ const App = {
         const dropSub = document.getElementById('dropzoneSub');
 
         if (loader) loader.style.display = 'flex';
-        if (loaderText) loaderText.innerText = "Leyendo archivo: " + file.name + "...";
-
+        
         try {
             let extractedText = "";
             const isPdf = file.name.toLowerCase().endsWith(".pdf") || file.type === "application/pdf";
 
+            if (loaderText) loaderText.innerText = "1/4: Extrayendo texto del CV...";
+
             if (isPdf) {
-                if (loaderText) loaderText.innerText = "Extrayendo texto del PDF...";
-                
                 let pdfParsed = false;
                 if (typeof pdfjsLib !== 'undefined') {
                     try {
-                        // Usar FileReader clásico (compatible con todos los Safari/Mac viejos)
                         const arrayBuffer = await new Promise((resolve, reject) => {
                             const reader = new FileReader();
                             reader.onload = () => resolve(reader.result);
                             reader.onerror = () => reject(reader.error);
                             reader.readAsArrayBuffer(file);
                         });
-                        
                         const typedArray = new Uint8Array(arrayBuffer);
                         const loadingTask = pdfjsLib.getDocument({ data: typedArray });
                         const pdf = await loadingTask.promise;
@@ -344,16 +341,9 @@ const App = {
                             pagesText.push(pageStrings);
                         }
                         extractedText = pagesText.join("\n").trim();
-                        if (extractedText.length > 30) {
-                            pdfParsed = true;
-                            console.log("[JobCopilot] Extracción exitosa con PDF.js:", extractedText.length, "caracteres");
-                        }
-                    } catch (pdfErr) {
-                        console.warn("[JobCopilot] PDF.js arrojó error:", pdfErr);
-                    }
+                        if (extractedText.length > 30) pdfParsed = true;
+                    } catch (e) {}
                 }
-
-                // Fallback a texto si PDF.js falla
                 if (!pdfParsed) {
                     try {
                         const rawContent = await new Promise((resolve, reject) => {
@@ -366,12 +356,9 @@ const App = {
                         if (asciiMatches && asciiMatches.length > 10) {
                             extractedText = asciiMatches.join(" ");
                         }
-                    } catch (rawErr) {
-                        console.warn("[JobCopilot] Fallback ASCII falló:", rawErr);
-                    }
+                    } catch (e) {}
                 }
             } else {
-                // Archivo txt
                 extractedText = await new Promise((resolve, reject) => {
                     const reader = new FileReader();
                     reader.onload = () => resolve(reader.result);
@@ -380,41 +367,115 @@ const App = {
                 });
             }
 
-            // Validar que se haya obtenido texto
             if (!extractedText || extractedText.trim().length < 20) {
-                alert("No se pudo extraer texto legible de '" + file.name + "'. Es posible que el PDF sea una imagen escaneada o esté protegido.\n\nPodés usar la opción 'Pegar texto' para ingresar tu CV directamente.");
+                alert("No se pudo extraer texto. Usa la opción 'Pegar texto'.");
                 ModalsController.openPasteModal();
                 if (loader) loader.style.display = 'none';
                 return;
             }
 
-            if (loaderText) loaderText.innerText = "Analizando perfil e infiriendo competencias...";
-
-            // Inferencia y guardado
-            this.profile = ProfileAnalyzer.parse(extractedText);
-            StorageManager.saveProfile(this.profile);
-            StorageManager.saveCvText(extractedText);
-
-            if (dropTitle) dropTitle.innerText = file.name;
-            if (dropSub) dropSub.innerText = "CV procesado correctamente (" + (this.profile.skills ? this.profile.skills.length : 0) + " herramientas detectadas)";
-
-            this.renderProfileCard();
-            this.applyFilters();
-
-            console.log("[JobCopilot] Perfil procesado con éxito:", this.profile);
-
-            // Resetear input para permitir seleccionar de nuevo si se desea
-            const fileInput = document.getElementById('cvFileInput');
-            if (fileInput) fileInput.value = '';
+            // Iniciar Agentic Flow
+            await this.runAgenticSearch(extractedText, file.name);
 
         } catch (err) {
-            console.error("[JobCopilot] Error general al procesar el archivo:", err);
-            alert("Ocurrió un error al procesar el archivo: " + err.message + "\n\nPodés ingresar tu información con el botón 'Pegar texto'.");
-            ModalsController.openPasteModal();
+            console.error(err);
+            alert("Error: " + err.message);
         } finally {
             if (loader) loader.style.display = 'none';
         }
     },
+
+    async runAgenticSearch(cvText, fileName) {
+        const loaderText = document.getElementById('cvLoaderText');
+        const dropTitle = document.getElementById('dropzoneTitle');
+        const dropSub = document.getElementById('dropzoneSub');
+
+        try {
+            // STEP 1: Generate Queries
+            if (loaderText) loaderText.innerText = "2/4: IA analizando perfil y diseñando estrategia de búsqueda...";
+            const qRes = await fetch('/api/generate_queries', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cv_text: cvText })
+            });
+            if (!qRes.ok) throw new Error("Fallo al generar consultas. (¿Falta GEMINI_API_KEY?)");
+            const qData = await qRes.json();
+            
+            // Build temporary profile for UI
+            this.profile = {
+                name: "Candidato",
+                edu: qData.profile_summary || "Perfil Analizado",
+                summary: "Buscando en vivo usando: " + qData.queries.join(", "),
+                lang: "IA Agent Mode",
+                skills: [],
+                seniority: "Analizando..."
+            };
+            this.renderProfileCard();
+
+            // STEP 2: Web Search
+            if (loaderText) loaderText.innerText = "3/4: Buscando vacantes activas en portales web...";
+            const sRes = await fetch('/api/search_web', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ queries: qData.queries })
+            });
+            if (!sRes.ok) throw new Error("Fallo en la búsqueda web.");
+            const sData = await sRes.json();
+            const rawJobs = sData.results || [];
+
+            if (rawJobs.length === 0) {
+                this.allJobs = [];
+                this.applyFilters();
+                return;
+            }
+
+            // STEP 3: Evaluate Match
+            if (loaderText) loaderText.innerText = `4/4: IA evaluando ${rawJobs.length} resultados en tiempo real...`;
+            const finalJobs = [];
+            
+            // Evaluate in parallel for speed, but catch errors
+            const evPromises = rawJobs.map(job => 
+                fetch('/api/evaluate_match', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cv_text: cvText, job: job })
+                }).then(r => r.json()).catch(() => null)
+            );
+            
+            const evResults = await Promise.all(evPromises);
+            
+            evResults.forEach(res => {
+                if (res && res.is_match) {
+                    finalJobs.push({
+                        id: res.id || String(Math.random()),
+                        company: res.company || "Empresa Confidencial",
+                        title: res.title || "Vacante",
+                        hours: res.hours || "Consultar",
+                        hoursLabel: res.hours || "Consultar",
+                        modality: res.modality || "Híbrido",
+                        modalityKey: (res.modality || "").toLowerCase().includes("remot") ? "remote" : "hybrid",
+                        location: "Uruguay",
+                        applyUrl: res.url || "",
+                        desc: res.justification || "Buen match según IA.",
+                        source: "Web Search Agent",
+                        score: res.score || 80,
+                        isLinkedIn: (res.url || "").includes("linkedin")
+                    });
+                }
+            });
+
+            this.allJobs = finalJobs;
+            if (dropTitle) dropTitle.innerText = fileName || "Perfil Activo";
+            if (dropSub) dropSub.innerText = `Búsqueda en vivo finalizada: ${finalJobs.length} matches exactos`;
+            
+            this.applyFilters();
+
+        } catch (err) {
+            console.error(err);
+            alert("Error en el Agente: " + err.message);
+        }
+    },
+
     handleDirectCvText() {
         const textarea = document.getElementById('pasteCvTextarea');
         if (!textarea) return;

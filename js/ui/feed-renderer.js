@@ -14,10 +14,21 @@ class FeedRenderer {
         const favorites = StorageManager.getFavorites();
         const applications = StorageManager.getApplications();
 
-        // 1. Evaluación mediante el Motor Universal
+        // 1. Evaluación (Omitida si ya fue evaluado por el Agente Backend)
         const evaluatedList = [];
         jobs.forEach(job => {
-            const evalResult = MatchingEngine.evaluate(job, candidateProfile);
+            let evalResult;
+            if (job.score) {
+                // Ya fue evaluado por el Agente Backend
+                evalResult = {
+                    score: job.score,
+                    probability: job.score >= 75 ? "Alta" : "Media",
+                    domain: { name: "Agent Match" }
+                };
+            } else {
+                evalResult = MatchingEngine.evaluate(job, candidateProfile);
+            }
+            
             if (FilterController.matches(job, evalResult, filters)) {
                 evaluatedList.push({ job, eval: evalResult });
             }
