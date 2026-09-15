@@ -42,17 +42,29 @@ class FeedRenderer {
 
         // 4. Estado vacío
         if (evaluatedList.length === 0) {
-            container.innerHTML = `
-                <div style="text-align: center; padding: 50px 24px; background: var(--surface); border: 1px dashed var(--border); border-radius: 14px; color: var(--text-muted); width: 100%;">
-                    <h3 style="color: #FFF; font-size: 16px; margin-bottom: 6px;">No hay vacantes que coincidan con estos filtros</h3>
-                    <p style="font-size: 13px; max-width: 520px; margin: 0 auto; line-height: 1.5;">
-                        El motor descarta únicamente búsquedas radicalmente incompatibles. Probá ampliando los filtros de carga horaria o ubicación en la barra superior.
-                    </p>
-                    <button class="btn btn-secondary btn-sm" onclick="FilterController.resetAllFilters()" style="margin-top: 14px;">
-                        Restablecer todos los filtros
-                    </button>
-                </div>
-            `;
+            // Diferenciar entre "no cargaron trabajos de la BD" y "los filtros los ocultaron todos"
+            if (jobs.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 50px 24px; background: var(--surface); border: 1px dashed #ef4444; border-radius: 14px; color: var(--text-muted); width: 100%;">
+                        <h3 style="color: #ef4444; font-size: 16px; margin-bottom: 6px;">No se pudieron cargar las vacantes.</h3>
+                        <p style="font-size: 13px; max-width: 520px; margin: 0 auto; line-height: 1.5; color: #fca5a5;">
+                            Verifique la conexión con Supabase o la base de datos local.
+                        </p>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 50px 24px; background: var(--surface); border: 1px dashed var(--border); border-radius: 14px; color: var(--text-muted); width: 100%;">
+                        <h3 style="color: #FFF; font-size: 16px; margin-bottom: 6px;">No hay vacantes que coincidan con estos filtros</h3>
+                        <p style="font-size: 13px; max-width: 520px; margin: 0 auto; line-height: 1.5;">
+                            El motor descarta únicamente búsquedas radicalmente incompatibles. Probá ampliando los filtros de carga horaria o ubicación en la barra superior.
+                        </p>
+                        <button class="btn btn-secondary btn-sm" onclick="FilterController.resetAllFilters()" style="margin-top: 14px;">
+                            Restablecer todos los filtros
+                        </button>
+                    </div>
+                `;
+            }
             return;
         }
 

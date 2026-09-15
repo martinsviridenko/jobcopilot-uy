@@ -1,4 +1,4 @@
-export const FALLBACK_JOBS_DB = [
+const FALLBACK_JOBS_DB = [
             // --- 4 HORAS (PART-TIME / PASANTÍAS) ---
             {
                 id: "linkedin-grant-thornton-ciberseguridad",

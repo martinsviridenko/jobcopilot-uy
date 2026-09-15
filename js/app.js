@@ -53,16 +53,36 @@ const App = {
     },
 
     async loadJobs() {
+        const diagLog = document.getElementById('diagnosticLog');
+        const diagPanel = document.getElementById('diagnosticPanel');
+        let logs = [];
+        const addLog = (msg) => {
+            console.log(msg);
+            logs.push(msg);
+            if (diagLog) diagLog.innerText = logs.join('\n');
+            if (diagPanel) diagPanel.style.display = 'block';
+        };
+
+        addLog("=== INICIO CARGA DE VACANTES ===");
+        let jobsLoaded = false;
+
         try {
             const endpoint = `${CONFIG.SUPABASE_URL.replace(/\/$/, '')}/rest/v1/jobs?is_active=eq.true&order=created_at.desc&limit=300`;
+            addLog(`[JobCopilot] Consultando Supabase: ${endpoint}`);
+            
             const res = await fetch(endpoint, {
                 headers: {
                     'apikey': CONFIG.SUPABASE_ANON_KEY,
                     'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`
                 }
             });
+            
+            addLog(`[JobCopilot] Supabase respondió HTTP ${res.status}`);
+            
             if (res.ok) {
                 const data = await res.json();
+                addLog(`[JobCopilot] Supabase devolvió ${data ? data.length : 0} registros.`);
+                
                 if (data && data.length > 0) {
                     this.allJobs = data.map(j => ({
                         id: j.hash_dedup || String(j.id),
@@ -81,11 +101,29 @@ const App = {
                         isLinkedIn: !!j.is_linkedin,
                         source: j.source || (j.is_linkedin ? "LinkedIn" : "Portal")
                     }));
+                    jobsLoaded = true;
+                    addLog("[JobCopilot] Vacantes cargadas desde SUPABASE EXITOSAMENTE.");
+                } else {
+                    addLog("[JobCopilot] WARN: Supabase respondió OK pero la tabla está vacía (0 registros).");
                 }
+            } else {
+                addLog(`[JobCopilot] ERROR en Supabase HTTP ${res.status}. No se pudo obtener datos.`);
             }
         } catch (e) {
-            console.warn("[JobCopilot] Error conectando a Supabase, usando respaldo:", e);
+            addLog(`[JobCopilot] ERROR de red / excepción al conectar con Supabase: ${e.message}`);
         }
+
+        if (!jobsLoaded) {
+            addLog("[JobCopilot] Iniciando rescate: Cargando FALLBACK_JOBS_DB local...");
+            if (typeof FALLBACK_JOBS_DB !== 'undefined' && FALLBACK_JOBS_DB.length > 0) {
+                this.allJobs = [...FALLBACK_JOBS_DB];
+                addLog(`[JobCopilot] Rescate exitoso: Se cargaron ${this.allJobs.length} vacantes locales.`);
+            } else {
+                addLog("[JobCopilot] FATAL: FALLBACK_JOBS_DB no está definido o está vacío. Total vacantes: 0.");
+                this.allJobs = [];
+            }
+        }
+        addLog(`=== FIN CARGA DE VACANTES: Total ${this.allJobs.length} ===`);
 
         const statElem = document.getElementById('statAnalyzed');
         if (statElem) statElem.innerText = `${this.allJobs.length} ofertas`;
