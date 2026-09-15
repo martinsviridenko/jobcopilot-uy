@@ -5,79 +5,102 @@ import re
 from typing import Tuple, List, Dict, Any
 from agent.scrapers.base_scraper import JobPost
 
-# 9 Professional Domain Taxonomies (Synchronized with matching-engine.js)
+# 14 Synchronized Disciplines (Matches frontend Recruiter Engine)
 DOMAINS = {
-    "DATA_BI": {
+    "DATA_ANALYTICS_BI": {
         "name": "Datos, BI & Analítica",
         "icon": "📊",
-        "keywords": ["data", "datos", "bi", "business intelligence", "sql", "power bi", "tableau", "analítica", "analytics", "looker", "etl", "dax", "modelado", "ciencia de datos"],
+        "keywords": ["data", "datos", "bi", "business intelligence", "sql", "power bi", "tableau", "analítica", "analytics", "looker", "etl", "dax", "modelado", "ciencia de datos", "big data", "data warehouse"],
         "critical_skills": ["sql", "power bi", "tableau", "python", "dax", "looker", "r", "modelado de datos", "etl", "data warehouse", "estadística", "visualización", "dashboards"]
     },
-    "BUSINESS_ADMIN": {
-        "name": "Negocios & Administración",
+    "BUSINESS_MANAGEMENT": {
+        "name": "Negocios & Gestión Corporativa",
         "icon": "💼",
-        "keywords": ["administración", "negocios", "gestión", "procesos", "business", "administrativo", "consultoría", "control de gestión", "facturación", "erp"],
-        "critical_skills": ["facturación", "erp", "control de gestión", "flujo de caja", "gestión administrativa", "mejora de procesos", "organización", "sap", "relevamiento"]
+        "keywords": ["administración", "negocios", "gestión", "procesos", "business", "administrativo", "consultoría", "control de gestión", "facturación", "erp", "reorganización", "organización y métodos"],
+        "critical_skills": ["facturación", "erp", "control de gestión", "flujo de caja", "gestión administrativa", "mejora de procesos", "organización", "sap", "relevamiento", "excel avanzado"]
+    },
+    "MARKETING_GROWTH": {
+        "name": "Marketing Digital & E-commerce",
+        "icon": "🚀",
+        "keywords": ["marketing", "e-commerce", "ecommerce", "digital", "growth", "redes", "publicidad", "ads", "seo", "sem", "medios", "content", "community manager", "branding", "pauta"],
+        "critical_skills": ["meta ads", "google ads", "seo", "sem", "e-commerce", "shopify", "growth marketing", "crm", "google analytics", "campañas", "content strategy"]
     },
     "FINANCE_BANKING": {
         "name": "Finanzas, Banca & Contabilidad",
         "icon": "🏦",
-        "keywords": ["finanzas", "financiero", "contable", "contabilidad", "banco", "banca", "auditoría", "tax", "impuestos", "crédito", "tesorería"],
+        "keywords": ["finanzas", "financiero", "contable", "contabilidad", "banco", "banca", "auditoría", "tax", "impuestos", "crédito", "tesorería", "liquidación", "balance"],
         "critical_skills": ["contabilidad", "conciliaciones", "niif", "impuestos", "tax", "auditoría contable", "asientos contables", "finanzas corporativas", "balance", "servicios bancarios"]
     },
-    "MARKETING_ECOMM": {
-        "name": "Marketing Digital & E-commerce",
-        "icon": "🚀",
-        "keywords": ["marketing", "e-commerce", "digital", "growth", "redes", "publicidad", "ads", "seo", "sem", "medios", "content", "ventas b2b"],
-        "critical_skills": ["meta ads", "google ads", "seo", "sem", "e-commerce", "shopify", "growth marketing", "crm", "google analytics", "campañas", "ventas b2b"]
+    "SALES_COMMERCIAL": {
+        "name": "Ventas B2B & Comercial",
+        "icon": "🤝",
+        "keywords": ["ventas", "comercial", "b2b", "ejecutivo de cuentas", "account executive", "business developer", "prospección", "negociación", "preventa", "vendedor"],
+        "critical_skills": ["ventas b2b", "prospección", "crm", "negociación comercial", "cierre de ventas", "pipeline comercial", "cuenta clave", "gestión de cartera"]
+    },
+    "CUSTOMER_OPERATIONS": {
+        "name": "Customer Experience & Operaciones",
+        "icon": "📦",
+        "keywords": ["customer experience", "cx", "atención al cliente", "operaciones comerciales", "soporte usuarios", "logística", "comex", "comercio exterior", "supply chain", "despacho", "depósito", "aduana"],
+        "critical_skills": ["customer experience", "atención al cliente", "comercio exterior", "logística", "resolución de reclamos", "zendesk", "crm", "aduana", "supply chain"]
     },
     "HR_PEOPLE": {
         "name": "Gestión Humana & People",
         "icon": "👥",
-        "keywords": ["rrhh", "recursos humanos", "people", "talento", "reclutamiento", "selección", "gestión humana", "nómina"],
-        "critical_skills": ["reclutamiento", "selección", "gestión humana", "people analytics", "nómina", "evaluación de desempeño", "clima laboral"]
+        "keywords": ["rrhh", "recursos humanos", "people", "talento", "reclutamiento", "selección", "gestión humana", "nómina", "búsquedas it", "clima laboral"],
+        "critical_skills": ["reclutamiento", "selección", "gestión humana", "people analytics", "nómina", "evaluación de desempeño", "clima laboral", "entrevistas"]
     },
-    "IT_SUPPORT_INFRA": {
-        "name": "Soporte TI & Infraestructura",
-        "icon": "🛠️",
-        "keywords": ["soporte", "it", "ti", "infraestructura", "redes", "help desk", "mesa de ayuda", "hardware", "técnico", "servidores", "sysadmin", "linux"],
-        "critical_skills": ["linux", "redes", "cisco", "hardware", "active directory", "soporte técnico", "help desk", "mesa de ayuda", "tcp/ip", "antivirus", "mantenimiento"]
-    },
-    "SOFTWARE_DEV": {
+    "SOFTWARE_ENGINEERING": {
         "name": "Desarrollo de Software",
         "icon": "💻",
-        "keywords": ["developer", "software", "programador", "backend", "frontend", "fullstack", "desarrollo", "código", "dev", "programación"],
-        "critical_skills": ["javascript", "react", "node", "java", "c#", ".net", "python dev", "git", "apis", "backend", "frontend", "docker", "typescript"]
+        "keywords": ["developer", "software", "programador", "backend", "frontend", "fullstack", "desarrollo", "código", "dev", "programación", "react", "node", "java", "qa", "tester"],
+        "critical_skills": ["javascript", "react", "node", "java", "c#", ".net", "python dev", "git", "apis", "backend", "frontend", "docker", "typescript", "qa automation"]
     },
     "CYBERSECURITY": {
         "name": "Ciberseguridad & Auditoría IT",
         "icon": "🔒",
-        "keywords": ["ciberseguridad", "seguridad de la información", "auditoría it", "iso 27001", "vulnerabilidades", "pentesting", "infosec", "soc"],
+        "keywords": ["ciberseguridad", "seguridad de la información", "auditoría it", "iso 27001", "vulnerabilidades", "pentesting", "infosec", "soc", "siem"],
         "critical_skills": ["ciberseguridad", "firewalls", "iso 27001", "pentesting", "vulnerabilidades", "seguridad de la información", "soc", "siem", "auditoría de sistemas"]
     },
-    "OPERATIONS_LOG": {
-        "name": "Operaciones & Logística",
-        "icon": "📦",
-        "keywords": ["operaciones", "logística", "comercio exterior", "supply chain", "cadena de suministro", "depósito", "despacho", "stock", "comex", "customer experience"],
-        "critical_skills": ["comercio exterior", "logística", "cadena de suministro", "aduana", "stock", "inventario", "despacho", "importaciones", "customer experience"]
+    "IT_INFRA_SUPPORT": {
+        "name": "Soporte TI & Infraestructura",
+        "icon": "🛠️",
+        "keywords": ["soporte", "it", "ti", "infraestructura", "redes", "help desk", "mesa de ayuda", "hardware", "técnico", "servidores", "sysadmin", "linux", "cisco", "cableado"],
+        "critical_skills": ["linux", "redes", "cisco", "hardware", "active directory", "soporte técnico", "help desk", "mesa de ayuda", "tcp/ip", "antivirus", "mantenimiento"]
     },
-    "HEALTH_CARE_OTHER": {
-        "name": "Salud, Educación & Otros Oficios",
+    "HEALTH_MEDICAL": {
+        "name": "Salud, Medicina & Terapias Clínicas",
         "icon": "🏥",
         "keywords": [
             "fonoaudiología", "fonoaudiólogo", "fonoaudióloga", "fonoaudiologo", "fonoaudiologa",
-            "médico", "médica", "medicina", "enfermería", "enfermero", "enfermera", "salud",
-            "psicología", "psicólogo", "psicóloga", "docente", "profesor", "profesora",
-            "maestro", "maestra", "educador", "educadora", "odontología", "fisioterapia",
-            "terapeuta", "nutrición", "veterinaria", "agrónomo", "agronomía", "ganado", "consignatario",
-            "abogado", "abogada", "legal", "notarial", "cocinero", "chef", "gastronomía",
-            "limpieza", "seguridad", "vigilante", "chofer", "peón", "construcción", "electricista",
-            "mecánico", "teletón", "clínica", "hospital", "pediatría"
+            "médico", "médica", "medicina", "enfermería", "enfermero", "enfermera", "salud", "clínica", "hospital",
+            "psicología", "psicólogo", "psicóloga", "odontología", "fisioterapia", "kinesiología",
+            "terapeuta", "nutrición", "veterinaria", "pediatría", "teletón", "sanatorio", "farmacéutico"
         ],
-        "critical_skills": [
-            "fonoaudiología", "medicina", "enfermería", "terapia", "docencia", "psicología",
-            "diagnóstico clínico", "atención a pacientes", "derecho", "veterinaria"
-        ]
+        "critical_skills": ["fonoaudiología", "medicina", "enfermería", "terapia clínica", "diagnóstico médico", "atención de pacientes"]
+    },
+    "INDUSTRIAL_PLANT": {
+        "name": "Planta Industrial, Fábricas & Oficios",
+        "icon": "🏭",
+        "keywords": [
+            "jefe de planta", "jefa de planta", "planta y proyectos", "ingeniero de planta", "mantenimiento industrial",
+            "producción industrial", "fábrica", "operario", "tornero", "soldador", "electromecánico", "mecánico",
+            "obra", "construcción", "electricista", "peón", "chofer", "vigilante", "limpieza", "seguridad física"
+        ],
+        "critical_skills": ["ingeniería de planta", "mantenimiento industrial", "seguridad industrial", "operaciones de fábrica"]
+    },
+    "EDUCATION_TEACHING": {
+        "name": "Docencia & Educación Escolar",
+        "icon": "🎓",
+        "keywords": [
+            "docente", "profesor", "profesora", "maestro", "maestra", "educador", "educadora", "colegio", "liceo", "escuela", "pedagogía", "docencia inglés"
+        ],
+        "critical_skills": ["docencia", "pedagogía", "planificación escolar", "didáctica"]
+    },
+    "LEGAL_NOTARIAL": {
+        "name": "Legal, Abogacía & Notarial",
+        "icon": "⚖️",
+        "keywords": ["abogado", "abogada", "notarial", "escribano", "escribana", "procurador", "procuradora", "derecho corporativo", "litigios", "juzgados"],
+        "critical_skills": ["derecho", "legislación", "redacción contractual", "procuración", "trámites judiciales"]
     }
 }
 
@@ -151,53 +174,89 @@ def detect_modality(desc: str) -> Tuple[str, str]:
     return "Presencial", "presential"
 
 def detect_seniority(title: str, desc: str) -> str:
-    """Returns seniority tier: Trainee, Junior, Semi-Senior, Senior"""
+    """
+    Returns seniority tier: Pasantía, Trainee, Junior, Semi-Senior, Senior, Jefatura, Gerencia
+    """
     text = f"{title} {desc}".lower()
-    if any(k in text for k in ["trainee", "pasante", "pasantía", "pasantia", "estudiante", "practicante"]):
-        return "Trainee"
-    if any(k in text for k in ["senior", "sr.", "sr ", "lead", "gerente", "líder"]):
+    t_low = title.lower()
+
+    if any(k in t_low for k in ["gerente", "gerenta", "gerencia", "director", "directora", "vp", "chief", "head of"]):
+        return "Gerencia"
+    if any(k in t_low for k in ["jefe", "jefa", "jefatura", "supervisor de planta", "responsable de planta", "lead of", "jefe de planta"]):
+        return "Jefatura"
+    if any(k in t_low for k in ["senior", "sr.", "sr ", "lead", "principal", "arquitecto"]):
         return "Senior"
-    if any(k in text for k in ["semi senior", "ssr", "semi-senior"]):
+    if any(k in t_low for k in ["semi senior", "ssr", "semi-senior"]):
         return "Semi-Senior"
+    if any(k in text for k in ["pasantía", "pasantia", "pasante", "becario", "becaria"]):
+        return "Pasantía"
+    if any(k in text for k in ["trainee", "practicante", "estudiante"]):
+        return "Trainee"
     return "Junior"
+
+def detect_location(title: str, desc: str, raw_location: str = "") -> str:
+    """Normalizes location across Uruguay."""
+    text = f"{title} {desc} {raw_location}".lower()
+    if "ciudad de la costa" in text or "canelones" in text or "costa urbana" in text:
+        return "Ciudad de la Costa / Canelones"
+    if "maldonado" in text or "punta del este" in text:
+        return "Maldonado / Punta del Este"
+    if "colonia" in text or "colonia del sacramento" in text:
+        return "Colonia"
+    if "remoto" in text or "remote" in text or "todo uruguay" in text or "teletrabajo" in text:
+        return "Remoto (Nacional)"
+    if any(d in text for d in ["salto", "paysandú", "rivera", "tacuarembó", "durazno", "soriano", "rocha", "san josé"]):
+        return "Interior"
+    return "Montevideo"
 
 def detect_domain(title: str, desc: str, sector: str = "") -> Tuple[str, str, List[str]]:
     """
-    Classifies the role into one of the 9 professional domains and extracts critical skills.
+    Classifies the role into one of the 14 professional disciplines and extracts critical skills.
     Returns: (domain_key, domain_label, critical_skills)
     """
-    # Strict check for non-business / healthcare / education titles
     title_lower = title.lower()
-    non_affinity_clues = [
-        "fonoaudiól", "fonoaudiol", "médic", "medic", "enfermer", "psicól", "psicol",
-        "docente", "profesor", "profesora", "maestro", "maestra", "odontól", "terapeut",
-        "fisioterap", "nutricion", "nutrición", "veterinari", "agrónom", "agronom", "consignatario",
-        "abogado", "abogada", "notarial", "cociner", "chef", "limpieza", "vigilante", "chofer",
-        "peón", "construcción", "electricista", "mecánico", "teletón"
-    ]
-    if any(k in title_lower for k in non_affinity_clues):
-        return "HEALTH_CARE_OTHER", DOMAINS["HEALTH_CARE_OTHER"]["name"], []
-
     text = f"{title} {desc} {sector}".lower()
-    best_dom = "HEALTH_CARE_OTHER"
+
+    # 1. Immediate Non-Affinity Interceptors
+    if any(k in title_lower for k in [
+        "fonoaudiól", "fonoaudiol", "médic", "medic", "enfermer", "psicól", "psicol",
+        "odontól", "terapeut", "fisioterap", "nutricion", "nutrición", "veterinari", "pediatr"
+    ]):
+        return "HEALTH_MEDICAL", DOMAINS["HEALTH_MEDICAL"]["name"], []
+
+    if any(k in title_lower for k in [
+        "jefe de planta", "jefa de planta", "planta y proyectos", "ingeniero de planta",
+        "mantenimiento industrial", "producción industrial", "fábrica", "operario",
+        "tornero", "soldador", "electromecánic", "mecánico", "chofer", "vigilante"
+    ]):
+        return "INDUSTRIAL_PLANT", DOMAINS["INDUSTRIAL_PLANT"]["name"], []
+
+    if any(k in title_lower for k in ["docente", "profesor", "profesora", "maestro", "maestra", "educador", "educadora"]):
+        return "EDUCATION_TEACHING", DOMAINS["EDUCATION_TEACHING"]["name"], []
+
+    if any(k in title_lower for k in ["abogado", "abogada", "escribano", "escribana", "notarial"]):
+        return "LEGAL_NOTARIAL", DOMAINS["LEGAL_NOTARIAL"]["name"], []
+
+    # 2. Keyword Scoring across all Disciplines
+    best_dom = "BUSINESS_MANAGEMENT"
     best_score = 0
 
     for dom_key, dom_obj in DOMAINS.items():
         score = 0
         for kw in dom_obj["keywords"]:
             if has_word(text, kw):
-                score += (8 if kw in title.lower() else 2)
+                score += (9 if kw in title_lower else 2)
         for cs in dom_obj["critical_skills"]:
             if has_word(text, cs):
-                score += 3
+                score += 4
         if score > best_score:
             best_score = score
             best_dom = dom_key
 
+    # If zero scores match, classify into broad other rather than assuming Business Admin
     if best_score == 0:
-        return "HEALTH_CARE_OTHER", DOMAINS["HEALTH_CARE_OTHER"]["name"], []
+        return "INDUSTRIAL_PLANT", DOMAINS["INDUSTRIAL_PLANT"]["name"], []
 
-    # Extract detected critical skills
     detected_critical = []
     for cs in DOMAINS[best_dom]["critical_skills"]:
         if has_word(text, cs):
@@ -208,15 +267,15 @@ def detect_domain(title: str, desc: str, sector: str = "") -> Tuple[str, str, Li
 def detect_sector(company: str, title: str, domain: str) -> Tuple[str, str]:
     """Maps to broad UI sector category."""
     text = f"{company} {title}".lower()
-    if any(k in text for k in ["banco", "itau", "santander", "cash", "financ", "banca", "aebu"]):
+    if any(k in text for k in ["banco", "itau", "santander", "cash", "financ", "banca", "aebu", "scotiabank", "heritage"]):
         return "bank", "Banca, Finanzas & Crédito"
     if any(k in text for k in ["cpa", "pwc", "ey", "deloitte", "kpmg", "advice", "consult", "prota", "manpower"]):
         return "consulting", "Consultoría & Procesos"
     if any(k in text for k in ["tech", "software", "dlocal", "mercado libre", "meli", "pento", "quantik", "sistemas", "dev"]):
         return "tech", "Tecnología & Software"
-    if any(k in text for k in ["farmashop", "bestseller", "retail", "supermercado", "consumo"]):
+    if any(k in text for k in ["farmashop", "bestseller", "retail", "supermercado", "consumo", "pluxee"]):
         return "retail", "Retail & Consumo Masivo"
-    if domain in ["DATA_BI", "SOFTWARE_DEV"]:
+    if domain in ["DATA_ANALYTICS_BI", "SOFTWARE_ENGINEERING"]:
         return "tech", "Tecnología & Analítica"
     return "consulting", "Administración & Servicios"
 
@@ -238,8 +297,11 @@ def normalize_job_post(raw_post: JobPost) -> JobPost:
     raw_post.modality = mod_lbl
     raw_post.modality_key = mod_k
 
-    # Seniority
+    # Seniority & Level
     raw_post.seniority = detect_seniority(raw_post.title, clean_desc)
+
+    # Location
+    raw_post.location = detect_location(raw_post.title, clean_desc, raw_post.location)
 
     # Domain & Critical Skills
     dom_k, dom_lbl, crit_skills = detect_domain(raw_post.title, clean_desc, raw_post.sector)
@@ -255,23 +317,25 @@ def normalize_job_post(raw_post: JobPost) -> JobPost:
 
     # Career Fit Default
     if not raw_post.career_fit:
-        if dom_k == "DATA_BI":
+        if dom_k == "DATA_ANALYTICS_BI":
             raw_post.career_fit = ["Negocios Digitales", "Ciencia de Datos", "Estadística", "Sistemas", "Economía"]
         elif dom_k == "FINANCE_BANKING":
             raw_post.career_fit = ["Contabilidad", "Ciencias Económicas", "Administración", "Finanzas"]
-        elif dom_k == "IT_SUPPORT_INFRA":
+        elif dom_k == "IT_INFRA_SUPPORT":
             raw_post.career_fit = ["Sistemas", "Redes & Telecomunicaciones", "Tecnología"]
-        elif dom_k == "SOFTWARE_DEV":
+        elif dom_k == "SOFTWARE_ENGINEERING":
             raw_post.career_fit = ["Ingeniería en Sistemas", "Computación", "Desarrollo de Software"]
-        elif dom_k == "MARKETING_ECOMM":
+        elif dom_k == "MARKETING_GROWTH":
             raw_post.career_fit = ["Marketing Digital", "Negocios Digitales", "Comunicación"]
-        else:
+        elif dom_k == "BUSINESS_MANAGEMENT":
             raw_post.career_fit = ["Administración", "Negocios Digitales", "Ciencias Económicas"]
+        else:
+            raw_post.career_fit = [dom_lbl]
 
     # Requirements structure
     if not raw_post.requirements or not raw_post.requirements.get("mandatory"):
         mandatory = [f"Disponibilidad {h_key}"]
-        if raw_post.seniority in ["Trainee", "Junior"]:
+        if raw_post.seniority in ["Pasantía", "Trainee", "Junior"]:
             mandatory.append("Estudiante universitario o recién egresado")
         if crit_skills:
             mandatory.append(f"Conocimientos en {crit_skills[0].upper()}")

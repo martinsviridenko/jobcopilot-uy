@@ -510,6 +510,40 @@
                     </div>
 
                     <div class="filter-group">
+                        <div class="filter-header-label">Disciplina Profesional (14 Áreas)</div>
+                        <select id="filterDiscipline" class="sort-select" style="width: 100%;" onchange="applyFilters()">
+                            <option value="ALL">Todas las disciplinas</option>
+                            <option value="DATA_ANALYTICS_BI">📊 Datos, BI & Analítica</option>
+                            <option value="BUSINESS_MANAGEMENT">💼 Negocios & Gestión</option>
+                            <option value="MARKETING_GROWTH">🚀 Marketing & E-commerce</option>
+                            <option value="FINANCE_BANKING">🏦 Finanzas, Banca & Contabilidad</option>
+                            <option value="SALES_COMMERCIAL">🤝 Ventas B2B & Comercial</option>
+                            <option value="CUSTOMER_OPERATIONS">📦 Operaciones & Logística</option>
+                            <option value="HR_PEOPLE">👥 Gestión Humana & People</option>
+                            <option value="SOFTWARE_ENGINEERING">💻 Desarrollo de Software</option>
+                            <option value="CYBERSECURITY">🔒 Ciberseguridad & Auditoría IT</option>
+                            <option value="IT_INFRA_SUPPORT">🛠️ Soporte TI & Infraestructura</option>
+                            <option value="HEALTH_MEDICAL">🏥 Salud & Medicina (No compatible)</option>
+                            <option value="INDUSTRIAL_PLANT">🏭 Planta Industrial (No compatible)</option>
+                            <option value="EDUCATION_TEACHING">🎓 Docencia & Educación (No compatible)</option>
+                            <option value="LEGAL_NOTARIAL">⚖️ Legal & Notarial (No compatible)</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <div class="filter-header-label">Ubicación (Uruguay)</div>
+                        <select id="filterLocation" class="sort-select" style="width: 100%;" onchange="applyFilters()">
+                            <option value="ALL">Todas las ubicaciones</option>
+                            <option value="Montevideo">Montevideo</option>
+                            <option value="Ciudad de la Costa / Canelones">Ciudad de la Costa / Canelones</option>
+                            <option value="Maldonado / Punta del Este">Maldonado / Punta del Este</option>
+                            <option value="Colonia">Colonia</option>
+                            <option value="Remoto">Remoto (Nacional)</option>
+                            <option value="Interior">Interior del País</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
                         <div class="filter-header-label">Modalidad</div>
 
                         <label class="check-pill" for="modHybrid">
@@ -554,13 +588,17 @@
                         </button>
                     </div>
 
-                    <div style="display: flex; gap: 10px; align-items: center;">
+                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                        <label style="font-size: 12px; color: #FCA5A5; display: flex; align-items: center; gap: 6px; cursor: pointer; background: rgba(239, 68, 68, 0.12); padding: 5px 10px; border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.25);">
+                            <input type="checkbox" id="hideIncompatibleToggle" checked onchange="applyFilters()">
+                            <span>🚫 Ocultar incompatibles / descartadas</span>
+                        </label>
                         <label style="font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; cursor: pointer;">
                             <input type="checkbox" id="hideAppliedToggle" onchange="applyFilters()">
                             <span>Ocultar ya postuladas</span>
                         </label>
                         <select class="sort-select" id="sortSelect" onchange="applyFilters()">
-                            <option value="worth_it">Ordenar por: "Vale la pena para vos" (AI)</option>
+                            <option value="worth_it">Ordenar por: "Probabilidad de Entrevista" (AI)</option>
                             <option value="score_desc">Mayor coincidencia técnica</option>
                             <option value="hours_asc">Menor carga horaria (4h primero)</option>
                         </select>
@@ -814,7 +852,7 @@
                 modalityKey: "presential",
                 sector: "consulting",
                 sectorLabel: "Administración & Soporte",
-                domain: "BUSINESS_ADMIN",
+                domain: "BUSINESS_MANAGEMENT",
                 domainLabel: "Negocios & Administración",
                 criticalSkills: ["facturación", "gestión administrativa", "archivo", "planillas"],
                 location: "Montevideo Centro",
@@ -840,7 +878,7 @@
                 modalityKey: "hybrid",
                 sector: "retail",
                 sectorLabel: "Retail & Moda Global",
-                domain: "DATA_BI",
+                domain: "DATA_ANALYTICS_BI",
                 domainLabel: "Datos & Soporte Comercial",
                 criticalSkills: ["bases de datos", "reportes", "excel", "e-commerce"],
                 location: "Montevideo",
@@ -866,7 +904,7 @@
                 modalityKey: "presential",
                 sector: "univ",
                 sectorLabel: "Bolsa Universitaria",
-                domain: "BUSINESS_ADMIN",
+                domain: "BUSINESS_MANAGEMENT",
                 domainLabel: "Convenios Universitarios ORT",
                 criticalSkills: ["estudiante ort", "negocios digitales", "analítica"],
                 location: "Montevideo",
@@ -894,7 +932,7 @@
                 modalityKey: "hybrid",
                 sector: "tech",
                 sectorLabel: "Tecnología & IA",
-                domain: "SOFTWARE_DEV",
+                domain: "SOFTWARE_ENGINEERING",
                 domainLabel: "Desarrollo de Software & IA",
                 criticalSkills: ["javascript", "react", "apis", "git", "backend"],
                 location: "Montevideo",
@@ -920,7 +958,7 @@
                 modalityKey: "hybrid",
                 sector: "tech",
                 sectorLabel: "Telecomunicaciones & Software",
-                domain: "IT_SUPPORT_INFRA",
+                domain: "IT_INFRA_SUPPORT",
                 domainLabel: "Soporte TI & Infraestructura",
                 criticalSkills: ["linux", "redes", "hardware", "active directory", "soporte técnico", "mesa de ayuda"],
                 location: "Montevideo",
@@ -972,7 +1010,7 @@
                 modalityKey: "hybrid",
                 sector: "tech",
                 sectorLabel: "E-commerce & Fintech",
-                domain: "OPERATIONS_LOG",
+                domain: "CUSTOMER_OPERATIONS",
                 domainLabel: "Operaciones & Customer Experience",
                 criticalSkills: ["customer experience", "atención al cliente", "e-commerce", "resolución de incidentes"],
                 location: "WTC Montevideo",
@@ -998,7 +1036,7 @@
                 modalityKey: "presential",
                 sector: "retail",
                 sectorLabel: "Servicios Corporativos",
-                domain: "OPERATIONS_LOG",
+                domain: "CUSTOMER_OPERATIONS",
                 domainLabel: "Operaciones & Servicios",
                 criticalSkills: ["atención telefónica", "gestión operativa", "resolución de incidentes"],
                 location: "Montevideo",
@@ -1076,7 +1114,7 @@
                 modalityKey: "hybrid",
                 sector: "tech",
                 sectorLabel: "Fintech & Pagos Globales",
-                domain: "DATA_BI",
+                domain: "DATA_ANALYTICS_BI",
                 domainLabel: "Fintech, Pagos & Analítica",
                 criticalSkills: ["sql", "pagos digitales", "fintech", "análisis de datos"],
                 location: "Montevideo",
@@ -1104,7 +1142,7 @@
                 modalityKey: "hybrid",
                 sector: "bank",
                 sectorLabel: "Finanzas & Crédito",
-                domain: "DATA_BI",
+                domain: "DATA_ANALYTICS_BI",
                 domainLabel: "Datos & Inteligencia Comercial",
                 criticalSkills: ["sql", "power bi", "python"],
                 location: "Montevideo",
@@ -1130,7 +1168,7 @@
                 modalityKey: "hybrid",
                 sector: "retail",
                 sectorLabel: "Retail Farmacéutico",
-                domain: "DATA_BI",
+                domain: "DATA_ANALYTICS_BI",
                 domainLabel: "People Analytics & BI",
                 criticalSkills: ["power bi", "sql", "kpis", "people analytics", "dashboards"],
                 location: "Montevideo",
@@ -1156,7 +1194,7 @@
                 modalityKey: "hybrid",
                 sector: "consulting",
                 sectorLabel: "Consultoría & Procesos",
-                domain: "BUSINESS_ADMIN",
+                domain: "BUSINESS_MANAGEMENT",
                 domainLabel: "Consultoría de Negocios & Procesos",
                 criticalSkills: ["análisis de procesos", "relevamiento", "banca", "metodologías ágiles"],
                 location: "Montevideo",
@@ -1182,7 +1220,7 @@
                 modalityKey: "hybrid",
                 sector: "consulting",
                 sectorLabel: "Consultoría & Banca",
-                domain: "BUSINESS_ADMIN",
+                domain: "BUSINESS_MANAGEMENT",
                 domainLabel: "Consultoría Tecnológica & Banca",
                 criticalSkills: ["testing funcional", "software bancario", "relevamiento", "ciencias económicas"],
                 location: "Montevideo",
@@ -1208,7 +1246,7 @@
                 modalityKey: "presential",
                 sector: "consulting",
                 sectorLabel: "Consultoría & ERP",
-                domain: "BUSINESS_ADMIN",
+                domain: "BUSINESS_MANAGEMENT",
                 domainLabel: "Consultoría ERP & Procesos",
                 criticalSkills: ["erp", "parametrización", "relevamiento funcional", "procesos contables"],
                 location: "Montevideo",
@@ -1234,7 +1272,7 @@
                 modalityKey: "presential",
                 sector: "tech",
                 sectorLabel: "Tecnología Corporativa",
-                domain: "MARKETING_ECOMM",
+                domain: "MARKETING_GROWTH",
                 domainLabel: "Comercial B2B & Negocios Tech",
                 criticalSkills: ["ventas b2b", "negociación", "propuestas comerciales", "prospección"],
                 location: "Montevideo",
@@ -1547,211 +1585,344 @@
         // MOTOR DE EVALUACIÓN SEMÁNTICA JERÁRQUICA v2 (JobCopilot Engine)
         // =========================================================================
 
+
+        // 14 Disciplinas Profesionales Sincronizadas
         const DOMAINS = {
-            DATA_BI: {
-                id: "DATA_BI",
+            DATA_ANALYTICS_BI: {
+                id: "DATA_ANALYTICS_BI",
                 name: "Datos, BI & Analítica",
                 icon: "📊",
-                keywords: ["data", "datos", "bi", "business intelligence", "sql", "power bi", "tableau", "analítica", "analytics", "looker", "etl", "dax", "modelado", "ciencia de datos"],
+                keywords: ["data", "datos", "bi", "business intelligence", "sql", "power bi", "tableau", "analítica", "analytics", "looker", "etl", "dax", "modelado", "ciencia de datos", "big data", "data warehouse"],
                 criticalSkills: ["sql", "power bi", "tableau", "python", "dax", "looker", "r", "modelado de datos", "etl", "data warehouse", "estadística", "visualización", "dashboards"]
             },
-            BUSINESS_ADMIN: {
-                id: "BUSINESS_ADMIN",
-                name: "Negocios & Administración",
+            BUSINESS_MANAGEMENT: {
+                id: "BUSINESS_MANAGEMENT",
+                name: "Negocios & Gestión Corporativa",
                 icon: "💼",
-                keywords: ["administración", "negocios", "gestión", "procesos", "business", "administrativo", "consultoría", "control de gestión", "facturación", "erp"],
-                criticalSkills: ["facturación", "erp", "control de gestión", "flujo de caja", "gestión administrativa", "mejora de procesos", "organización", "sap", "relevamiento"]
+                keywords: ["administración", "negocios", "gestión", "procesos", "business", "administrativo", "consultoría", "control de gestión", "facturación", "erp", "reorganización", "organización y métodos"],
+                criticalSkills: ["facturación", "erp", "control de gestión", "flujo de caja", "gestión administrativa", "mejora de procesos", "organización", "sap", "relevamiento", "excel avanzado"]
+            },
+            MARKETING_GROWTH: {
+                id: "MARKETING_GROWTH",
+                name: "Marketing Digital & E-commerce",
+                icon: "🚀",
+                keywords: ["marketing", "e-commerce", "ecommerce", "digital", "growth", "redes", "publicidad", "ads", "seo", "sem", "medios", "content", "community manager", "branding", "pauta"],
+                criticalSkills: ["meta ads", "google ads", "seo", "sem", "e-commerce", "shopify", "growth marketing", "crm", "google analytics", "campañas", "content strategy"]
             },
             FINANCE_BANKING: {
                 id: "FINANCE_BANKING",
                 name: "Finanzas, Banca & Contabilidad",
                 icon: "🏦",
-                keywords: ["finanzas", "financiero", "contable", "contabilidad", "banco", "banca", "auditoría", "tax", "impuestos", "crédito", "tesorería"],
+                keywords: ["finanzas", "financiero", "contable", "contabilidad", "banco", "banca", "auditoría", "tax", "impuestos", "crédito", "tesorería", "liquidación", "balance"],
                 criticalSkills: ["contabilidad", "conciliaciones", "niif", "impuestos", "tax", "auditoría contable", "asientos contables", "finanzas corporativas", "balance", "servicios bancarios"]
             },
-            MARKETING_ECOMM: {
-                id: "MARKETING_ECOMM",
-                name: "Marketing Digital & E-commerce",
-                icon: "🚀",
-                keywords: ["marketing", "e-commerce", "digital", "growth", "redes", "publicidad", "ads", "seo", "sem", "medios", "content", "ventas b2b"],
-                criticalSkills: ["meta ads", "google ads", "seo", "sem", "e-commerce", "shopify", "growth marketing", "crm", "google analytics", "campañas", "ventas b2b"]
+            SALES_COMMERCIAL: {
+                id: "SALES_COMMERCIAL",
+                name: "Ventas B2B & Comercial",
+                icon: "🤝",
+                keywords: ["ventas", "comercial", "b2b", "ejecutivo de cuentas", "account executive", "business developer", "prospección", "negociación", "preventa", "vendedor"],
+                criticalSkills: ["ventas b2b", "prospección", "crm", "negociación comercial", "cierre de ventas", "pipeline comercial", "cuenta clave", "gestión de cartera"]
+            },
+            CUSTOMER_OPERATIONS: {
+                id: "CUSTOMER_OPERATIONS",
+                name: "Customer Experience & Operaciones",
+                icon: "📦",
+                keywords: ["customer experience", "cx", "atención al cliente", "operaciones comerciales", "soporte usuarios", "logística", "comex", "comercio exterior", "supply chain", "despacho", "depósito", "aduana"],
+                criticalSkills: ["customer experience", "atención al cliente", "comercio exterior", "logística", "resolución de reclamos", "zendesk", "crm", "aduana", "supply chain"]
             },
             HR_PEOPLE: {
                 id: "HR_PEOPLE",
                 name: "Gestión Humana & People",
                 icon: "👥",
-                keywords: ["rrhh", "recursos humanos", "people", "talento", "reclutamiento", "selección", "gestión humana", "nómina"],
-                criticalSkills: ["reclutamiento", "selección", "gestión humana", "people analytics", "nómina", "evaluación de desempeño", "clima laboral"]
+                keywords: ["rrhh", "recursos humanos", "people", "talento", "reclutamiento", "selección", "gestión humana", "nómina", "búsquedas it", "clima laboral"],
+                criticalSkills: ["reclutamiento", "selección", "gestión humana", "people analytics", "nómina", "evaluación de desempeño", "clima laboral", "entrevistas"]
             },
-            IT_SUPPORT_INFRA: {
-                id: "IT_SUPPORT_INFRA",
-                name: "Soporte TI & Infraestructura",
-                icon: "🛠️",
-                keywords: ["soporte", "it", "ti", "infraestructura", "redes", "help desk", "mesa de ayuda", "hardware", "técnico", "servidores", "sysadmin", "linux"],
-                criticalSkills: ["linux", "redes", "cisco", "hardware", "active directory", "soporte técnico", "help desk", "mesa de ayuda", "tcp/ip", "antivirus", "mantenimiento"]
-            },
-            SOFTWARE_DEV: {
-                id: "SOFTWARE_DEV",
+            SOFTWARE_ENGINEERING: {
+                id: "SOFTWARE_ENGINEERING",
                 name: "Desarrollo de Software",
                 icon: "💻",
-                keywords: ["developer", "software", "programador", "backend", "frontend", "fullstack", "desarrollo", "código", "dev", "programación"],
-                criticalSkills: ["javascript", "react", "node", "java", "c#", ".net", "python dev", "git", "apis", "backend", "frontend", "docker", "typescript"]
+                keywords: ["developer", "software", "programador", "backend", "frontend", "fullstack", "desarrollo", "código", "dev", "programación", "react", "node", "java", "qa", "tester"],
+                criticalSkills: ["javascript", "react", "node", "java", "c#", ".net", "python dev", "git", "apis", "backend", "frontend", "docker", "typescript", "qa automation"]
             },
             CYBERSECURITY: {
                 id: "CYBERSECURITY",
                 name: "Ciberseguridad & Auditoría IT",
                 icon: "🔒",
-                keywords: ["ciberseguridad", "seguridad de la información", "auditoría it", "iso 27001", "vulnerabilidades", "pentesting", "infosec", "soc"],
+                keywords: ["ciberseguridad", "seguridad de la información", "auditoría it", "iso 27001", "vulnerabilidades", "pentesting", "infosec", "soc", "siem"],
                 criticalSkills: ["ciberseguridad", "firewalls", "iso 27001", "pentesting", "vulnerabilidades", "seguridad de la información", "soc", "siem", "auditoría de sistemas"]
             },
-            OPERATIONS_LOG: {
-                id: "OPERATIONS_LOG",
-                name: "Operaciones & Logística",
-                icon: "📦",
-                keywords: ["operaciones", "logística", "comercio exterior", "supply chain", "cadena de suministro", "depósito", "despacho", "stock", "comex", "customer experience"],
-                criticalSkills: ["comercio exterior", "logística", "cadena de suministro", "aduana", "stock", "inventario", "despacho", "importaciones", "customer experience"]
+            IT_INFRA_SUPPORT: {
+                id: "IT_INFRA_SUPPORT",
+                name: "Soporte TI & Infraestructura",
+                icon: "🛠️",
+                keywords: ["soporte", "it", "ti", "infraestructura", "redes", "help desk", "mesa de ayuda", "hardware", "técnico", "servidores", "sysadmin", "linux", "cisco", "cableado"],
+                criticalSkills: ["linux", "redes", "cisco", "hardware", "active directory", "soporte técnico", "help desk", "mesa de ayuda", "tcp/ip", "antivirus", "mantenimiento"]
             },
-            HEALTH_CARE_OTHER: {
-                id: "HEALTH_CARE_OTHER",
-                name: "Salud, Educación & Otros Oficios",
+            HEALTH_MEDICAL: {
+                id: "HEALTH_MEDICAL",
+                name: "Salud, Medicina & Terapias Clínicas",
                 icon: "🏥",
                 keywords: [
                     "fonoaudiología", "fonoaudiólogo", "fonoaudióloga", "fonoaudiologo", "fonoaudiologa",
-                    "médico", "médica", "medicina", "enfermería", "enfermero", "enfermera", "salud",
-                    "psicología", "psicólogo", "psicóloga", "docente", "profesor", "profesora", "inglés docente",
-                    "maestro", "maestra", "educador", "educadora", "odontología", "fisioterapia",
-                    "terapeuta", "nutrición", "veterinaria", "agrónomo", "agronomía", "ganado", "consignatario",
-                    "abogado", "abogada", "legal", "notarial", "cocinero", "chef", "gastronomía",
-                    "limpieza", "seguridad", "vigilante", "chofer", "peón", "construcción", "electricista",
-                    "mecánico", "teletón", "clínica", "hospital", "pediatría"
+                    "médico", "médica", "medicina", "enfermería", "enfermero", "enfermera", "salud", "clínica", "hospital",
+                    "psicología", "psicólogo", "psicóloga", "odontología", "fisioterapia", "kinesiología",
+                    "terapeuta", "nutrición", "veterinaria", "pediatría", "teletón", "sanatorio", "farmacéutico"
                 ],
-                criticalSkills: [
-                    "fonoaudiología", "medicina", "enfermería", "terapia", "docencia", "psicología",
-                    "diagnóstico clínico", "atención a pacientes", "derecho", "veterinaria"
-                ]
+                criticalSkills: ["fonoaudiología", "medicina", "enfermería", "terapia clínica", "diagnóstico médico", "atención de pacientes"]
+            },
+            INDUSTRIAL_PLANT: {
+                id: "INDUSTRIAL_PLANT",
+                name: "Planta Industrial, Fábricas & Oficios",
+                icon: "🏭",
+                keywords: [
+                    "jefe de planta", "jefa de planta", "planta y proyectos", "ingeniero de planta", "mantenimiento industrial",
+                    "producción industrial", "fábrica", "operario", "tornero", "soldador", "electromecánico", "mecánico",
+                    "obra", "construcción", "electricista", "peón", "chofer", "vigilante", "limpieza", "seguridad física"
+                ],
+                criticalSkills: ["ingeniería de planta", "mantenimiento industrial", "seguridad industrial", "operaciones de fábrica"]
+            },
+            EDUCATION_TEACHING: {
+                id: "EDUCATION_TEACHING",
+                name: "Docencia & Educación Escolar",
+                icon: "🎓",
+                keywords: [
+                    "docente", "profesor", "profesora", "maestro", "maestra", "educador", "educadora", "colegio", "liceo", "escuela", "pedagogía", "docencia inglés"
+                ],
+                criticalSkills: ["docencia", "pedagogía", "planificación escolar", "didáctica"]
+            },
+            LEGAL_NOTARIAL: {
+                id: "LEGAL_NOTARIAL",
+                name: "Legal, Abogacía & Notarial",
+                icon: "⚖️",
+                keywords: ["abogado", "abogada", "notarial", "escribano", "escribana", "procurador", "procuradora", "derecho corporativo", "litigios", "juzgados"],
+                criticalSkills: ["derecho", "legislación", "redacción contractual", "procuración", "trámites judiciales"]
             }
         };
 
         const DOMAIN_AFFINITY = {
-            DATA_BI: {
-                DATA_BI: 1.0,
-                BUSINESS_ADMIN: 0.90,
+            DATA_ANALYTICS_BI: {
+                DATA_ANALYTICS_BI: 1.0,
+                BUSINESS_MANAGEMENT: 0.85,
+                MARKETING_GROWTH: 0.85,
                 FINANCE_BANKING: 0.80,
-                MARKETING_ECOMM: 0.85,
-                HR_PEOPLE: 0.70,
-                OPERATIONS_LOG: 0.65,
-                SOFTWARE_DEV: 0.50,
-                CYBERSECURITY: 0.35,
-                IT_SUPPORT_INFRA: 0.15,
-                HEALTH_CARE_OTHER: 0.05
-            },
-            BUSINESS_ADMIN: {
-                BUSINESS_ADMIN: 1.0,
-                DATA_BI: 0.85,
-                FINANCE_BANKING: 0.90,
-                MARKETING_ECOMM: 0.80,
-                HR_PEOPLE: 0.75,
-                OPERATIONS_LOG: 0.75,
-                SOFTWARE_DEV: 0.25,
+                SALES_COMMERCIAL: 0.65,
+                CUSTOMER_OPERATIONS: 0.65,
+                HR_PEOPLE: 0.60,
+                SOFTWARE_ENGINEERING: 0.45,
                 CYBERSECURITY: 0.30,
-                IT_SUPPORT_INFRA: 0.20,
-                HEALTH_CARE_OTHER: 0.05
+                IT_INFRA_SUPPORT: 0.10,
+                HEALTH_MEDICAL: 0.0,
+                INDUSTRIAL_PLANT: 0.0,
+                EDUCATION_TEACHING: 0.0,
+                LEGAL_NOTARIAL: 0.0
             },
-            MARKETING_ECOMM: {
-                MARKETING_ECOMM: 1.0,
-                DATA_BI: 0.85,
-                BUSINESS_ADMIN: 0.80,
-                OPERATIONS_LOG: 0.55,
-                HR_PEOPLE: 0.50,
+            BUSINESS_MANAGEMENT: {
+                BUSINESS_MANAGEMENT: 1.0,
+                DATA_ANALYTICS_BI: 0.85,
+                FINANCE_BANKING: 0.85,
+                MARKETING_GROWTH: 0.80,
+                SALES_COMMERCIAL: 0.80,
+                CUSTOMER_OPERATIONS: 0.80,
+                HR_PEOPLE: 0.75,
+                SOFTWARE_ENGINEERING: 0.20,
+                CYBERSECURITY: 0.20,
+                IT_INFRA_SUPPORT: 0.10,
+                HEALTH_MEDICAL: 0.0,
+                INDUSTRIAL_PLANT: 0.0,
+                EDUCATION_TEACHING: 0.0,
+                LEGAL_NOTARIAL: 0.05
+            },
+            MARKETING_GROWTH: {
+                MARKETING_GROWTH: 1.0,
+                DATA_ANALYTICS_BI: 0.85,
+                BUSINESS_MANAGEMENT: 0.80,
+                SALES_COMMERCIAL: 0.75,
+                CUSTOMER_OPERATIONS: 0.60,
+                HR_PEOPLE: 0.45,
                 FINANCE_BANKING: 0.40,
-                SOFTWARE_DEV: 0.35,
-                CYBERSECURITY: 0.15,
-                IT_SUPPORT_INFRA: 0.15,
-                HEALTH_CARE_OTHER: 0.05
+                SOFTWARE_ENGINEERING: 0.30,
+                CYBERSECURITY: 0.10,
+                IT_INFRA_SUPPORT: 0.10,
+                HEALTH_MEDICAL: 0.0,
+                INDUSTRIAL_PLANT: 0.0,
+                EDUCATION_TEACHING: 0.0,
+                LEGAL_NOTARIAL: 0.0
             },
             FINANCE_BANKING: {
                 FINANCE_BANKING: 1.0,
-                BUSINESS_ADMIN: 0.90,
-                DATA_BI: 0.80,
-                OPERATIONS_LOG: 0.60,
-                HR_PEOPLE: 0.55,
-                MARKETING_ECOMM: 0.40,
-                CYBERSECURITY: 0.35,
-                SOFTWARE_DEV: 0.20,
-                IT_SUPPORT_INFRA: 0.15,
-                HEALTH_CARE_OTHER: 0.05
+                BUSINESS_MANAGEMENT: 0.85,
+                DATA_ANALYTICS_BI: 0.80,
+                CUSTOMER_OPERATIONS: 0.65,
+                SALES_COMMERCIAL: 0.60,
+                HR_PEOPLE: 0.50,
+                MARKETING_GROWTH: 0.40,
+                LEGAL_NOTARIAL: 0.30,
+                CYBERSECURITY: 0.25,
+                SOFTWARE_ENGINEERING: 0.15,
+                IT_INFRA_SUPPORT: 0.10,
+                HEALTH_MEDICAL: 0.0,
+                INDUSTRIAL_PLANT: 0.0,
+                EDUCATION_TEACHING: 0.0
             },
-            IT_SUPPORT_INFRA: {
-                IT_SUPPORT_INFRA: 1.0,
-                CYBERSECURITY: 0.75,
-                SOFTWARE_DEV: 0.55,
-                DATA_BI: 0.20,
-                BUSINESS_ADMIN: 0.20,
-                FINANCE_BANKING: 0.15,
-                MARKETING_ECOMM: 0.15,
-                HR_PEOPLE: 0.15,
-                OPERATIONS_LOG: 0.20,
-                HEALTH_CARE_OTHER: 0.05
+            SALES_COMMERCIAL: {
+                SALES_COMMERCIAL: 1.0,
+                BUSINESS_MANAGEMENT: 0.80,
+                MARKETING_GROWTH: 0.75,
+                CUSTOMER_OPERATIONS: 0.70,
+                FINANCE_BANKING: 0.60,
+                DATA_ANALYTICS_BI: 0.60,
+                HR_PEOPLE: 0.40,
+                SOFTWARE_ENGINEERING: 0.10,
+                CYBERSECURITY: 0.10,
+                IT_INFRA_SUPPORT: 0.10,
+                HEALTH_MEDICAL: 0.0,
+                INDUSTRIAL_PLANT: 0.0,
+                EDUCATION_TEACHING: 0.0,
+                LEGAL_NOTARIAL: 0.0
             },
-            SOFTWARE_DEV: {
-                SOFTWARE_DEV: 1.0,
-                DATA_BI: 0.60,
-                CYBERSECURITY: 0.60,
-                IT_SUPPORT_INFRA: 0.50,
-                BUSINESS_ADMIN: 0.30,
-                FINANCE_BANKING: 0.25,
-                MARKETING_ECOMM: 0.35,
-                HR_PEOPLE: 0.20,
-                OPERATIONS_LOG: 0.25,
-                HEALTH_CARE_OTHER: 0.05
-            },
-            CYBERSECURITY: {
-                CYBERSECURITY: 1.0,
-                IT_SUPPORT_INFRA: 0.75,
-                SOFTWARE_DEV: 0.60,
-                DATA_BI: 0.40,
-                BUSINESS_ADMIN: 0.35,
-                FINANCE_BANKING: 0.35,
-                HR_PEOPLE: 0.15,
-                OPERATIONS_LOG: 0.20,
-                MARKETING_ECOMM: 0.15,
-                HEALTH_CARE_OTHER: 0.05
+            CUSTOMER_OPERATIONS: {
+                CUSTOMER_OPERATIONS: 1.0,
+                BUSINESS_MANAGEMENT: 0.80,
+                SALES_COMMERCIAL: 0.70,
+                DATA_ANALYTICS_BI: 0.65,
+                FINANCE_BANKING: 0.60,
+                MARKETING_GROWTH: 0.55,
+                HR_PEOPLE: 0.50,
+                SOFTWARE_ENGINEERING: 0.15,
+                CYBERSECURITY: 0.15,
+                IT_INFRA_SUPPORT: 0.15,
+                HEALTH_MEDICAL: 0.0,
+                INDUSTRIAL_PLANT: 0.0,
+                EDUCATION_TEACHING: 0.0,
+                LEGAL_NOTARIAL: 0.0
             },
             HR_PEOPLE: {
                 HR_PEOPLE: 1.0,
-                BUSINESS_ADMIN: 0.80,
-                DATA_BI: 0.70,
-                OPERATIONS_LOG: 0.50,
+                BUSINESS_MANAGEMENT: 0.75,
+                DATA_ANALYTICS_BI: 0.60,
+                CUSTOMER_OPERATIONS: 0.50,
                 FINANCE_BANKING: 0.45,
-                MARKETING_ECOMM: 0.40,
-                SOFTWARE_DEV: 0.15,
-                IT_SUPPORT_INFRA: 0.15,
-                CYBERSECURITY: 0.15,
-                HEALTH_CARE_OTHER: 0.05
+                MARKETING_GROWTH: 0.40,
+                SALES_COMMERCIAL: 0.40,
+                SOFTWARE_ENGINEERING: 0.10,
+                CYBERSECURITY: 0.10,
+                IT_INFRA_SUPPORT: 0.10,
+                HEALTH_MEDICAL: 0.0,
+                INDUSTRIAL_PLANT: 0.0,
+                EDUCATION_TEACHING: 0.0,
+                LEGAL_NOTARIAL: 0.0
             },
-            OPERATIONS_LOG: {
-                OPERATIONS_LOG: 1.0,
-                BUSINESS_ADMIN: 0.85,
-                FINANCE_BANKING: 0.65,
-                DATA_BI: 0.65,
-                MARKETING_ECOMM: 0.50,
-                HR_PEOPLE: 0.45,
-                IT_SUPPORT_INFRA: 0.25,
-                SOFTWARE_DEV: 0.20,
-                CYBERSECURITY: 0.20,
-                HEALTH_CARE_OTHER: 0.05
+            SOFTWARE_ENGINEERING: {
+                SOFTWARE_ENGINEERING: 1.0,
+                DATA_ANALYTICS_BI: 0.45,
+                CYBERSECURITY: 0.50,
+                IT_INFRA_SUPPORT: 0.40,
+                BUSINESS_MANAGEMENT: 0.20,
+                FINANCE_BANKING: 0.15,
+                MARKETING_GROWTH: 0.20,
+                SALES_COMMERCIAL: 0.10,
+                CUSTOMER_OPERATIONS: 0.15,
+                HR_PEOPLE: 0.10,
+                HEALTH_MEDICAL: 0.0,
+                INDUSTRIAL_PLANT: 0.0,
+                EDUCATION_TEACHING: 0.0,
+                LEGAL_NOTARIAL: 0.0
             },
-            HEALTH_CARE_OTHER: {
-                HEALTH_CARE_OTHER: 1.0,
-                HR_PEOPLE: 0.20,
-                BUSINESS_ADMIN: 0.10,
-                DATA_BI: 0.05,
+            CYBERSECURITY: {
+                CYBERSECURITY: 1.0,
+                IT_INFRA_SUPPORT: 0.60,
+                SOFTWARE_ENGINEERING: 0.50,
+                DATA_ANALYTICS_BI: 0.30,
+                BUSINESS_MANAGEMENT: 0.20,
+                FINANCE_BANKING: 0.25,
+                MARKETING_GROWTH: 0.10,
+                SALES_COMMERCIAL: 0.10,
+                CUSTOMER_OPERATIONS: 0.15,
+                HR_PEOPLE: 0.10,
+                HEALTH_MEDICAL: 0.0,
+                INDUSTRIAL_PLANT: 0.0,
+                EDUCATION_TEACHING: 0.0,
+                LEGAL_NOTARIAL: 0.0
+            },
+            IT_INFRA_SUPPORT: {
+                IT_INFRA_SUPPORT: 1.0,
+                CYBERSECURITY: 0.60,
+                SOFTWARE_ENGINEERING: 0.40,
+                CUSTOMER_OPERATIONS: 0.15,
+                DATA_ANALYTICS_BI: 0.10,
+                BUSINESS_MANAGEMENT: 0.10,
+                FINANCE_BANKING: 0.10,
+                MARKETING_GROWTH: 0.10,
+                SALES_COMMERCIAL: 0.10,
+                HR_PEOPLE: 0.10,
+                HEALTH_MEDICAL: 0.0,
+                INDUSTRIAL_PLANT: 0.0,
+                EDUCATION_TEACHING: 0.0,
+                LEGAL_NOTARIAL: 0.0
+            },
+            HEALTH_MEDICAL: {
+                HEALTH_MEDICAL: 1.0,
+                HR_PEOPLE: 0.05,
+                BUSINESS_MANAGEMENT: 0.0,
+                DATA_ANALYTICS_BI: 0.0,
+                FINANCE_BANKING: 0.0,
+                MARKETING_GROWTH: 0.0,
+                SALES_COMMERCIAL: 0.0,
+                CUSTOMER_OPERATIONS: 0.0,
+                SOFTWARE_ENGINEERING: 0.0,
+                CYBERSECURITY: 0.0,
+                IT_INFRA_SUPPORT: 0.0,
+                INDUSTRIAL_PLANT: 0.0,
+                EDUCATION_TEACHING: 0.0,
+                LEGAL_NOTARIAL: 0.0
+            },
+            INDUSTRIAL_PLANT: {
+                INDUSTRIAL_PLANT: 1.0,
+                CUSTOMER_OPERATIONS: 0.10,
+                BUSINESS_MANAGEMENT: 0.0,
+                DATA_ANALYTICS_BI: 0.0,
+                FINANCE_BANKING: 0.0,
+                MARKETING_GROWTH: 0.0,
+                SALES_COMMERCIAL: 0.0,
+                HR_PEOPLE: 0.0,
+                SOFTWARE_ENGINEERING: 0.0,
+                CYBERSECURITY: 0.0,
+                IT_INFRA_SUPPORT: 0.0,
+                HEALTH_MEDICAL: 0.0,
+                EDUCATION_TEACHING: 0.0,
+                LEGAL_NOTARIAL: 0.0
+            },
+            EDUCATION_TEACHING: {
+                EDUCATION_TEACHING: 1.0,
+                HR_PEOPLE: 0.05,
+                BUSINESS_MANAGEMENT: 0.0,
+                DATA_ANALYTICS_BI: 0.0,
+                FINANCE_BANKING: 0.0,
+                MARKETING_GROWTH: 0.0,
+                SALES_COMMERCIAL: 0.0,
+                CUSTOMER_OPERATIONS: 0.0,
+                SOFTWARE_ENGINEERING: 0.0,
+                CYBERSECURITY: 0.0,
+                IT_INFRA_SUPPORT: 0.0,
+                HEALTH_MEDICAL: 0.0,
+                INDUSTRIAL_PLANT: 0.0,
+                LEGAL_NOTARIAL: 0.0
+            },
+            LEGAL_NOTARIAL: {
+                LEGAL_NOTARIAL: 1.0,
+                BUSINESS_MANAGEMENT: 0.05,
                 FINANCE_BANKING: 0.05,
-                MARKETING_ECOMM: 0.05,
-                OPERATIONS_LOG: 0.10,
-                IT_SUPPORT_INFRA: 0.05,
-                SOFTWARE_DEV: 0.05,
-                CYBERSECURITY: 0.05
+                DATA_ANALYTICS_BI: 0.0,
+                MARKETING_GROWTH: 0.0,
+                SALES_COMMERCIAL: 0.0,
+                CUSTOMER_OPERATIONS: 0.0,
+                HR_PEOPLE: 0.0,
+                SOFTWARE_ENGINEERING: 0.0,
+                CYBERSECURITY: 0.0,
+                IT_INFRA_SUPPORT: 0.0,
+                HEALTH_MEDICAL: 0.0,
+                INDUSTRIAL_PLANT: 0.0,
+                EDUCATION_TEACHING: 0.0
             }
         };
 
@@ -1765,7 +1936,7 @@
         }
 
         function classifyProfileDomains(profile) {
-            if (!profile) return ["BUSINESS_ADMIN"];
+            if (!profile) return ["DATA_ANALYTICS_BI", "BUSINESS_MANAGEMENT"];
             const text = ((profile.edu || "") + " " + (profile.summary || "") + " " + (profile.skills || []).join(" "));
             const scores = {};
             for (const [domKey, domObj] of Object.entries(DOMAINS)) {
@@ -1779,7 +1950,7 @@
                 scores[domKey] = count;
             }
             const sorted = Object.entries(scores).filter(([k, v]) => v > 0).sort((a, b) => b[1] - a[1]);
-            if (sorted.length === 0) return ["BUSINESS_ADMIN"];
+            if (sorted.length === 0) return ["DATA_ANALYTICS_BI", "BUSINESS_MANAGEMENT"];
             return sorted.slice(0, 3).map(([k, v]) => k);
         }
 
@@ -1788,23 +1959,25 @@
             const descLower = (job.desc || "").toLowerCase();
             const text = (titleLower + " " + descLower + " " + (job.careerFit || []).join(" ") + " " + (job.sectorLabel || "")).toLowerCase();
 
-            // Detección estricta de áreas NO afines a Negocios / Tecnología
-            const nonAffinityTitles = [
-                "fonoaudiól", "fonoaudiol", "médic", "medic", "enfermer", "psicól", "psicol",
-                "docente", "profesor", "profesora", "inglés docente", "maestro", "maestra",
-                "educador", "educadora", "odontól", "odontol", "fisioterap", "terapeuta", "kinesiól",
-                "nutricion", "nutrición", "veterinari", "agrónom", "agronom", "consignatario",
-                "abogado", "abogada", "notarial", "cociner", "chef", "gastronom", "panadero",
-                "limpieza", "vigilante", "guardia", "chofer", "peón", "albanil", "construcción",
-                "electricista", "mecánico", "teletón", "clínica médica", "hospital", "sanatorio"
-            ];
-            if (nonAffinityTitles.some(k => titleLower.includes(k) || hasWord(descLower, k))) {
-                return "HEALTH_CARE_OTHER";
+            // 1. Interceptores directos para disciplinas ajenas (Hard Interceptors)
+            if (["fonoaudiól", "fonoaudiol", "médic", "medic", "enfermer", "psicól", "psicol", "odontól", "terapeut", "fisioterap", "nutricion", "nutrición", "veterinari", "teletón"].some(k => titleLower.includes(k) || hasWord(descLower, k))) {
+                return "HEALTH_MEDICAL";
+            }
+            if (["jefe de planta", "jefa de planta", "planta y proyectos", "ingeniero de planta", "mantenimiento industrial", "producción industrial", "tornero", "soldador", "electromecánic", "mecánico", "chofer", "peón", "vigilante"].some(k => titleLower.includes(k) || hasWord(descLower, k))) {
+                return "INDUSTRIAL_PLANT";
+            }
+            if (["docente", "profesor", "profesora", "maestro", "maestra", "educador", "educadora", "colegio", "liceo"].some(k => titleLower.includes(k) || hasWord(descLower, k))) {
+                return "EDUCATION_TEACHING";
+            }
+            if (["abogado", "abogada", "escribano", "escribana", "notarial", "procurador"].some(k => titleLower.includes(k) || hasWord(descLower, k))) {
+                return "LEGAL_NOTARIAL";
             }
 
-            if (job.domain && DOMAINS[job.domain] && job.domain !== "BUSINESS_ADMIN") return job.domain;
+            if (job.domain && DOMAINS[job.domain] && !["BUSINESS_ADMIN", "BUSINESS_MANAGEMENT"].includes(job.domain)) {
+                return job.domain;
+            }
 
-            let bestDom = "HEALTH_CARE_OTHER";
+            let bestDom = "BUSINESS_MANAGEMENT";
             let bestScore = 0;
 
             for (const [domKey, domObj] of Object.entries(DOMAINS)) {
@@ -1820,7 +1993,7 @@
                     bestDom = domKey;
                 }
             }
-            if (bestScore === 0) return "HEALTH_CARE_OTHER";
+            if (bestScore === 0) return "INDUSTRIAL_PLANT";
             return bestDom;
         }
 
@@ -1839,31 +2012,23 @@
         function calculateWeightedScore(job) {
             if (!userProfile) return { score: null, breakdown: null };
 
-            // 1. Clasificación de Dominios
             const userDomains = classifyProfileDomains(userProfile);
             const jobDomainKey = inferJobDomain(job);
-            const jobDomain = DOMAINS[jobDomainKey] || DOMAINS.BUSINESS_ADMIN;
+            const jobDomain = DOMAINS[jobDomainKey] || DOMAINS.BUSINESS_MANAGEMENT;
 
-            // 2. Matriz de Afinidad
-            let maxAffinity = 0.05;
+            let maxAffinity = 0.0;
             userDomains.forEach(ud => {
                 const matrixRow = DOMAIN_AFFINITY[ud] || {};
-                const aff = matrixRow[jobDomainKey] !== undefined ? matrixRow[jobDomainKey] : 0.05;
+                const aff = matrixRow[jobDomainKey] !== undefined ? matrixRow[jobDomainKey] : 0.0;
                 if (aff > maxAffinity) maxAffinity = aff;
             });
 
-            const reasonsMet = [];
-            const reasonsUnmet = [];
-
-            // 3. Extracción de Requisitos
             const userSkillsLower = (userProfile.skills || []).map(s => s.toLowerCase());
             const userEduLower = (userProfile.edu || "").toLowerCase();
+            const titleLower = (job.title || "").toLowerCase();
+            const descLower = (job.desc || "").toLowerCase();
 
             const jobCriticalRequired = inferCriticalSkills(job, jobDomainKey).map(s => s.toLowerCase());
-            const jobMandatory = (job.requirements && job.requirements.mandatory) || [];
-            const jobDesirable = (job.requirements && job.requirements.desirable) || [];
-
-            // Detectar coincidencias críticas
             const criticalMet = [];
             const criticalMissing = [];
             jobCriticalRequired.forEach(cs => {
@@ -1872,113 +2037,166 @@
                 else criticalMissing.push(cs);
             });
 
-            // Detectar habilidades transversales
-            const transversalMet = [];
-            TRANSVERSAL_SKILLS.forEach(ts => {
-                const reqByJob = [...jobMandatory, ...jobDesirable].some(r => r.toLowerCase().includes(ts));
-                const hasUser = userSkillsLower.some(us => us.includes(ts)) || (ts.includes("inglés") && (userProfile.lang || "").length > 0);
-                if (reqByJob && hasUser) {
-                    transversalMet.push(ts);
-                }
-            });
+            const reasonsMet = [];
+            const reasonsUnmet = [];
+            const scoreBoosters = [];
+            const scorePenalties = [];
 
-            // Filtros de horario activos en el navegador
-            const wants4h = typeof document !== 'undefined' && document.getElementById('filter4h') ? document.getElementById('filter4h').checked : true;
-            const wants6h = typeof document !== 'undefined' && document.getElementById('filter6h') ? document.getElementById('filter6h').checked : true;
-            const wants8h = typeof document !== 'undefined' && document.getElementById('filter8h') ? document.getElementById('filter8h').checked : false;
+            // =========================================================================
+            // COMPUERTAS DE DESCARTE (RECRUITER COMPATIBILITY GATES)
+            // =========================================================================
 
-            // 4. PUERTA DE DESCARTE (DEALBREAKER GATE)
-            const isDomainIncompatible = maxAffinity < 0.35 || jobDomainKey === "HEALTH_CARE_OTHER";
-            const isTechnicalRole = ["IT_SUPPORT_INFRA", "SOFTWARE_DEV", "CYBERSECURITY"].includes(jobDomainKey);
-            const missingAllCritical = jobCriticalRequired.length > 0 && criticalMet.length === 0;
-
-            if (isDomainIncompatible || (isTechnicalRole && missingAllCritical && maxAffinity < 0.50)) {
-                if (jobDomainKey === "HEALTH_CARE_OTHER") {
-                    reasonsUnmet.push(`Incompatibilidad Total de Carrera: El aviso pertenece a ${jobDomain.name}, fuera del espectro de Negocios Digitales, Administración y Datos.`);
-                } else {
-                    reasonsUnmet.push(`Incompatibilidad de Dominio: El puesto requiere especialización técnica en ${jobDomain.name} (${jobCriticalRequired.slice(0, 3).join(", ") || "área técnica"}).`);
-                }
-                if (criticalMissing.length > 0) {
-                    reasonsUnmet.push(`Competencias troncales faltantes: ${criticalMissing.slice(0, 3).join(", ")}.`);
-                }
-                reasonsMet.push(`Vacante identificada y descartada por incompatibilidad de perfil.`);
-
-                const cappedScore = Math.min(12, Math.max(4, Math.round(maxAffinity * 100)));
+            // 1. COMPUERTA DE PROFESIÓN / CARRERA TRONCAL
+            const nonCompatibleDomains = ["HEALTH_MEDICAL", "INDUSTRIAL_PLANT", "EDUCATION_TEACHING", "LEGAL_NOTARIAL"];
+            if (nonCompatibleDomains.includes(jobDomainKey) || maxAffinity === 0) {
                 return {
-                    score: cappedScore,
+                    score: 4,
+                    domain: jobDomain,
+                    affinity: 0,
+                    met: ["Vacante identificada por el Copiloto"],
+                    unmet: [`Incompatibilidad Profesional Absoluta: La vacante es para ${jobDomain.name}, fuera del espectro de Negocios Digitales, Analítica y Gestión.`],
+                    isDealbreaker: true,
+                    dealbreakerReason: `Incompatibilidad Profesional: ${jobDomain.name}`,
+                    whyAppeared: `Descarte de entrada: Esta vacante pertenece al área de ${jobDomain.name}. No cumple con el umbral mínimo para un estudiante de Negocios/Datos.`,
+                    criticalMet: [],
+                    criticalMissing: jobCriticalRequired.slice(0, 3),
+                    scoreBoosters: [],
+                    scorePenalties: ["Carrera profesional incompatible (-95%)"],
+                    probability: "Descarte Automático",
+                    verdict: `Descarte definitivo: Puesto de ${jobDomain.name}. No guarda relación con tu carrera académica.`
+                };
+            }
+
+            // 2. COMPUERTA DE JERARQUÍA / SENIORITY
+            const isLeadershipTitle = ["jefe", "jefa", "gerente", "gerenta", "director", "directora", "head of", "lead"].some(w => hasWord(titleLower, w));
+            const isSeniorRole = (job.seniority && ["Jefatura", "Gerencia", "Director", "Senior"].includes(job.seniority)) || isLeadershipTitle;
+            const isCandidateStudentOrJunior = userEduLower.includes("estudiante") || userEduLower.includes("licenciatura") || (userProfile.experienceYears || 0) <= 2;
+
+            if (isSeniorRole && isCandidateStudentOrJunior) {
+                return {
+                    score: 8,
                     domain: jobDomain,
                     affinity: maxAffinity,
-                    met: reasonsMet,
-                    unmet: reasonsUnmet,
+                    met: criticalMet.map(c => `Conocimiento general: ${c.toUpperCase()}`),
+                    unmet: [`Incompatibilidad de Jerarquía: Puesto de nivel ${job.seniority || "Jefatura / Gerencia"} que demanda años de trayectoria y liderazgo de equipos.`],
                     isDealbreaker: true,
+                    dealbreakerReason: `Jerarquía Incompatible: ${job.seniority || "Liderazgo / Jefatura"}`,
+                    whyAppeared: `Descarte por nivel: Es una posición de jerarquía senior/jefatura no apta para estudiantes universitarios en formación inicial.`,
                     criticalMet: criticalMet,
-                    criticalMissing: criticalMissing,
-                    probability: "Descarte",
-                    verdict: `Descarte definitivo: La vacante es para ${jobDomain.name} y no guarda ninguna relación con tu formación académica.`
+                    criticalMissing: ["Trayectoria comprobable de liderazgo", "Años de experiencia senior"],
+                    scoreBoosters: [],
+                    scorePenalties: ["Exigencia de jefatura / gerencia (-85%)"],
+                    probability: "Descarte Jerárquico",
+                    verdict: `Descarte por nivel: El rol demanda liderazgo senior o jefatura, incompatible con tu etapa universitaria actual.`
+                };
             }
 
-            // 5. CÁLCULO PONDERADO PROFUNDO (DOMINIOS COMPATIBLES)
+            // 3. COMPUERTA TÉCNICA (IT Infraestructura / Hardware)
+            const isInfraRole = jobDomainKey === "IT_INFRA_SUPPORT";
+            if (isInfraRole && criticalMet.length === 0) {
+                return {
+                    score: 10,
+                    domain: jobDomain,
+                    affinity: maxAffinity,
+                    met: ["Conocimientos generales de ofimática"],
+                    unmet: [`Incompatibilidad Técnica: Rol de ${jobDomain.name} que exige hardware, redes, servidores o Linux`],
+                    isDealbreaker: true,
+                    dealbreakerReason: `Especialidad Técnica TI Ajena: Falta formación en Redes / Hardware`,
+                    whyAppeared: `Descarte técnico: Requiere soporte de redes/hardware físico, no analítica de negocios ni BI.`,
+                    criticalMet: [],
+                    criticalMissing: jobCriticalRequired.slice(0, 3),
+                    scoreBoosters: [],
+                    scorePenalties: ["Falta de formación troncal en redes / sysadmin (-80%)"],
+                    probability: "Descarte Técnico",
+                    verdict: `Descarte técnico: Se buscan perfiles de soporte físico / infraestructura de redes, no de gestión analítica.`
+                };
+            }
+
+            // =========================================================================
+            // CÁLCULO PONDERADO DE PROBABILIDAD DE ENTREVISTA (ROLES COMPATIBLES)
+            // =========================================================================
             let score = 0;
 
-            // Componente A: Afinidad de Dominio (35 pts)
-            score += (maxAffinity * 35);
-            reasonsMet.push(`Alineación de carrera: ${jobDomain.name} (${Math.round(maxAffinity * 100)}% afinidad)`);
+            // Componente 1: Afinidad de Dominio (35 pts)
+            const domainPoints = maxAffinity * 35;
+            score += domainPoints;
+            reasonsMet.push(`Disciplina afín: ${jobDomain.name} (${Math.round(maxAffinity * 100)}% de alineación)`);
+            if (maxAffinity >= 0.85) scoreBoosters.push("Afinidad central con Negocios y Datos (+30 pts)");
 
-            // Componente B: Habilidades Críticas del Puesto (35 pts)
+            // Componente 2: Habilidades Críticas del Puesto (30 pts)
             if (jobCriticalRequired.length > 0) {
                 const critRatio = criticalMet.length / jobCriticalRequired.length;
-                score += (critRatio * 35);
-                criticalMet.forEach(c => reasonsMet.push(`Herramienta clave del puesto: ${c.toUpperCase()}`));
-                criticalMissing.forEach(c => reasonsUnmet.push(`Requisito técnico no explicitado en CV: ${c}`));
+                score += (critRatio * 30);
+                criticalMet.forEach(c => {
+                    reasonsMet.push(`Herramienta clave dominada: ${c.toUpperCase()}`);
+                    scoreBoosters.push(`Dominio de ${c.toUpperCase()}`);
+                });
+                criticalMissing.forEach(c => {
+                    reasonsUnmet.push(`Requisito técnico no explicitado en CV: ${c}`);
+                    scorePenalties.push(`Brecha en ${c}`);
+                });
             } else {
-                score += 28;
+                score += 25;
+                reasonsMet.push("Requisitos técnicos generales accesibles para tu nivel");
             }
 
-            // Componente C: Habilidades Transversales & Idiomas (12 pts)
+            // Componente 3: Habilidades Transversales & Idioma (15 pts)
             let transScore = 0;
-            if (transversalMet.length > 0) {
-                transScore += Math.min(8, transversalMet.length * 4);
-                reasonsMet.push(`Competencias complementarias: ${transversalMet.join(", ")}`);
+            const hasExcel = userSkillsLower.some(s => s.includes("excel"));
+            if (hasExcel) {
+                transScore += 6;
+                reasonsMet.push("Manejo avanzado de Excel para análisis de datos");
             }
-            const lang = (userProfile.lang || "").toLowerCase();
-            if (lang.includes("b2") || lang.includes("c1") || lang.includes("avanzado") || lang.includes("first")) {
+            const userLang = (userProfile.lang || "").toLowerCase();
+            if (userLang.includes("b2") || userLang.includes("first") || userLang.includes("c1") || userLang.includes("avanzado")) {
+                transScore += 9;
+                reasonsMet.push("Inglés profesional acreditado (Cambridge B2 First)");
+                scoreBoosters.push("Inglés B2 acreditado");
+            } else {
                 transScore += 4;
-                reasonsMet.push(`Inglés profesional acreditado`);
             }
-            score += Math.min(12, transScore);
+            score += Math.min(15, transScore);
 
-            // Componente D: Carrera / Formación Académica (10 pts)
-            const matchesCareerFit = (job.careerFit || []).some(cf => userEduLower.includes(cf.toLowerCase()));
-            if (matchesCareerFit) {
+            // Componente 4: Etapa de Carrera & Formación Universitaria (10 pts)
+            const isStudentFriendly = (job.seniority && ["Pasantía", "Trainee", "Junior"].includes(job.seniority)) || ["pasantía", "pasantia", "estudiante", "trainee", "junior", "sin experiencia"].some(k => titleLower.includes(k) || descLower.includes(k));
+            if (isStudentFriendly) {
                 score += 10;
-                reasonsMet.push(`Carrera solicitada explícitamente (${job.careerFit[0]})`);
+                reasonsMet.push("Nivel ideal para estudiantes: Pasantía o posición Junior");
+                scoreBoosters.push("Vacante orientada a estudiantes universitarios");
             } else {
                 score += 5;
             }
 
-            // Componente E: Compatibilidad Horaria (8 pts)
+            // Componente 5: Compatibilidad Horaria (10 pts)
+            const wants4h = typeof document !== 'undefined' && document.getElementById('filter4h') ? document.getElementById('filter4h').checked : true;
+            const wants6h = typeof document !== 'undefined' && document.getElementById('filter6h') ? document.getElementById('filter6h').checked : true;
+            const wants8h = typeof document !== 'undefined' && document.getElementById('filter8h') ? document.getElementById('filter8h').checked : false;
+
             const matchesCurrentHours = (job.hours === '4h' && wants4h) || (job.hours === '6h' && wants6h) || (job.hours === '8h' && wants8h);
             if (matchesCurrentHours) {
-                score += 8;
-                reasonsMet.push(`Régimen compatible: ${job.hoursLabel}`);
+                score += 10;
+                reasonsMet.push(`Horario compatible: ${job.hoursLabel}`);
+                scoreBoosters.push("Jornada flexible / bancaria apta para cursada");
             } else {
-                score += 2;
+                score += 4;
                 reasonsUnmet.push(`Jornada laboral: ${job.hoursLabel}`);
             }
 
-            const finalScore = Math.min(96, Math.max(32, Math.round(score)));
+            const finalScore = Math.min(98, Math.max(25, Math.round(score)));
             let prob = "Baja";
             let verdict = "";
             if (finalScore >= 80) {
                 prob = "Alta";
-                verdict = "¡Excelente oportunidad! Tu formación y herramientas se ajustan al perfil buscado.";
+                verdict = "¡Excelente oportunidad! Tu formación, manejo de herramientas y disponibilidad coinciden de lleno con el perfil buscado.";
             } else if (finalScore >= 60) {
                 prob = "Media";
-                verdict = "Postulación viable. Tenés buen encaje general, pero convendría destacar proyectos prácticos en tu carta.";
+                verdict = "Postulación viable. Tenés buen encaje general; destacá proyectos universitarios con SQL/Power BI en tu carta.";
             } else {
                 prob = "Baja";
                 verdict = "Puesto con brechas técnicas o incompatibilidad de jornada frente a tu perfil actual.";
             }
+
+            const whyAppeared = `Recomendado por su alineación con tus conocimientos de ${criticalMet.slice(0, 2).map(s => s.toUpperCase()).join(" y ") || "gestión de negocios"} en un entorno ${job.sectorLabel || "corporativo"}.`;
 
             return {
                 score: finalScore,
@@ -1987,14 +2205,17 @@
                 met: reasonsMet,
                 unmet: reasonsUnmet,
                 isDealbreaker: false,
+                dealbreakerReason: null,
+                whyAppeared: whyAppeared,
                 criticalMet: criticalMet,
                 criticalMissing: criticalMissing,
+                scoreBoosters: scoreBoosters,
+                scorePenalties: scorePenalties,
                 probability: prob,
                 verdict: verdict
             };
         }
-
-        // =========================================================================
+// =========================================================================
         // RENDER DE VISTAS (Feed & Kanban)
         // =========================================================================
         function renderAll() {
@@ -2038,9 +2259,29 @@
             const modPresential = document.getElementById('modPresential').checked;
             const hideApplied = document.getElementById('hideAppliedToggle').checked;
 
+            const hideIncompatible = document.getElementById('hideIncompatibleToggle') ? document.getElementById('hideIncompatibleToggle').checked : true;
+            const filterDiscipline = document.getElementById('filterDiscipline') ? document.getElementById('filterDiscipline').value : 'ALL';
+            const filterLocation = document.getElementById('filterLocation') ? document.getElementById('filterLocation').value : 'ALL';
+
             let filtered = JOBS_DB.filter(job => {
                 if (currentView === 'favorites' && !favoriteIds.includes(job.id)) return false;
                 if (hideApplied && appliedData[job.id]) return false;
+
+                // Compuerta de compatibilidad en el Feed
+                const analysis = calculateWeightedScore(job);
+                if (hideIncompatible && analysis && analysis.isDealbreaker) return false;
+
+                // Filtro por disciplina
+                if (filterDiscipline !== 'ALL') {
+                    const jobDom = inferJobDomain(job);
+                    if (jobDom !== filterDiscipline) return false;
+                }
+
+                // Filtro por ubicación
+                if (filterLocation !== 'ALL') {
+                    const jobLoc = (job.location || "").toLowerCase();
+                    if (!jobLoc.includes(filterLocation.toLowerCase())) return false;
+                }
 
                 if (job.hours === '4h' && !wants4h) return false;
                 if (job.hours === '6h' && !wants6h) return false;
@@ -2145,35 +2386,51 @@
 
                     <p class="job-quote-desc">${job.desc}</p>
 
-                    <!-- Diagnóstico del Copiloto -->
+                    <!-- Diagnóstico del Reclutador JobCopilot (X-Ray) -->
                     <div class="copilot-evaluation-box">
                         <div class="copilot-verdict-header">
-                            <span>🤖 Diagnóstico de tu Copiloto:</span>
+                            <span>🤖 Evaluación del Reclutador JobCopilot:</span>
                             <span style="font-weight: 700; color: ${analysis.isDealbreaker ? '#F87171' : analysis.score >= 80 ? '#34D399' : '#FCD34D'};">
                                 ${analysis.verdict || (analysis.score >= 80 ? '¡Muy recomendada!' : 'Postulación moderada')}
                             </span>
                         </div>
+
                         ${analysis.isDealbreaker ? `
                             <div style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 8px; padding: 9px 12px; font-size: 11.5px; color: #FCA5A5; display: flex; align-items: flex-start; gap: 8px;">
-                                <span style="font-size: 15px;">⚠️</span>
+                                <span style="font-size: 16px;">🛑</span>
                                 <div>
-                                    <strong>Incompatibilidad de Dominio:</strong>
-                                    <span>Este rol exige competencias troncales de <em>${analysis.domain ? analysis.domain.name : 'especialidad técnica'}</em> (${analysis.criticalMissing && analysis.criticalMissing.length ? analysis.criticalMissing.slice(0, 3).join(', ') : 'conocimientos troncales'}) que no forman parte de tu formación actual.</span>
+                                    <strong style="display: block; margin-bottom: 2px;">Compuerta de Descarte Activada:</strong>
+                                    <span>${analysis.dealbreakerReason || 'Incompatibilidad detectada con tu formación o nivel de experiencia.'}</span>
                                 </div>
                             </div>
-                        ` : ''}
+                        ` : `
+                            <div style="background: rgba(56, 189, 248, 0.08); border-left: 3px solid var(--primary); padding: 7px 10px; border-radius: 0 6px 6px 0; font-size: 11.5px; color: #CBD5E1;">
+                                💡 <strong>Por qué te conviene:</strong> ${analysis.whyAppeared}
+                            </div>
+                        `}
+
                         <div class="breakdown-row">
                             <div class="pros-col">
-                                <strong>Lo que cumplís:</strong>
+                                <strong>Requisitos que cumplís:</strong>
                                 <ul>
                                     ${(analysis.met || job.requirements.mandatory).slice(0, 3).map(m => `<li>${m}</li>`).join('')}
                                 </ul>
+                                ${analysis.scoreBoosters && analysis.scoreBoosters.length > 0 ? `
+                                    <div style="margin-top: 6px; font-size: 10.5px; color: #34D399;">
+                                        ⚡ Factores a favor: ${analysis.scoreBoosters.slice(0, 2).join(' • ')}
+                                    </div>
+                                ` : ''}
                             </div>
                             <div class="cons-col">
-                                <strong>Puntos de atención / Brechas:</strong>
+                                <strong>${analysis.isDealbreaker ? 'Motivos del descarte:' : 'Puntos de atención / Brechas:'}</strong>
                                 <ul>
                                     ${(analysis.unmet && analysis.unmet.length ? analysis.unmet : ["Sin brechas críticas detectadas"]).slice(0, 3).map(u => `<li>${u}</li>`).join('')}
                                 </ul>
+                                ${analysis.scorePenalties && analysis.scorePenalties.length > 0 ? `
+                                    <div style="margin-top: 6px; font-size: 10.5px; color: #FB923C;">
+                                        ⚠️ Penalizaciones: ${analysis.scorePenalties.slice(0, 2).join(' • ')}
+                                    </div>
+                                ` : ''}
                             </div>
                         </div>
                     </div>
@@ -2403,10 +2660,10 @@
                     </div>
                     <p style="margin-top: 6px; color: #E2E8F0; line-height: 1.5;">
                         ${analysis.isDealbreaker ? 
-                            `<strong>No te conviene postularte.</strong> Los reclutadores de TI/Infraestructura descartan de entrada candidatos que no cuenten con las competencias troncales técnicas (${(analysis.criticalMissing || []).slice(0, 3).join(', ') || 'redes, linux, soporte'}). Postularte aquí sería desgastante y con nula probabilidad de éxito.` : 
+                            `<strong>No te conviene postularte.</strong> ${analysis.dealbreakerReason || 'Descarte por incompatibilidad'}. Los reclutadores de esta área descartan de plano postulaciones sin la formación técnica requerida (${(analysis.criticalMissing || []).slice(0, 3).join(', ') || 'competencias troncales'}). Postularte representaría un descarte cantado con bajo retorno de tu tiempo.` : 
                             analysis.score >= 80 ? 
                             `<strong>¡Postulación altamente recomendada!</strong> Tu perfil de Negocios Digitales y analítica coincide de lleno con los requerimientos clave de la empresa. Redactá una carta personalizada resaltando tu dominio de ${(analysis.criticalMet || []).join(', ') || 'datos y analítica'}.` : 
-                            `<strong>Postulación condicionada.</strong> Tenés compatibilidad general en formación y horario, pero asegurate de compensar las brechas de herramientas con una carta que demuestre tu rápida curva de aprendizaje.`
+                            `<strong>Postulación viable pero condicionada.</strong> Tenés compatibilidad general en formación y horario, pero asegurate de compensar las brechas de herramientas con una carta que demuestre tu rápida curva de aprendizaje.`
                         }
                     </p>
                     <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 12px; color: var(--text-subtle);">
