@@ -10,21 +10,33 @@ const App = {
     currentView: "feed", // 'feed' | 'kanban' | 'favorites'
 
     async init() {
+        console.log('[JobCopilot] App.init() starting...');
+
         // 1. Cargar perfil guardado (sin forzar perfiles predeterminados)
         this.profile = StorageManager.getProfile();
         this.renderProfileCard();
 
-        // 2. Inicializar manejadores de archivo y drag & drop
-        this.setupFileInput();
+        // 2. Inicializar manejadores de archivo y drag & drop (CRÍTICO)
+        try {
+            this.setupFileInput();
+        } catch (e) {
+            console.error('[JobCopilot] Error en setupFileInput:', e);
+        }
 
         // 3. Inicializar controlador de filtros desplegables
-        FilterController.init();
+        try {
+            FilterController.init();
+        } catch (e) {
+            console.error('[JobCopilot] Error en FilterController.init:', e);
+        }
 
         // 4. Cargar vacantes desde Supabase / BD de respaldo
         await this.loadJobs();
 
         // 5. Renderizado inicial
         this.applyFilters();
+
+        console.log('[JobCopilot] App.init() completed successfully');
     },
 
     getProfile() {
@@ -212,8 +224,9 @@ const App = {
         const fileInput = document.getElementById('cvFileInput');
         const dropzone = document.getElementById('dropzoneBox');
 
+        console.log('[JobCopilot] setupFileInput — fileInput:', !!fileInput, ', dropzone:', !!dropzone);
+
         if (dropzone) {
-            // Drag and drop listeners
             dropzone.addEventListener('dragover', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -231,6 +244,7 @@ const App = {
                 e.stopPropagation();
                 dropzone.classList.remove('is-dragover');
                 if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                    console.log('[JobCopilot] Archivo recibido via drag & drop:', e.dataTransfer.files[0].name);
                     this.processFile(e.dataTransfer.files[0]);
                 }
             });
@@ -238,10 +252,14 @@ const App = {
 
         if (fileInput) {
             fileInput.addEventListener('change', (e) => {
+                console.log('[JobCopilot] change event disparado en fileInput, archivos:', e.target.files ? e.target.files.length : 0);
                 if (e.target.files && e.target.files.length > 0) {
                     this.processFile(e.target.files[0]);
                 }
             });
+            console.log('[JobCopilot] Listener "change" registrado exitosamente en #cvFileInput');
+        } else {
+            console.error('[JobCopilot] CRÍTICO: No se encontró #cvFileInput en el DOM');
         }
     },
 

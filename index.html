@@ -290,9 +290,9 @@
                         <span id="cvBadgeStatus" class="cv-badge-status">Sin cargar</span>
                     </div>
 
-                    <!-- Interactive Drag and Drop Container with Native Label Trigger -->
-                    <label for="cvFileInput" class="dropzone-box" id="dropzoneBox" style="cursor: pointer; display: block;">
-                        <input type="file" id="cvFileInput" accept=".pdf,.txt" class="sr-only-file-input">
+                    <!-- CV Upload Dropzone (plain div, no label wrapper to avoid double-trigger) -->
+                    <input type="file" id="cvFileInput" accept=".pdf,.txt" class="sr-only-file-input">
+                    <div class="dropzone-box" id="dropzoneBox" style="cursor: pointer; display: block;" onclick="document.getElementById('cvFileInput').click();">
                         <div class="dropzone-icon">
                             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -304,10 +304,10 @@
                         <div class="dropzone-title" id="dropzoneTitle">Subí tu currículum vitae</div>
                         <div class="dropzone-sub" id="dropzoneSub">Hacé clic para seleccionar archivo (.pdf o .txt) o arrastralo acá</div>
                         <div class="dropzone-actions" onclick="event.stopPropagation();">
-                            <span class="btn btn-secondary btn-sm" onclick="document.getElementById('cvFileInput').click();" style="cursor: pointer;">
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); document.getElementById('cvFileInput').click();">
                                 Seleccionar archivo
-                            </span>
-                            <button type="button" class="btn btn-ghost btn-sm" id="btnOpenPasteModal" onclick="ModalsController.openPasteModal()">
+                            </button>
+                            <button type="button" class="btn btn-ghost btn-sm" id="btnOpenPasteModal" onclick="event.stopPropagation(); ModalsController.openPasteModal();">
                                 Pegar texto
                             </button>
                         </div>
@@ -315,7 +315,7 @@
                             <div class="spinner"></div>
                             <span id="cvLoaderText">Leyendo y analizando currículum...</span>
                         </div>
-                    </label>
+                    </div>
 
                     <!-- Fictitious Demo Mode -->
                     <div class="demo-trigger-wrapper">
