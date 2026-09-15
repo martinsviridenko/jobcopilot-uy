@@ -211,21 +211,8 @@ const App = {
     setupFileInput() {
         const fileInput = document.getElementById('cvFileInput');
         const dropzone = document.getElementById('dropzoneBox');
-        const btnSelectFile = document.getElementById('btnSelectFile');
-        const btnOpenPaste = document.getElementById('btnOpenPasteModal');
 
-        if (btnSelectFile && fileInput) {
-            btnSelectFile.addEventListener('click', (e) => {
-                e.stopPropagation();
-                fileInput.click();
-            });
-        }
-
-        if (dropzone && fileInput) {
-            dropzone.addEventListener('click', () => {
-                fileInput.click();
-            });
-
+        if (dropzone) {
             // Drag and drop listeners
             dropzone.addEventListener('dragover', (e) => {
                 e.preventDefault();
@@ -256,75 +243,109 @@ const App = {
                 }
             });
         }
-
-        if (btnOpenPaste) {
-            btnOpenPaste.addEventListener('click', (e) => {
-                e.stopPropagation();
-                ModalsController.openPasteModal();
-            });
-        }
     },
 
     async processFile(file) {
         if (!file) return;
 
+        console.log("[JobCopilot] Iniciando lectura de archivo:", file.name, "tipo:", file.type, "tamano:", file.size);
+
         const loader = document.getElementById('cvUploadLoader');
+        const loaderText = document.getElementById('cvLoaderText');
+        const dropTitle = document.getElementById('dropzoneTitle');
+        const dropSub = document.getElementById('dropzoneSub');
+
         if (loader) loader.style.display = 'flex';
+        if (loaderText) loaderText.innerText = "Leyendo archivo: " + file.name + "...";
 
         try {
             let extractedText = "";
 
             if (file.name.toLowerCase().endsWith(".pdf") || file.type === "application/pdf") {
-                // Extracción con PDF.js
-                try {
-                    const arrayBuffer = await file.arrayBuffer();
-                    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-                    const pdf = await loadingTask.promise;
-                    
-                    let pagesText = [];
-                    for (let i = 1; i <= pdf.numPages; i++) {
-                        const page = await pdf.getPage(i);
-                        const content = await page.getTextContent();
-                        const pageStrings = content.items.map(item => item.str).join(" ");
-                        pagesText.push(pageStrings);
+                if (loaderText) loaderText.innerText = "Extrayendo texto del PDF...";
+                
+                // Intento 1: Extracción con PDF.js (Uint8Array)
+                let pdfParsed = false;
+                if (typeof pdfjsLib !== 'undefined') {
+                    try {
+                        const arrayBuffer = await file.arrayBuffer();
+                        const typedArray = new Uint8Array(arrayBuffer);
+                        const loadingTask = pdfjsLib.getDocument({ data: typedArray });
+                        const pdf = await loadingTask.promise;
+                        
+                        let pagesText = [];
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                            const page = await pdf.getPage(i);
+                            const content = await page.getTextContent();
+                            const pageStrings = content.items.map(item => item.str).join(" ");
+                            pagesText.push(pageStrings);
+                        }
+                        extractedText = pagesText.join("\n").trim();
+                        if (extractedText.length > 30) {
+                            pdfParsed = true;
+                            console.log("[JobCopilot] Extracción exitosa con PDF.js:", extractedText.length, "caracteres");
+                        }
+                    } catch (pdfErr) {
+                        console.warn("[JobCopilot] PDF.js arrojó error:", pdfErr);
                     }
-                    extractedText = pagesText.join("\n");
-                } catch (pdfErr) {
-                    console.warn("Fallo en extracción PDF.js:", pdfErr);
-                    // Fallback a lectura de texto plano si el PDF contiene cadenas ASCII
-                    const rawStr = await file.text();
-                    extractedText = rawStr;
+                } else {
+                    console.warn("[JobCopilot] pdfjsLib no está disponible en window.");
+                }
+
+                // Intento 2: Si PDF.js no extrajo suficiente texto (ej. streams o error), buscar texto ASCII en el binario
+                if (!pdfParsed) {
+                    try {
+                        const rawContent = await file.text();
+                        // Filtrar secuencias de texto legibles
+                        const asciiMatches = rawContent.match(/[A-Za-zÀ-ÿ0-9,.:;()\/\- ]{4,}/g);
+                        if (asciiMatches && asciiMatches.length > 10) {
+                            extractedText = asciiMatches.join(" ");
+                            console.log("[JobCopilot] Extracción exitosa con fallback ASCII:", extractedText.length, "caracteres");
+                        }
+                    } catch (rawErr) {
+                        console.warn("[JobCopilot] Fallback ASCII falló:", rawErr);
+                    }
                 }
             } else {
+                // Archivo de texto plano (.txt u otro)
                 extractedText = await file.text();
             }
 
+            // Validar que se haya obtenido texto
             if (!extractedText || extractedText.trim().length < 20) {
-                alert("No se pudo extraer texto legible del archivo. Podés usar la opción 'Pegar texto' para ingresar tu CV directamente.");
+                alert("No se pudo extraer texto legible de '" + file.name + "'. Es posible que el PDF sea una imagen escaneada o esté protegido.\n\nPodés usar la opción 'Pegar texto' para ingresar tu CV directamente.");
+                ModalsController.openPasteModal();
                 if (loader) loader.style.display = 'none';
                 return;
             }
 
-            // Inferencia y actualización
+            if (loaderText) loaderText.innerText = "Analizando perfil e infiriendo competencias...";
+
+            // Inferencia y guardado
             this.profile = ProfileAnalyzer.parse(extractedText);
             StorageManager.saveProfile(this.profile);
             StorageManager.saveCvText(extractedText);
-            
+
+            if (dropTitle) dropTitle.innerText = file.name;
+            if (dropSub) dropSub.innerText = "CV procesado correctamente (" + (this.profile.skills ? this.profile.skills.length : 0) + " herramientas detectadas)";
+
             this.renderProfileCard();
             this.applyFilters();
 
-            // Resetear input para permitir subir el mismo archivo nuevamente si se edita
+            console.log("[JobCopilot] Perfil procesado con éxito:", this.profile);
+
+            // Resetear input para permitir seleccionar de nuevo si se desea
             const fileInput = document.getElementById('cvFileInput');
             if (fileInput) fileInput.value = '';
 
         } catch (err) {
-            console.error("Error al procesar el archivo:", err);
-            alert("Ocurrió un error al procesar el documento. Intentá pegando el texto directamente con el botón 'Pegar texto'.");
+            console.error("[JobCopilot] Error general al procesar el archivo:", err);
+            alert("Ocurrió un error al procesar el archivo: " + err.message + "\n\nPodés ingresar tu información con el botón 'Pegar texto'.");
+            ModalsController.openPasteModal();
         } finally {
             if (loader) loader.style.display = 'none';
         }
     },
-
     handleDirectCvText() {
         const textarea = document.getElementById('pasteCvTextarea');
         if (!textarea) return;

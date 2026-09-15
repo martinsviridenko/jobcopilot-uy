@@ -10,11 +10,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Mozilla PDF.js for In-Browser PDF Parsing -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <!-- Mozilla PDF.js v2.16.105 (Local Vendor Bundle - Same-Origin) -->
+    <script src="js/vendor/pdf.min.js"></script>
     <script>
         if (window.pdfjsLib) {
-            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'js/vendor/pdf.worker.min.js';
         }
     </script>
 
@@ -290,11 +290,9 @@
                         <span id="cvBadgeStatus" class="cv-badge-status">Sin cargar</span>
                     </div>
 
-                    <!-- Hidden native input outside label to prevent browser bubble cancellation -->
-                    <input type="file" id="cvFileInput" accept=".pdf,.txt" style="display: none;">
-
-                    <!-- Interactive Drag and Drop Container -->
-                    <div class="dropzone-box" id="dropzoneBox">
+                    <!-- Interactive Drag and Drop Container with Native Label Trigger -->
+                    <label for="cvFileInput" class="dropzone-box" id="dropzoneBox" style="cursor: pointer; display: block;">
+                        <input type="file" id="cvFileInput" accept=".pdf,.txt" class="sr-only-file-input">
                         <div class="dropzone-icon">
                             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -303,17 +301,21 @@
                                 <line x1="9" y1="15" x2="15" y2="15"></line>
                             </svg>
                         </div>
-                        <div class="dropzone-title">Subí tu currículum vitae</div>
-                        <div class="dropzone-sub">Arrastrá tu archivo (.pdf o .txt) o hacé clic para seleccionar</div>
-                        <div class="dropzone-actions">
-                            <button type="button" class="btn btn-secondary btn-sm" id="btnSelectFile">Seleccionar archivo</button>
-                            <button type="button" class="btn btn-ghost btn-sm" id="btnOpenPasteModal">Pegar texto</button>
+                        <div class="dropzone-title" id="dropzoneTitle">Subí tu currículum vitae</div>
+                        <div class="dropzone-sub" id="dropzoneSub">Hacé clic para seleccionar archivo (.pdf o .txt) o arrastralo acá</div>
+                        <div class="dropzone-actions" onclick="event.stopPropagation();">
+                            <span class="btn btn-secondary btn-sm" onclick="document.getElementById('cvFileInput').click();" style="cursor: pointer;">
+                                Seleccionar archivo
+                            </span>
+                            <button type="button" class="btn btn-ghost btn-sm" id="btnOpenPasteModal" onclick="ModalsController.openPasteModal()">
+                                Pegar texto
+                            </button>
                         </div>
                         <div id="cvUploadLoader" class="cv-loader" style="display: none;">
                             <div class="spinner"></div>
-                            <span>Procesando e infiriendo perfil...</span>
+                            <span id="cvLoaderText">Leyendo y analizando currículum...</span>
                         </div>
-                    </div>
+                    </label>
 
                     <!-- Fictitious Demo Mode -->
                     <div class="demo-trigger-wrapper">
