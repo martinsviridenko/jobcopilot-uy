@@ -66,27 +66,38 @@ class handler(BaseHTTPRequestHandler):
             seen_urls = set()
 
             for query in queries:
-                # Remotive API es gratuita, abierta y no bloquea IPs de Vercel
-                q_str = urllib.parse.quote(query.split()[0]) # Buscar solo por la primer palabra clave principal para no ser tan estricto
-                url = f"https://remotive.com/api/remote-jobs?search={q_str}&limit=5"
+                # Usar GetOnBoard API (Excelente para LATAM, Remote, Uruguay, en Español)
+                # Extraemos las palabras clave principales para que la búsqueda no sea tan restrictiva
+                q_words = query.split()
+                # Buscar por ej. "Analista datos"
+                q_str = urllib.parse.quote(" ".join(q_words[:2]))
+                url = f"https://www.getonbrd.com/api/v0/search/jobs?query={q_str}&per_page=10"
                 
                 try:
                     req = urllib.request.Request(url, headers={'User-Agent': 'JobCopilot/1.0'})
                     with urllib.request.urlopen(req, timeout=8) as response:
                         data = json.loads(response.read().decode('utf-8'))
-                        jobs = data.get('jobs', [])
-                        for job in jobs[:4]: # Tomar hasta 4 por query
-                            j_url = job.get('url')
+                        jobs = data.get('data', [])
+                        for job in jobs[:5]: # Tomar hasta 5 por query
+                            attributes = job.get('attributes', {})
+                            links = job.get('links', {})
+                            j_url = links.get('public_url')
                             if j_url and j_url not in seen_urls:
                                 seen_urls.add(j_url)
+                                
                                 # Limpiar el HTML description
-                                raw_desc = job.get('description', '')
+                                raw_desc = attributes.get('description', '') + " " + attributes.get('functions', '')
                                 soup = BeautifulSoup(raw_desc, 'html.parser')
                                 clean_text = soup.get_text(separator=' ', strip=True)
                                 
+                                title = attributes.get('title', 'Vacante')
+                                company = "Empresa Confidencial"
+                                if attributes.get('company') and attributes['company'].get('data'):
+                                    company = "GetOnBoard" # No trae el nombre directo facil, pero esta en la url
+                                
                                 all_results.append({
                                     'url': j_url,
-                                    'title': f"{job.get('title')} en {job.get('company_name')}",
+                                    'title': f"{title} en GetOnBoard",
                                     'snippet': clean_text[:200],
                                     'content': clean_text[:3000]
                                 })
@@ -97,7 +108,7 @@ class handler(BaseHTTPRequestHandler):
                     break
 
             if not all_results:
-                return self.send_error_json("La búsqueda en portales abiertos (Remotive) no arrojó resultados para esos términos. Intente con habilidades más amplias en su CV.")
+                return self.send_error_json("La búsqueda en portales regionales (GetOnBoard) no arrojó resultados para esos términos. Intente con habilidades más amplias en su CV.")
 
             self.send_response(200)
             self.send_header('Content-type', 'application/json')

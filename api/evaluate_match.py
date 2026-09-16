@@ -36,11 +36,13 @@ Compara el perfil del candidato con la vacante. No seas excesivamente estricto s
 REGLAS DE SALIDA:
 Devuelve ÚNICAMENTE un JSON válido con este esquema exacto, sin markdown extra:
 {{
-  "is_match": true/false,
+  "is_match": true o false,
   "score": 0 a 100,
   "company": "Nombre de la empresa (si se menciona) o 'Empresa Confidencial'",
   "title": "El título exacto del puesto",
-  "justification": "Una oración explicando por qué es o no es un buen match",
+  "reason": "Una oración explicando por qué es o no es un buen match",
+  "pros": ["Requisito 1 que cumple", "Requisito 2 que cumple"],
+  "cons": ["Requisito que le falta o brecha"],
   "modality": "Remoto/Presencial/Híbrido",
   "hours": "Full-time/Part-time"
 }}

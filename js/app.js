@@ -468,7 +468,10 @@ const App = {
                         modalityKey: (res.modality || "").toLowerCase().includes("remot") ? "remote" : "hybrid",
                         location: "Uruguay",
                         applyUrl: res.url || "",
-                        desc: res.justification || "Buen match según IA.",
+                        desc: res.reason || "Buen match según IA.",
+                        reason: res.reason || "Evaluado por IA",
+                        pros: res.pros || [],
+                        cons: res.cons || [],
                         source: "Web Search Agent",
                         score: res.score || 80,
                         isLinkedIn: (res.url || "").includes("linkedin")

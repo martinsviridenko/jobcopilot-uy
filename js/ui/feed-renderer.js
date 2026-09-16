@@ -23,14 +23,18 @@ class FeedRenderer {
                 evalResult = {
                     score: job.score,
                     probability: job.score >= 75 ? "Alta" : "Media",
-                    domain: { name: "Agent Match" }
+                    domain: { name: "Agent Match" },
+                    reason: job.reason || "Evaluado por IA",
+                    pros: job.pros || [],
+                    cons: job.cons || []
                 };
+                // El agente ya filtró esto, saltarse los filtros UI estrictos
+                evaluatedList.push({ job, eval: evalResult });
             } else {
                 evalResult = MatchingEngine.evaluate(job, candidateProfile);
-            }
-            
-            if (FilterController.matches(job, evalResult, filters)) {
-                evaluatedList.push({ job, eval: evalResult });
+                if (FilterController.matches(job, evalResult, filters)) {
+                    evaluatedList.push({ job, eval: evalResult });
+                }
             }
         });
 
