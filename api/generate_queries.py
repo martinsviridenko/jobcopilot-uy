@@ -48,8 +48,25 @@ CV del candidato:
 {cv_text[:3000]}
 """
 
+            # Auto-discover the correct model name (e.g. gemini-1.5-flash, gemini-2.0-flash, gemini-2.5-flash)
+            model_name = "models/gemini-1.5-flash"
+            try:
+                m_req = urllib.request.Request(f"https://generativelanguage.googleapis.com/v1beta/models?key={api_key}")
+                with urllib.request.urlopen(m_req, timeout=5) as m_res:
+                    m_data = json.loads(m_res.read().decode('utf-8'))
+                    for m in m_data.get('models', []):
+                        if 'generateContent' in m.get('supportedGenerationMethods', []) and 'flash' in m.get('name', '').lower():
+                            model_name = m.get('name')
+                            # Prefer models that don't have '8b' or similar if possible, or just break on the first good one
+                            if '8b' not in model_name:
+                                break
+            except Exception:
+                pass # Fallback to default if discovery fails
+
             # Call Gemini API
-            gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+            if not model_name.startswith('models/'):
+                model_name = f"models/{model_name}"
+            gemini_url = f"https://generativelanguage.googleapis.com/v1beta/{model_name}:generateContent?key={api_key}"
             gemini_payload = {
                 "contents": [{"parts": [{"text": prompt}]}],
                 "generationConfig": {
