@@ -66,43 +66,39 @@ class handler(BaseHTTPRequestHandler):
             all_results = []
             seen_urls = set()
 
-            with DDGS() as ddgs:
-                for query in queries:
-                    q_str = query + " (Uruguay OR remoto)"
-                    results = []
-                    try:
-                        results = list(ddgs.text(q_str, backend="lite", max_results=3))
-                        if not results:
-                            results = list(ddgs.text(q_str, backend="api", max_results=3))
-                    except Exception:
-                        pass
-                    
-                    if not results:
-                        # Fallback a Yahoo si DuckDuckGo nos bloqueó (Vercel IP)
-                        results = search_yahoo(q_str, max_results=3)
-                    
-                    for r in results:
-                        url = r.get('href')
-                        if url and url not in seen_urls:
-                            seen_urls.add(url)
-                            title, text = scrape_url(url)
-                            if text and len(text) > 100:
-                                all_results.append({
-                                    'url': url,
-                                    'title': title,
-                                    'snippet': r.get('body', ''),
-                                    'content': text
-                                })
+            for query in queries:
+                # Remotive API es gratuita, abierta y no bloquea IPs de Vercel
+                q_str = urllib.parse.quote(query.split()[0]) # Buscar solo por la primer palabra clave principal para no ser tan estricto
+                url = f"https://remotive.com/api/remote-jobs?search={q_str}&limit=5"
+                
+                try:
+                    req = urllib.request.Request(url, headers={'User-Agent': 'JobCopilot/1.0'})
+                    with urllib.request.urlopen(req, timeout=8) as response:
+                        data = json.loads(response.read().decode('utf-8'))
+                        jobs = data.get('jobs', [])
+                        for job in jobs[:4]: # Tomar hasta 4 por query
+                            j_url = job.get('url')
+                            if j_url and j_url not in seen_urls:
+                                seen_urls.add(j_url)
+                                # Limpiar el HTML description
+                                raw_desc = job.get('description', '')
+                                soup = BeautifulSoup(raw_desc, 'html.parser')
+                                clean_text = soup.get_text(separator=' ', strip=True)
                                 
-                                # Si ya tenemos 5 resultados crudos, paramos para evitar timeouts en Vercel
-                                if len(all_results) >= 5:
-                                    break
-                    if len(all_results) >= 5:
-                        break
+                                all_results.append({
+                                    'url': j_url,
+                                    'title': f"{job.get('title')} en {job.get('company_name')}",
+                                    'snippet': clean_text[:200],
+                                    'content': clean_text[:3000]
+                                })
+                except Exception:
+                    pass
+
+                if len(all_results) >= 10:
+                    break
 
             if not all_results:
-                # Si llegamos aca sin resultados, forzamos un error para ver qué pasó
-                return self.send_error_json("DDG retornó 0 resultados para las consultas.")
+                return self.send_error_json("La búsqueda en portales abiertos (Remotive) no arrojó resultados para esos términos. Intente con habilidades más amplias en su CV.")
 
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
