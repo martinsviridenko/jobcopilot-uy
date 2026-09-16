@@ -107,8 +107,51 @@ class handler(BaseHTTPRequestHandler):
                 if len(all_results) >= 10:
                     break
 
+            # ---- FUENTE 2: CPA Ferrere ATS (Jobs locales de negocios en Uruguay) ----
+            try:
+                cpa_url = "https://talento.cpaferrere.com/jobs.json"
+                req_cpa = urllib.request.Request(cpa_url, headers={'User-Agent': 'JobCopilot/1.0'})
+                # Ignorar validacion de certificados en Vercel por si acaso
+                import ssl
+                ctx = ssl.create_default_context()
+                ctx.check_hostname = False
+                ctx.verify_mode = ssl.CERT_NONE
+                
+                with urllib.request.urlopen(req_cpa, timeout=5, context=ctx) as res_cpa:
+                    cpa_data = json.loads(res_cpa.read().decode('utf-8'))
+                    cpa_jobs = cpa_data.get("items", []) if isinstance(cpa_data, dict) else (cpa_data if isinstance(cpa_data, list) else [])
+                    
+                    for job in cpa_jobs:
+                        title = job.get('title', '').lower()
+                        # Solo agregar si alguna de las queries esta en el titulo o si es muy relevante
+                        is_relevant = False
+                        for q in queries:
+                            q_words = q.lower().split()
+                            if any(w in title for w in q_words[:2] if len(w) > 3):
+                                is_relevant = True
+                                break
+                                
+                        if is_relevant:
+                            j_url = job.get('url') or job.get('apply_url')
+                            if j_url and j_url not in seen_urls:
+                                seen_urls.add(j_url)
+                                raw_desc = job.get("content_text") or job.get("content_html") or ""
+                                soup = BeautifulSoup(raw_desc, 'html.parser')
+                                clean_text = soup.get_text(separator=' ', strip=True)
+                                
+                                all_results.append({
+                                    'url': j_url,
+                                    'title': f"{job.get('title')} en CPA Ferrere",
+                                    'snippet': clean_text[:200],
+                                    'content': clean_text[:3000]
+                                })
+                                if len(all_results) >= 12:
+                                    break
+            except Exception:
+                pass
+
             if not all_results:
-                return self.send_error_json("La búsqueda en portales regionales (GetOnBoard) no arrojó resultados para esos términos. Intente con habilidades más amplias en su CV.")
+                return self.send_error_json("La búsqueda en portales regionales (GetOnBoard/CPA Ferrere) no arrojó resultados para esos términos. Intente con habilidades más amplias en su CV.")
 
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
