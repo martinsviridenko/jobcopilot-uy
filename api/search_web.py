@@ -1,7 +1,6 @@
 import json
 import urllib.request
 from http.server import BaseHTTPRequestHandler
-from duckduckgo_search import DDGS
 from bs4 import BeautifulSoup
 
 def scrape_url(url):
