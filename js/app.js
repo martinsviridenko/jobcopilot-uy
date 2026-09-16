@@ -113,16 +113,20 @@ const App = {
             addLog(`[JobCopilot] ERROR de red / excepción al conectar con Supabase: ${e.message}`);
         }
 
-        if (!jobsLoaded) {
+        // Aplicar fallback si hubo error o si la DB está vacía
+        if (this.allJobs.length === 0) {
             addLog("[JobCopilot] Iniciando rescate: Cargando FALLBACK_JOBS_DB local...");
-            if (typeof FALLBACK_JOBS_DB !== 'undefined' && FALLBACK_JOBS_DB.length > 0) {
+            if (typeof FALLBACK_JOBS_DB !== 'undefined') {
                 this.allJobs = [...FALLBACK_JOBS_DB];
                 addLog(`[JobCopilot] Rescate exitoso: Se cargaron ${this.allJobs.length} vacantes locales.`);
             } else {
-                addLog("[JobCopilot] FATAL: FALLBACK_JOBS_DB no está definido o está vacío. Total vacantes: 0.");
-                this.allJobs = [];
+                addLog("[JobCopilot] ERROR CRITICO: No se encontró FALLBACK_JOBS_DB.");
             }
         }
+        
+        // Guardar respaldo para búsquedas IA
+        this.originalJobs = [...this.allJobs];
+
         addLog(`=== FIN CARGA DE VACANTES: Total ${this.allJobs.length} ===`);
 
         const statElem = document.getElementById('statAnalyzed');
@@ -430,26 +434,38 @@ const App = {
             };
             this.renderProfileCard();
 
-            // STEP 2: Web Search
-            if (loaderText) loaderText.innerText = "3/4: Buscando vacantes activas en portales web...";
-            const sRes = await fetch('/api/search_web', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ queries: qData.queries })
+            // STEP 2: Database Search (Opción 2 - Supabase)
+            if (loaderText) loaderText.innerText = "3/4: Buscando vacantes en tu base de datos (Supabase)...";
+            
+            let matchedLocal = [];
+            (this.originalJobs || []).forEach(job => {
+                const text = (`${job.title} ${job.desc} ${job.description} ${job.company}`).toLowerCase();
+                let score = 0;
+                for (const q of qData.queries) {
+                    const terms = q.toLowerCase().split(" ").filter(t => t.length > 3);
+                    for (const t of terms) {
+                        if (text.includes(t)) score++;
+                    }
+                }
+                if (score > 0) {
+                    matchedLocal.push({ job, score });
+                }
             });
-            if (!sRes.ok) {
-                let errorMsg = "Error desconocido del servidor.";
-                try {
-                    const errJson = await sRes.json();
-                    errorMsg = errJson.error || errorMsg;
-                } catch(e) {}
-                throw new Error("Fallo en la búsqueda web. Detalles: " + errorMsg);
-            }
-            const sData = await sRes.json();
-            const rawJobs = sData.results || [];
+            
+            // Ordenar por relevancia de palabras clave y tomar el top 10 para no agotar la API de Google
+            matchedLocal.sort((a, b) => b.score - a.score);
+            matchedLocal = matchedLocal.slice(0, 10).map(m => m.job);
+
+            const rawJobs = matchedLocal.map(j => ({
+                id: j.id,
+                url: j.applyUrl || j.apply_url || "",
+                title: `${j.title} en ${j.company}`,
+                content: j.desc || j.description || j.title,
+                originalJob: j
+            }));
 
             if (rawJobs.length === 0) {
-                throw new Error("El agente completó la búsqueda pero no se encontraron ofertas recientes con esos filtros en la web.");
+                throw new Error("El agente completó la búsqueda pero no se encontraron ofertas recientes con esos filtros en tu base de datos.");
             }
 
             // STEP 3: Evaluate Match
@@ -474,25 +490,18 @@ const App = {
             
             const evResults = await Promise.all(evPromises);
             
-            evResults.forEach(res => {
+            evResults.forEach((res, index) => {
                 if (res && res.is_match) {
+                    const original = rawJobs[index].originalJob;
                     finalJobs.push({
-                        id: res.id || String(Math.random()),
-                        company: res.company || "Empresa Confidencial",
-                        title: res.title || "Vacante",
-                        hours: res.hours || "Consultar",
-                        hoursLabel: res.hours || "Consultar",
-                        modality: res.modality || "Híbrido",
-                        modalityKey: (res.modality || "").toLowerCase().includes("remot") ? "remote" : "hybrid",
-                        location: "Uruguay",
-                        applyUrl: res.url || "",
-                        desc: res.reason || "Buen match según IA.",
+                        ...original, // Conservar datos originales de la DB (company, logo, location, id, etc)
+                        desc: res.reason || original.desc || "Buen match según IA.",
                         reason: res.reason || "Evaluado por IA",
                         pros: res.pros || [],
                         cons: res.cons || [],
-                        source: "Web Search Agent",
+                        source: "Base de Datos Inteligente",
                         score: res.score || 80,
-                        isLinkedIn: (res.url || "").includes("linkedin")
+                        domain: { name: "Agent Match" } // Para bypassear filtros manuales
                     });
                 }
             });
@@ -501,7 +510,7 @@ const App = {
                 if (failedEvals === rawJobs.length) {
                     throw new Error("Todas las evaluaciones de la IA fallaron por tiempo de espera o límite de la API de Google. Por favor, reintente.");
                 } else {
-                    throw new Error(`La IA descargó ${rawJobs.length} vacantes de GetOnBoard, pero determinó que NINGUNA encajaba bien con tu CV. Trata de usar menos palabras clave en tu CV.`);
+                    throw new Error(`La IA seleccionó ${rawJobs.length} vacantes de tu base de datos, pero determinó que NINGUNA encajaba bien con tu CV. Trata de usar menos palabras clave en tu CV.`);
                 }
             }
 
