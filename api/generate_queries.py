@@ -65,7 +65,7 @@ CV del candidato:
                 method='POST'
             )
             
-            with urllib.request.urlopen(req, timeout=10) as response:
+            with urllib.request.urlopen(req, timeout=9) as response:
                 result = json.loads(response.read().decode('utf-8'))
                 text_response = result['candidates'][0]['content']['parts'][0]['text']
                 

@@ -393,16 +393,27 @@ const App = {
         try {
             // STEP 1: Generate Queries
             if (loaderText) loaderText.innerText = "2/4: IA analizando perfil y diseñando estrategia de búsqueda...";
-            const qRes = await fetch('/api/generate_queries', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ cv_text: cvText })
-            });
-            if (!qRes.ok) {
+            let qRes;
+            for (let attempt = 1; attempt <= 2; attempt++) {
+                try {
+                    qRes = await fetch('/api/generate_queries', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ cv_text: cvText })
+                    });
+                    if (qRes.ok) break;
+                } catch (e) {
+                    if (attempt === 2) throw e;
+                }
+            }
+
+            if (!qRes || !qRes.ok) {
                 let errorMsg = "Error desconocido del servidor.";
                 try {
-                    const errJson = await qRes.json();
-                    errorMsg = errJson.error || errorMsg;
+                    if (qRes) {
+                        const errJson = await qRes.json();
+                        errorMsg = errJson.error || errorMsg;
+                    }
                 } catch(e) {}
                 throw new Error("Fallo al generar consultas. Detalles: " + errorMsg);
             }
