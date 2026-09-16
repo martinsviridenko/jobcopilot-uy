@@ -398,7 +398,14 @@ const App = {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ cv_text: cvText })
             });
-            if (!qRes.ok) throw new Error("Fallo al generar consultas. (¿Falta GEMINI_API_KEY?)");
+            if (!qRes.ok) {
+                let errorMsg = "Error desconocido del servidor.";
+                try {
+                    const errJson = await qRes.json();
+                    errorMsg = errJson.error || errorMsg;
+                } catch(e) {}
+                throw new Error("Fallo al generar consultas. Detalles: " + errorMsg);
+            }
             const qData = await qRes.json();
             
             // Build temporary profile for UI
