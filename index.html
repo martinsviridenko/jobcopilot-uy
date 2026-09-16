@@ -89,11 +89,11 @@
                 <div class="dropdown-popover" id="dropLocation">
                     <div class="popover-header">Ubicación (Combinable)</div>
                     <label class="popover-option">
-                        <input type="checkbox" class="cb-loc" value="montevideo" checked onchange="FilterController.onCheckboxChange()">
+                        <input type="checkbox" class="cb-loc" value="montevideo" onchange="FilterController.onCheckboxChange()">
                         <span>Montevideo (admite Remoto)</span>
                     </label>
                     <label class="popover-option">
-                        <input type="checkbox" class="cb-loc" value="remoto" checked onchange="FilterController.onCheckboxChange()">
+                        <input type="checkbox" class="cb-loc" value="remoto" onchange="FilterController.onCheckboxChange()">
                         <span>Solo Remoto / Teletrabajo</span>
                     </label>
                     <label class="popover-option">
@@ -125,11 +125,11 @@
                 <div class="dropdown-popover" id="dropHours">
                     <div class="popover-header">Carga Horaria</div>
                     <label class="popover-option">
-                        <input type="checkbox" class="cb-hours" value="4h" checked onchange="FilterController.onCheckboxChange()">
+                        <input type="checkbox" class="cb-hours" value="4h" onchange="FilterController.onCheckboxChange()">
                         <span>4 Horas (Pasantía / Part-time)</span>
                     </label>
                     <label class="popover-option">
-                        <input type="checkbox" class="cb-hours" value="6h" checked onchange="FilterController.onCheckboxChange()">
+                        <input type="checkbox" class="cb-hours" value="6h" onchange="FilterController.onCheckboxChange()">
                         <span>6 Horas (Bancario / Estudiantil)</span>
                     </label>
                     <label class="popover-option">
@@ -197,7 +197,7 @@
                 <div class="dropdown-popover" id="dropDiscipline">
                     <div class="popover-header">Familia Profesional</div>
                     <label class="popover-option">
-                        <input type="radio" name="rbDiscipline" value="ALL" checked onchange="FilterController.onCheckboxChange()">
+                        <input type="radio" name="rbDiscipline" value="ALL" onchange="FilterController.onCheckboxChange()">
                         <span>Todas las áreas afines</span>
                     </label>
                     <label class="popover-option">
@@ -229,7 +229,7 @@
                 <div class="dropdown-popover" id="dropLang">
                     <div class="popover-header">Exigencia Idiomática</div>
                     <label class="popover-option">
-                        <input type="radio" name="rbLang" value="all" checked onchange="FilterController.onCheckboxChange()">
+                        <input type="radio" name="rbLang" value="all" onchange="FilterController.onCheckboxChange()">
                         <span>Cualquier requisito</span>
                     </label>
                     <label class="popover-option">
@@ -253,7 +253,7 @@
                 <div class="dropdown-popover" id="dropExp">
                     <div class="popover-header">Nivel de Experiencia</div>
                     <label class="popover-option">
-                        <input type="checkbox" class="cb-exp" value="junior" checked onchange="FilterController.onCheckboxChange()">
+                        <input type="checkbox" class="cb-exp" value="junior" onchange="FilterController.onCheckboxChange()">
                         <span>Estudiante / Trainee / Junior</span>
                     </label>
                     <label class="popover-option">
@@ -271,7 +271,7 @@
             <!-- Hide applied toggle -->
             <div class="toggle-hide-applied">
                 <label for="hideAppliedToggle">
-                    <input type="checkbox" id="hideAppliedToggle" onchange="App.applyFilters()">
+                    <input type="checkbox" id="hideAppliedToggle" checked onchange="App.applyFilters()">
                     <span>Ocultar ya postuladas</span>
                 </label>
             </div>

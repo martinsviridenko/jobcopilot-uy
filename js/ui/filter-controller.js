@@ -100,15 +100,11 @@ class FilterController {
     }
 
     static resetAllFilters() {
-        document.querySelectorAll('.cb-loc').forEach(cb => {
-            cb.checked = (cb.value === 'montevideo' || cb.value === 'remoto');
-        });
-        document.querySelectorAll('.cb-hours').forEach(cb => {
-            cb.checked = (cb.value === '4h' || cb.value === '6h');
-        });
+        document.querySelectorAll('.cb-loc').forEach(cb => { cb.checked = false; });
+        document.querySelectorAll('.cb-hours').forEach(cb => { cb.checked = false; });
         document.querySelectorAll('.cb-shift').forEach(cb => { cb.checked = false; });
         document.querySelectorAll('.cb-mod').forEach(cb => { cb.checked = false; });
-        document.querySelectorAll('.cb-exp').forEach(cb => { cb.checked = (cb.value === 'junior'); });
+        document.querySelectorAll('.cb-exp').forEach(cb => { cb.checked = false; });
         
         const rbDiscipline = document.querySelector('input[name="rbDiscipline"][value="ALL"]');
         if (rbDiscipline) rbDiscipline.checked = true;
