@@ -44,12 +44,15 @@ class handler(BaseHTTPRequestHandler):
 
             with DDGS() as ddgs:
                 for query in queries:
-                    # Buscar en DDG, máximo 3 resultados por query para no demorar mucho
+                    # Buscar en DDG
                     q_str = query + " (Uruguay OR remoto)"
                     try:
-                        results = list(ddgs.text(q_str, max_results=3))
+                        # Vercel datacenter IPs get blocked by DDG HTML. Try lite/api.
+                        results = list(ddgs.text(q_str, backend="lite", max_results=3))
+                        if not results:
+                            results = list(ddgs.text(q_str, backend="api", max_results=3))
                     except Exception as e:
-                        return self.send_error_json(str(e))
+                        return self.send_error_json("DDG Error: " + str(e))
                     
                     for r in results:
                         url = r.get('href')
