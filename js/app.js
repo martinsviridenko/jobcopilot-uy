@@ -457,12 +457,19 @@ const App = {
             const finalJobs = [];
             
             // Evaluate in parallel for speed, but catch errors
+            let failedEvals = 0;
             const evPromises = rawJobs.map(job => 
                 fetch('/api/evaluate_match', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ cv_text: cvText, job: job })
-                }).then(r => r.json()).catch(() => null)
+                })
+                .then(r => r.json())
+                .catch(err => {
+                    console.error("Evaluate error:", err);
+                    failedEvals++;
+                    return null;
+                })
             );
             
             const evResults = await Promise.all(evPromises);
@@ -489,6 +496,14 @@ const App = {
                     });
                 }
             });
+
+            if (finalJobs.length === 0) {
+                if (failedEvals === rawJobs.length) {
+                    throw new Error("Todas las evaluaciones de la IA fallaron por tiempo de espera o límite de la API de Google. Por favor, reintente.");
+                } else {
+                    throw new Error(`La IA descargó ${rawJobs.length} vacantes de GetOnBoard, pero determinó que NINGUNA encajaba bien con tu CV. Trata de usar menos palabras clave en tu CV.`);
+                }
+            }
 
             this.allJobs = finalJobs;
             if (dropTitle) dropTitle.innerText = fileName || "Perfil Activo";
