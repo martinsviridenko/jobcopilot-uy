@@ -13,8 +13,35 @@ const App = {
         console.log('[JobCopilot] App.init() starting...');
 
         // 1. Cargar perfil guardado (sin forzar perfiles predeterminados)
-        this.profile = StorageManager.getProfile();
+        console.log('[JobCopilot] Initializing application...');
+
+        // 1. Check Authentication (Enforce Login)
+        if (typeof Auth !== 'undefined') {
+            const session = await Auth.getSession();
+            if (!session) {
+                console.log("[JobCopilot] No session found. Redirecting to login...");
+                window.location.href = '/';
+                return;
+            }
+
+            // Try loading profile from Cloud first
+            const cloudProfile = await Auth.loadProfileFromCloud();
+            if (cloudProfile && cloudProfile.profile_data && cloudProfile.cv_text) {
+                this.profile = cloudProfile.profile_data;
+                StorageManager.saveProfile(this.profile);
+                StorageManager.saveCvText(cloudProfile.cv_text);
+                console.log("[JobCopilot] Profile loaded from Cloud.");
+            }
+        }
+
+        // 2. Fallback to LocalStorage profile
+        if (!this.profile) {
+            this.profile = StorageManager.getProfile();
+        }
+
+        // 3. Render initial views
         this.renderProfileCard();
+        this.renderKanban();
 
         // 2. Inicializar manejadores de archivo y drag & drop (CRÍTICO)
         try {
@@ -423,15 +450,23 @@ const App = {
             }
             const qData = await qRes.json();
             
-            // Build temporary profile for UI
+            // Build profile for UI
             this.profile = {
-                name: "Candidato",
+                name: fileName || "Candidato",
                 edu: qData.profile_summary || "Perfil Analizado",
                 summary: "Buscando en vivo usando: " + qData.queries.join(", "),
                 lang: "IA Agent Mode",
                 skills: [],
-                seniority: "Analizando..."
+                seniority: "Analizado"
             };
+            
+            // Persist locally and in the Cloud
+            StorageManager.saveProfile(this.profile);
+            StorageManager.saveCvText(cvText);
+            if (typeof Auth !== 'undefined') {
+                await Auth.saveProfileToCloud(cvText, this.profile);
+            }
+
             this.renderProfileCard();
 
             // STEP 2: Database Search (Opción 2 - Supabase)
@@ -539,6 +574,10 @@ const App = {
         this.profile = ProfileAnalyzer.parse(text);
         StorageManager.saveProfile(this.profile);
         StorageManager.saveCvText(text);
+        
+        if (typeof Auth !== 'undefined') {
+            Auth.saveProfileToCloud(text, this.profile).catch(console.error);
+        }
 
         this.renderProfileCard();
         this.applyFilters();
