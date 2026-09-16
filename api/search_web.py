@@ -23,6 +23,30 @@ def scrape_url(url):
     except Exception as e:
         return None, None
 
+import urllib.parse
+
+def search_yahoo(query, max_results=3):
+    url = "https://search.yahoo.com/search?p=" + urllib.parse.quote(query)
+    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'})
+    results = []
+    try:
+        with urllib.request.urlopen(req, timeout=5) as response:
+            html = response.read().decode('utf-8', errors='ignore')
+            soup = BeautifulSoup(html, 'html.parser')
+            for div in soup.find_all('div', class_='algo'):
+                title_a = div.find('h3', class_='title').find('a') if div.find('h3', class_='title') else None
+                if title_a and title_a.get('href'):
+                    results.append({
+                        'href': title_a.get('href'),
+                        'title': title_a.text,
+                        'body': div.text
+                    })
+                if len(results) >= max_results:
+                    break
+    except Exception:
+        pass
+    return results
+
 class handler(BaseHTTPRequestHandler):
     def do_POST(self):
         content_length = int(self.headers['Content-Length'])
@@ -44,15 +68,18 @@ class handler(BaseHTTPRequestHandler):
 
             with DDGS() as ddgs:
                 for query in queries:
-                    # Buscar en DDG
                     q_str = query + " (Uruguay OR remoto)"
+                    results = []
                     try:
-                        # Vercel datacenter IPs get blocked by DDG HTML. Try lite/api.
                         results = list(ddgs.text(q_str, backend="lite", max_results=3))
                         if not results:
                             results = list(ddgs.text(q_str, backend="api", max_results=3))
-                    except Exception as e:
-                        return self.send_error_json("DDG Error: " + str(e))
+                    except Exception:
+                        pass
+                    
+                    if not results:
+                        # Fallback a Yahoo si DuckDuckGo nos bloqueó (Vercel IP)
+                        results = search_yahoo(q_str, max_results=3)
                     
                     for r in results:
                         url = r.get('href')
