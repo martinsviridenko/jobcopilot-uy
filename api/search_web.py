@@ -45,8 +45,11 @@ class handler(BaseHTTPRequestHandler):
             with DDGS() as ddgs:
                 for query in queries:
                     # Buscar en DDG, máximo 3 resultados por query para no demorar mucho
-                    # Restringimos la búsqueda al último mes si es posible, o usamos términos genéricos
-                    results = list(ddgs.text(query + " (Uruguay OR remoto)", max_results=3))
+                    q_str = query + " (Uruguay OR remoto)"
+                    try:
+                        results = list(ddgs.text(q_str, max_results=3))
+                    except Exception as e:
+                        return self.send_error_json(str(e))
                     
                     for r in results:
                         url = r.get('href')
@@ -67,6 +70,10 @@ class handler(BaseHTTPRequestHandler):
                     if len(all_results) >= 5:
                         break
 
+            if not all_results:
+                # Si llegamos aca sin resultados, forzamos un error para ver qué pasó
+                return self.send_error_json("DDG retornó 0 resultados para las consultas.")
+
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
@@ -74,11 +81,14 @@ class handler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps({'results': all_results}).encode('utf-8'))
 
         except Exception as e:
-            self.send_response(500)
-            self.send_header('Content-type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+            self.send_error_json(str(e))
+
+    def send_error_json(self, msg):
+        self.send_response(500)
+        self.send_header('Content-type', 'application/json')
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.end_headers()
+        self.wfile.write(json.dumps({'error': msg}).encode('utf-8'))
 
     def do_OPTIONS(self):
         self.send_response(204)

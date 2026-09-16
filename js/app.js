@@ -426,14 +426,19 @@ const App = {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ queries: qData.queries })
             });
-            if (!sRes.ok) throw new Error("Fallo en la búsqueda web.");
+            if (!sRes.ok) {
+                let errorMsg = "Error desconocido del servidor.";
+                try {
+                    const errJson = await sRes.json();
+                    errorMsg = errJson.error || errorMsg;
+                } catch(e) {}
+                throw new Error("Fallo en la búsqueda web. Detalles: " + errorMsg);
+            }
             const sData = await sRes.json();
             const rawJobs = sData.results || [];
 
             if (rawJobs.length === 0) {
-                this.allJobs = [];
-                this.applyFilters();
-                return;
+                throw new Error("El agente completó la búsqueda pero no se encontraron ofertas recientes con esos filtros en la web.");
             }
 
             // STEP 3: Evaluate Match
