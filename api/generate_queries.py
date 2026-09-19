@@ -48,29 +48,44 @@ CV del candidato:
 {cv_text[:3000]}
 """
 
-            # Call Gemini API
-            gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key={api_key}"
-            gemini_payload = {
-                "contents": [{"parts": [{"text": prompt}]}],
-                "generationConfig": {
-                    "temperature": 0.2,
-                    "responseMimeType": "application/json"
-                }
-            }
+            # Call Gemini API with Fallbacks
+            models = ["gemini-3.6-flash", "gemini-1.5-flash"]
+            last_error = None
+            response_data = None
             
-            req = urllib.request.Request(
-                gemini_url, 
-                data=json.dumps(gemini_payload).encode('utf-8'),
-                headers={'Content-Type': 'application/json'},
-                method='POST'
-            )
+            for model_name in models:
+                try:
+                    gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+                    gemini_payload = {
+                        "contents": [{"parts": [{"text": prompt}]}],
+                        "generationConfig": {
+                            "temperature": 0.2,
+                            "response_mime_type": "application/json"
+                        }
+                    }
+                    
+                    req = urllib.request.Request(
+                        gemini_url, 
+                        data=json.dumps(gemini_payload).encode('utf-8'),
+                        headers={'Content-Type': 'application/json'},
+                        method='POST'
+                    )
+                    
+                    with urllib.request.urlopen(req, timeout=9) as response:
+                        response_data = response.read()
+                        break # Success, exit fallback loop
+                except Exception as e:
+                    last_error = e
+                    continue # Try next model
             
-            with urllib.request.urlopen(req, timeout=9) as response:
-                result = json.loads(response.read().decode('utf-8'))
-                text_response = result['candidates'][0]['content']['parts'][0]['text']
+            if response_data is None:
+                raise Exception(f"All models failed. Last error: {str(last_error)}")
+
+            result = json.loads(response_data)
+            text_response = result['candidates'][0]['content']['parts'][0]['text']
                 
-                # Ensure it's valid JSON
-                parsed_response = json.loads(text_response)
+            # Ensure it's valid JSON
+            parsed_response = json.loads(text_response)
 
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
