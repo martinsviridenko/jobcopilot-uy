@@ -2,11 +2,11 @@
  * Auth Controller - Handles Supabase Authentication and Profile Sync
  */
 
-const supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+const supabaseClient = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
 
 const Auth = {
     async register(email, password) {
-        const { data, error } = await supabase.auth.signUp({
+        const { data, error } = await supabaseClientClient.auth.signUp({
             email,
             password
         });
@@ -15,7 +15,7 @@ const Auth = {
     },
 
     async login(email, password) {
-        const { data, error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabaseClientClient.auth.signInWithPassword({
             email,
             password
         });
@@ -24,18 +24,18 @@ const Auth = {
     },
 
     async logout() {
-        const { error } = await supabase.auth.signOut();
+        const { error } = await supabaseClientClient.auth.signOut();
         if (error) throw error;
         window.location.href = '/';
     },
 
     async getSession() {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session } } = await supabaseClientClient.auth.getSession();
         return session;
     },
 
     async getUser() {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await supabaseClientClient.auth.getUser();
         return user;
     },
 
@@ -44,7 +44,7 @@ const Auth = {
         const user = await this.getUser();
         if (!user) return null;
 
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('user_profiles')
             .upsert({ 
                 user_id: user.id, 
@@ -65,7 +65,7 @@ const Auth = {
         const user = await this.getUser();
         if (!user) return null;
 
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('user_profiles')
             .select('cv_text, profile_data')
             .eq('user_id', user.id)
