@@ -5,7 +5,7 @@
  */
 
 const CONFIG = {
-    SUPABASE_URL: "https://dohskepbckuvmptptqti.supabase.co",
+    SUPABASE_URL: "https://lbxchpaoltuwpselfiwr.supabase.co",
     SUPABASE_ANON_KEY: "sb_publishable_1ztKeV9Y3UyIRnjkR6-jVg_zj7Wyrlm",
     MIN_DISPLAY_SCORE: 45, // Principio In Dubio Pro Candidato: umbral accesible (45%) para no privar al usuario de oportunidades
     STORAGE_KEYS: {
