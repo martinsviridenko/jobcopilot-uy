@@ -6,7 +6,7 @@ const supabaseClient = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.
 
 const Auth = {
     async register(email, password) {
-        const { data, error } = await supabaseClientClient.auth.signUp({
+        const { data, error } = await supabaseClient.auth.signUp({
             email,
             password
         });
@@ -15,7 +15,7 @@ const Auth = {
     },
 
     async login(email, password) {
-        const { data, error } = await supabaseClientClient.auth.signInWithPassword({
+        const { data, error } = await supabaseClient.auth.signInWithPassword({
             email,
             password
         });
@@ -24,18 +24,18 @@ const Auth = {
     },
 
     async logout() {
-        const { error } = await supabaseClientClient.auth.signOut();
+        const { error } = await supabaseClient.auth.signOut();
         if (error) throw error;
         window.location.href = '/';
     },
 
     async getSession() {
-        const { data: { session } } = await supabaseClientClient.auth.getSession();
+        const { data: { session } } = await supabaseClient.auth.getSession();
         return session;
     },
 
     async getUser() {
-        const { data: { user } } = await supabaseClientClient.auth.getUser();
+        const { data: { user } } = await supabaseClient.auth.getUser();
         return user;
     },
 
